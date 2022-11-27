@@ -1,5 +1,5 @@
 {
-  "name": "MVM_Finance",
+  "name": "mvm_finance_backend",
   "version": "1.0.0",
   "type": "module",
   "description": "Mvm Finance handling in NodeJs with Express",

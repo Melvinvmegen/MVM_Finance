@@ -1,0 +1,23 @@
+<template>
+  <v-row justify="center">
+    <v-col sm="12" md="8" lg="6" xl="4">
+      <v-card class="pa-5 mt-5">
+        <v-card-title class="headline">
+          <v-icon color="error" x-large left>mdi-alert-circle-outline</v-icon>
+          Oups ! Impossible de trouver cette page.
+        </v-card-title>
+        <v-card-text>
+          Il semble que la page que vous cherchez n'existe pas ou a été déplacée.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn raised color="primary" to="/">
+            <v-icon left>mdi-home</v-icon>
+            <span>Retourner à l'accueil</span>
+          </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-col>
+  </v-row>
+</template>

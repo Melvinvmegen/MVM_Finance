@@ -1,0 +1,16 @@
+name: Vue Continuous Integration
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test_pull_request:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: yarn install
+      - run: yarn lint
+      - run: yarn format
+      - run: yarn test:unit
+      - run: yarn build
