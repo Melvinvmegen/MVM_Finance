@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Costs {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  RevenuId  Int
+  tvaAmount Float?
+  Revenus   Revenus  @relation(fields: [RevenuId], references: [id])
+}
+
+model Credits {
+  id        Int      @id @default(autoincrement())
+  creditor  String   @db.VarChar(255)
+  reason    String?  @db.VarChar(255)
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  RevenuId  Int
+  refund    Boolean? @default(true)
+  Revenus   Revenus  @relation(fields: [RevenuId], references: [id])
+}
+
+model CryptoCurrencies {
+  id            Int            @id @default(autoincrement())
+  name          String         @db.VarChar(255)
+  price         Float
+  pricePurchase Float
+  priceChange   Float
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  category      String?        @db.VarChar(255)
+  profit        Float?
+  sold          Boolean        @default(false)
+  Transactions  Transactions[]
+}
+
+model Customers {
+  id         Int          @id @default(autoincrement())
+  firstName  String       @db.VarChar(255)
+  lastName   String       @db.VarChar(255)
+  company    String?      @db.VarChar(255)
+  email      String       @db.VarChar(255)
+  phone      String       @db.VarChar(255)
+  address    String?      @db.VarChar(255)
+  city       String?      @db.VarChar(255)
+  siret      String?      @db.VarChar(255)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  Invoices   Invoices[]
+  Quotations Quotations[]
+}
+
+model InvoiceItems {
+  id          Int         @id @default(autoincrement())
+  name        String      @db.VarChar(255)
+  unit        Float       @default(0)
+  quantity    Float       @default(0)
+  total       Float       @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  InvoiceId   Int?
+  QuotationId Int?
+  Invoices    Invoices?   @relation(fields: [InvoiceId], references: [id], onDelete: Cascade)
+  Quotations  Quotations? @relation(fields: [QuotationId], references: [id], onDelete: Cascade)
+}
+
+model Invoices {
+  id            Int            @id @default(autoincrement())
+  firstName     String         @db.VarChar(255)
+  lastName      String         @db.VarChar(255)
+  company       String?        @db.VarChar(255)
+  address       String?        @db.VarChar(255)
+  city          String?        @db.VarChar(255)
+  paymentDate   DateTime?      @db.Timestamptz(6)
+  total         Float          @default(0)
+  paid          Boolean?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  CustomerId    Int
+  RevenuId      Int?
+  totalDue      Float          @default(0)
+  tvaApplicable Boolean        @default(false)
+  totalTTC      Float          @default(0)
+  tvaAmount     Float          @default(0)
+  Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade)
+  Revenus       Revenus?       @relation(fields: [RevenuId], references: [id])
+  InvoiceItems  InvoiceItems[]
+  Quotations    Quotations[]
+}
+
+model Quotations {
+  id            Int            @id @default(autoincrement())
+  firstName     String         @db.VarChar(255)
+  lastName      String         @db.VarChar(255)
+  company       String?        @db.VarChar(255)
+  address       String?        @db.VarChar(255)
+  city          String?        @db.VarChar(255)
+  total         Float          @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  CustomerId    Int
+  RevenuId      Int?
+  cautionPaid   Boolean        @default(false)
+  InvoiceId     Int?
+  tvaApplicable Boolean        @default(false)
+  totalTTC      Float          @default(0)
+  tvaAmount     Float?         @default(0)
+  paymentDate   DateTime?      @db.Timestamptz(6)
+  Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade)
+  Invoices      Invoices?      @relation(fields: [InvoiceId], references: [id])
+  Revenus       Revenus?       @relation(fields: [RevenuId], references: [id])
+  InvoiceItems  InvoiceItems[]
+}
+
+model RefreshTokens {
+  id         Int       @id @default(autoincrement())
+  token      String    @db.VarChar(255)
+  expiryDate DateTime  @db.Timestamptz(6)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  UserId     Int
+  Users      Users     @relation(fields: [UserId], references: [id], onDelete: Cascade)
+}
+
+model Revenus {
+  id             Int            @id @default(autoincrement())
+  total          Float          @default(0)
+  pro            Float          @default(0)
+  perso          Float          @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  taxPercentage  Float          @default(0)
+  expense        Float          @default(0)
+  tva_collected  Float          @default(0)
+  tva_dispatched Float          @default(0)
+  refund         Float          @default(0)
+  Costs          Costs[]
+  Credits        Credits[]
+  Invoices       Invoices[]
+  Quotations     Quotations[]
+  Transactions   Transactions[]
+}
+
+model Transactions {
+  id         Int       @id @default(autoincrement())
+  buyingDate DateTime? @db.Timestamptz(6)
+  exchange   String?   @db.VarChar(255)
+  price      Float     @default(0)
+  quantity   Float     @default(0)
+  fees       Float     @default(0)
+  total      Float     @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  CryptoCurrencyId     Int?
+  RevenuId             Int?
+  CryptoCurrencies     CryptoCurrencies?  @relation(fields: [CryptoCurrencyId], references: [id], onDelete: Cascade)
+  Revenus    Revenus?  @relation(fields: [RevenuId], references: [id])
+}
+
+model Users {
+  id            Int             @id @default(autoincrement())
+  password      String          @db.VarChar(255)
+  email         String          @db.VarChar(255)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  RefreshTokens RefreshTokens[]
+
+  @@unique(email)
+}

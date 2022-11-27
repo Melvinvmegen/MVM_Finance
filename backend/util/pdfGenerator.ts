@@ -1,6 +1,12 @@
-const PDFDocument = require("pdfkit");
+import PDFDocument from "pdfkit";
+import { Prisma } from "@prisma/client";
 
-exports.pdfGenerator = function (invoice) {
+type Invoice = Prisma.InvoicesGetPayload<{
+  include: { InvoiceItems: true }
+}>
+
+
+export const pdfGenerator = function (invoice: Invoice) {
   let doc = new PDFDocument({ margin: 50 });
 
   generateHeader(doc, invoice);
@@ -12,7 +18,7 @@ exports.pdfGenerator = function (invoice) {
   return doc
 }
 
-function generateHeader(doc, invoice) {
+function generateHeader(doc: any, invoice: Invoice) {
   doc
     .image('images/logo.png', 50, 45, { width: 100 })
     .fillColor("#444444")
@@ -31,7 +37,7 @@ function generateHeader(doc, invoice) {
     .moveDown();
 }
 
-function generateTableHeader(doc, invoice) {
+function generateTableHeader(doc: any, invoice: Invoice) {
   let today = new Date(invoice.createdAt);
   const date = formatDate(today)
   doc
@@ -43,7 +49,7 @@ function generateTableHeader(doc, invoice) {
     .text(`Mode de réglement : paiement à réception (RIB ci-dessous).`, 50, 310);
 }
 
-function generateInvoiceTable(doc, invoice) {
+function generateInvoiceTable(doc: any, invoice: Invoice) {
   let i = 0
   let invoiceTableTop = 330;
 
@@ -62,19 +68,13 @@ function generateInvoiceTable(doc, invoice) {
 
   for (const invoice_item of invoice.InvoiceItems) {
     i += 1
-    let item
-    try {
-      item = JSON.parse(invoice_item);
-    } catch (e) {
-      item = invoice_item
-    }
     let position = invoiceTableTop + (i + 1) * 20
     if (position > 630) {
       doc.addPage();
       invoiceTableTop = -200;
       position = invoiceTableTop + (i + 1) * 20
     }
-    generateTableRow(doc, position, item.name, item.unit, item.quantity, formatCurrency(item.total * 100));
+    generateTableRow(doc, position, invoice_item.name, `${invoice_item.unit}`, `${invoice_item.quantity}`, formatCurrency(invoice_item.total * 100));
     generateHr(doc, position + 15);
   }
 
@@ -101,14 +101,14 @@ function generateInvoiceTable(doc, invoice) {
   doc.fontSize(10).font("Helvetica");
 }
 
-function generateTableRow(doc, y, item, unitCost, quantity, lineTotal) {
+function generateTableRow(doc: any, y: number, item: string, unitCost: string, quantity: string, lineTotal: string) {
   doc.text(item, 50, y)
     .text(unitCost, 230, y, { width: 90, align: "right" })
     .text(quantity, 330, y, { width: 90, align: "right" })
     .text(lineTotal, 430, y, { width: 90, align: "right" });
 }
 
-function generateHr(doc, y) {
+function generateHr(doc: any, y: number) {
   doc
     .strokeColor("#aaaaaa")
     .lineWidth(1)
@@ -117,18 +117,18 @@ function generateHr(doc, y) {
     .stroke();
 }
 
-function formatCurrency(cents) {
+function formatCurrency(cents: number) {
   return (cents / 100).toFixed(2) + " €";
 }
 
-function formatDate(date) {
+function formatDate(date: Date) {
   const dd = String(date.getDate()).padStart(2, '0');
   const mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
   const yyyy = date.getFullYear();
-  return date = `${mm} - ${dd} - ${yyyy}`
+  return `${mm} - ${dd} - ${yyyy}`
 }
 
-function generateFooter(doc, invoice) {
+function generateFooter(doc: any, invoice: Invoice) {
   generateHr(doc, 690);
 
   const tvaText = invoice.tvaApplicable ? "" : "* TVA non applicable - article 293 B du CGI. Paiement à réception par virement. A défaut et conformément à la loi 2008-776 du 4 août 2008, un intérêt de retard égal à trois fois le taux légal sera appliqué, ainsi qu'une indemnité forfaitaire pour frais de recouvrement de 40 € (Décret 2012-1115 du 02/10/2012). Pas d'escompte pour paiement anticipé."

@@ -1,14 +1,15 @@
 {
   "name": "MVM_Finance",
   "version": "1.0.0",
+  "type": "module",
   "description": "Mvm Finance handling in NodeJs with Express",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "test",
-    "dev": "nodemon app.js --trace-sync-io",
-    "console": "node --experimental-repl-await console.js",
+    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/app.js\"",
     "redis": "redis-server --port 6360",
-    "start": "node app.js"
+    "start": "node dist/app.js",
+    "build": "npx tsc"
   },
   "keywords": [
     "NodeJs",
@@ -17,6 +18,8 @@
   "author": "Melvin van Megen",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^4.6.1",
+    "@sendinblue/client": "^3.2.2",
     "axios": "^0.24.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
@@ -24,25 +27,31 @@
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "csv": "^6.1.0",
-    "dotenv": "^10.0.0",
-    "express": "^4.17.1",
+    "dotenv": "^16.0.2",
+    "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
-    "express-jwt": "^6.1.1",
-    "express-validator": "^6.12.1",
-    "knex": "^2.1.0",
+    "express-jwt": "^7.7.7",
+    "glob": "^7.1.6",
     "morgan": "^1.10.0",
     "multer": "^1.4.2",
-    "node-cron": "^3.0.0",
     "pdfkit": "^0.12.3",
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.4",
-    "redis": "3.0.2",
-    "sequelize": "^6.6.5",
-    "sequelize-cli": "^6.2.0",
-    "sib-api-v3-sdk": "^8.3.0",
-    "umzug": "^3.0.0"
+    "redis": "4.5.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.12"
+    "@types/bcryptjs": "^2.4.2",
+    "@types/compression": "^1.7.2",
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.14",
+    "@types/glob": "^8.0.0",
+    "@types/morgan": "^1.9.3",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^18.11.9",
+    "@types/pdfkit": "^0.12.8",
+    "concurrently": "^7.5.0",
+    "nodemon": "^2.0.12",
+    "prisma": "^4.6.1",
+    "typescript": "^4.8.4"
   }
 }
