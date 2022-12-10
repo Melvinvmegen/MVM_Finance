@@ -11,12 +11,11 @@ router.get(
   "/quotations",
   async (req: Request, res: Response, next: NextFunction) => {
     const { CustomerId } = req.query;
-    if (!CustomerId) throw new AppError(404, "Customer not found");
-
     const { per_page, offset, options } = setFilters(req.query);
     const force = req.query.force === "true";
 
     try {
+      if (!CustomerId) throw new AppError(404, "Customer not found");
       const quotations_data = await getOrSetCache(
         `quotations_customer_${CustomerId}`,
         async () => {

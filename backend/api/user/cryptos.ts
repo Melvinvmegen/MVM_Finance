@@ -29,6 +29,7 @@ router.get('/cryptos', async (req: Request, res: Response, next: NextFunction) =
 router.post('/crypto', async (req: Request, res: Response, next: NextFunction) => {
   const { Transactions, ...cryptoBody } = req.body
   try {
+    // @ts-ignore
     const response = await axios({
       method: 'GET',
       url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
@@ -95,6 +96,7 @@ router.put('/crypto/:id', async (req: Request, res: Response, next: NextFunction
   const { Transactions, ...crypto_body } = req.body
 
   try {
+    // @ts-ignore
     const response = await axios({
       method: 'GET',
       url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
@@ -176,6 +178,7 @@ router.get('/update_cryptos', async (req: Request, res: Response, next: NextFunc
     gzip: true
   };
   try {
+    // @ts-ignore
     const response = await axios(requestOptions)
     const cryptos = await prisma.cryptoCurrencies.findMany()
     let updated_cryptos = []

@@ -92,13 +92,20 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 // Start server
 const port = process.env.PORT || 8080;
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+const server = app.listen(port, () => {
+  console.log(`⚡️ [server]: Server is running at http://localhost:${port}`);
 });
 
 
 // CleanUp after crash
-process.on("SIGINT", () => {
-  console.log("Stopping...");
-  process.exit();
-});
+function shutdownGracefully() {
+  console.info("Closing server gracefully...");
+  server.close(() => {
+    console.info("server closed.");
+    process.exit(0);
+  });
+}
+
+process.on("SIGINT", shutdownGracefully);
+process.on("SIGTERM", shutdownGracefully);
+process.on("SIGHUP", shutdownGracefully);

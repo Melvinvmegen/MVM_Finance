@@ -20,11 +20,11 @@ router.get(
   "/invoices",
   async (req: Request, res: Response, next: NextFunction) => {
     const { CustomerId } = req.query;
-    if (!CustomerId) throw new AppError(404, "Customer not found");
-
     const { per_page, offset, options } = setFilters(req.query);
     const force = req.query.force === "true";
+
     try {
+      if (!CustomerId) throw new AppError(404, "Customer not found");
       const invoices_data = await getOrSetCache(
         `invoices_customer_${CustomerId}`,
         async () => {

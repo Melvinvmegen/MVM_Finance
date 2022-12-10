@@ -138,9 +138,10 @@ router.post(
   upload.single("file"),
   async (req: Request, res: Response) => {
     const file = req.file;
-    if (!file) throw new AppError(400, "Please upload a CSV file!");
 
     try {
+      if (!file) throw new AppError(400, "Please upload a CSV file!");
+
       let revenu: Revenu | null;
       const costs: any[] = [];
       const credits: any[] = [];
