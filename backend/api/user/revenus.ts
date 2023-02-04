@@ -16,6 +16,7 @@ type Revenu = Prisma.RevenusGetPayload<{
   include: {
     Costs: true;
     Credits: true;
+    Banks?: true;
   };
 }>;
 
@@ -148,6 +149,7 @@ router.put(
         include: {
           Credits: true,
           Costs: true,
+          Banks: true,
         },
       });
 
@@ -160,7 +162,7 @@ router.put(
   }
 );
 
-let cost_category_cache = {};
+let cost_category_cache: {[key: string]: any} = {};
 
 router.post(
   "/",
@@ -243,7 +245,7 @@ router.post(
 
             const newObj = {
               ...obj,
-              RevenuId: revenu.id,
+              RevenuId: revenu?.id,
             };
 
             if (obj.total < 0) {
@@ -267,7 +269,7 @@ router.post(
                 where: {
                   name: obj.name,
                   total: obj.total,
-                  RevenuId: revenu.id,
+                  RevenuId: revenu!.id,
                 },
               });
 
@@ -283,14 +285,14 @@ router.post(
                   data: newObj,
                 });
               }
-              if (!revenu.Costs.length) revenu.Costs = [];
-              revenu.Costs.push(cost);
+              if (revenu && !revenu.Costs.length) revenu.Costs = [];
+              revenu!.Costs.push(cost);
             } else {
               let credit = await prisma.credits.findFirst({
                 where: {
                   creditor: obj.creditor,
                   total: obj.total,
-                  RevenuId: revenu.id,
+                  RevenuId: revenu!.id,
                 },
               });
 
@@ -306,8 +308,8 @@ router.post(
                   data: newObj,
                 });
               }
-              if (!revenu.Credits.length) revenu.Credits = [];
-              revenu.Credits.push(credit);
+              if (revenu && !revenu.Credits.length) revenu.Credits = [];
+              revenu!.Credits.push(credit);
             }
 
             if (!revenus.find((r) => r.id === revenu?.id)) revenus.push(revenu);
