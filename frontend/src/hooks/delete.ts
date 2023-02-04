@@ -1,14 +1,11 @@
-
 export default function useDelete(store: any) {
-  async function deleteItem(
-    item: { id: number },
-    itemName: string,
-    confirmString: string
-  ) {
+  async function deleteItem(item: { id: number; CustomerId: string }, itemName: string, confirmString: string) {
+    const { CustomerId, id } = item;
     const result = confirm(confirmString);
-    if (result) {
-      return await store[`delete${itemName}`](item.id);
-    }
+    const functionCall = CustomerId
+      ? store[`delete${itemName}`](CustomerId, id)
+      : store[`delete${itemName}`](id);
+    if (result) return await functionCall;
   }
 
   return { deleteItem };

@@ -16,16 +16,17 @@ v-container
               v-col(cols="2")
                 v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="quotation.RevenuId" label='Revenu' density="compact" )
               v-col(cols="2")
-                input(name='paymentDate' v-model="quotation.paymentDate" type='hidden')
-                DatePicker(
+                Datepicker(
                   name="paymentDate",
-                  class="form-control",
                   v-model="quotation.paymentDate",
-                  inputFormat="dd/MM/yyyy"
+                  format="dd/MM/yyyy"
+                  dark
+                  position="center"
+                  :month-change-on-scroll="false"
+                  auto-apply
                 )
-                v-icon mdi-calendar
               v-col(cols="2")
-                v-switch(name='paid' label='Payé' v-model="quotation.paid" color="secondary" variant="outlined")
+                v-switch(name='cautionPaid' label='Payé' v-model="quotation.cautionPaid" color="secondary" variant="outlined")
               v-col(cols="2")
                 v-switch(name='tvaApplicable' label='TVA applicable' v-model="quotation.tvaApplicable" @change="updateTotal(quotation)" color="secondary" variant="outlined")
             v-row
@@ -46,11 +47,11 @@ v-container
                     v-text-field(label='Quantité' density="compact" v-model.number="item.quantity" @change="updateTotal(item)" type='number' variant="outlined")
                   v-col(cols="2")
                     v-text-field(label='Total' density="compact" v-model="item.total" :disabled='true' type='number' variant="outlined")
-                  v-col(cols="1" v-if='!isDisabled')
+                  v-col(cols="1")
                     v-btn(color="error" href='#' @click.prevent='removeItem(item)')
                       v-icon mdi-delete
 
-              v-row(v-if='!isDisabled')
+              v-row
                 v-col(cols="12" justify="end")
                   v-btn(color="primary" @click.prevent='addItem')
                     span + Ajouter une ligne
@@ -71,20 +72,20 @@ v-container
 </template>
 
 <script setup lang="ts">
-import { ref, provide } from "vue";
-import type { PropType } from "vue";
+import { ref } from "vue";
 import type Quotation from "../types/Quotation";
 import type Customer from "../types/Customer";
 import type Revenu from "../types/Revenu";
 import { useRouter } from "vue-router";
-import useTotal from "../../hooks/total.ts";
+import useTotal from "../../hooks/total";
 import TotalField from "../../components/general/totalField.vue";
-import DatePicker from "vue3-datepicker";
+import Datepicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 import { useRoute } from "vue-router";
-import { useIndexStore } from "../../store/indexStore.ts";
-import { useCustomerStore } from "../../store/customerStore.ts";
-import { useQuotationStore } from "../../store/quotationStore.ts";
-import { useRevenuStore } from "../../store/revenuStore.ts";
+import { useIndexStore } from "../../store/indexStore";
+import { useCustomerStore } from "../../store/customerStore";
+import { useQuotationStore } from "../../store/quotationStore";
+import { useRevenuStore } from "../../store/revenuStore";
 
 const props = defineProps({
   id: [Number, String],
@@ -99,7 +100,7 @@ const quotation = ref<Quotation | any>({})
 const customer = ref<Customer | any>({})
 const revenus = ref<Revenu | any>([])
 const customerId = route.query.customerId
-const { setTotal, itemsTotal, totalTTC, tvaAmount } = useTotal();
+const { itemsTotal, totalTTC, tvaAmount } = useTotal();
 const quotationItemTemplate = {
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -108,8 +109,8 @@ const quotationItemTemplate = {
   unit: 0,
   total: 0,
 };
-const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus()];
-if (props.id) setupPromises.push(quotationStore.getQuotation(props.id));
+const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus({})];
+if (props.id) setupPromises.push(quotationStore.getQuotation(customerId, props.id));
 
 indexStore.setLoading(true);
 

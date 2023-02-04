@@ -40,7 +40,7 @@ v-card(elevation="3")
               | Actions
         tbody
           tr(v-for="quotation in items", :key="quotation.id" @click='pushToShow($event, quotation)')
-            td {{ quotation.RevenuId }}
+            td {{ revenuDate(quotation.Revenus) }}
             td {{ `${quotation.lastName} ${quotation.firstName}` }}
             td {{ quotation.total }}
             td {{ quotation.total * 0.3 }}
@@ -75,10 +75,11 @@ import useDelete from "../../hooks/delete";
 import useDownload from "../../hooks/download";
 import PaymentForm from "../general/paymentForm.vue";
 import type Quotation from "../types/Quotation";
+import type Revenu from "../types/Revenu";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
-import { useIndexStore } from "../../store/indexStore.ts";
-import { useQuotationStore } from "../../store/quotationStore.ts";
+import { useIndexStore } from "../../store/indexStore";
+import { useQuotationStore } from "../../store/quotationStore";
 
 const props = defineProps({
   customerId: {
@@ -105,11 +106,19 @@ const selectedQuotation = ref(null);
 
 filterAll(itemName);
 
+function revenuDate(revenu: Revenu) {
+  if (!revenu) return;
+  const date = new Date(revenu.createdAt);
+  return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+}
+
 function pushToShow(event, quotation: Quotation) {
-  router.push({
-    path: `/quotations/edit/${quotation.id}`,
-    query: { customerId: props.customerId },
-  });
+  if (quotation.id && event.target.nodeName === "TD") {
+    router.push({
+      path: `/quotations/edit/${quotation.id}`,
+      query: { customerId: props.customerId },
+    });
+  }
 }
 
 function resetAll() {
@@ -121,7 +130,7 @@ function convertToInvoice(quotation: Quotation, confirmString: string) {
   indexStore.setLoading(true);
   const result = confirm(confirmString);
   if (result) {
-    return quotationStore.convertToInvoice(quotation)
+    quotationStore.convertToInvoice(quotation)
   }
   indexStore.setLoading(false);
 }

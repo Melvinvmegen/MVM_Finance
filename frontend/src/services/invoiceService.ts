@@ -1,37 +1,38 @@
 import api from "./api";
 import type Invoice from "../types/invoice";
+import { useUserStore } from "../store/userStore"
+const userStore = useUserStore()
 
 class InvoiceService {
-  getInvoices(query: any): Promise<any> {
-    const queryParams = query;
-    return api.get("user/invoices", { params: queryParams });
+  getInvoices(customerId: string, query: any): Promise<any> {
+    return api.get(`user/${userStore.auth.userId}/customers/${customerId}/invoices`, { params: query });
   }
 
   createInvoice(invoiceData: Invoice): Promise<any> {
-    return api.post("user/invoice", invoiceData);
+    return api.post(`user/${userStore.auth.userId}/customers/${invoiceData.CustomerId}/invoices`, invoiceData);
   }
 
   updateInvoice(invoiceData: Invoice): Promise<any> {
-    return api.put(`user/invoice/${invoiceData.id}`, invoiceData);
+    return api.put(`user/${userStore.auth.userId}/customers/${invoiceData.CustomerId}/invoices/${invoiceData.id}`, invoiceData);
   }
 
-  getInvoice(invoiceId: string): Promise<any> {
-    return api.get(`user/invoice/${invoiceId}`);
+  getInvoice(customerId: string, invoiceId: string): Promise<any> {
+    return api.get(`user/${userStore.auth.userId}/customers/${customerId}/invoices/${invoiceId}`);
   }
 
   sendEmailInvoice(invoice: Invoice): Promise<any> {
-    return api.get("user/send_invoice", { params: invoice });
+    return api.get(`user/${userStore.auth.userId}/customers/${invoice.CustomerId}/invoices/send_invoice`, { params: invoice });
   }
 
-  getInvoicePDF(invoiceId: string): Promise<any> {
-    return api.get(`user/invoice/${invoiceId}`, {
+  getInvoicePDF(customerId: string, invoiceId: string): Promise<any> {
+    return api.get(`user/${userStore.auth.userId}/customers/${customerId}/invoices/${invoiceId}`, {
       responseType: "blob",
       params: { pdf: true },
     });
   }
 
-  destroyInvoice(invoiceId: string): Promise<any> {
-    return api.delete(`user/invoice/${invoiceId}`);
+  destroyInvoice(customerId: string, invoiceId: string): Promise<any> {
+    return api.delete(`user/${userStore.auth.userId}/customers/${customerId}/invoices/${invoiceId}`);
   }
 }
 

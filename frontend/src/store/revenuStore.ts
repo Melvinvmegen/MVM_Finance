@@ -12,25 +12,23 @@ export const useRevenuStore = defineStore("revenuStore", {
   }),
   actions: {
     async getRevenus(query: any) {
-      this.revenus = [];
-      const { data } : { data: { rows: Revenu[], count: string } } = await revenuService.getRevenus(query);
-      this.revenus = data.rows;
+      const { data } : { data: { rows: Revenu[], count: string } } = await revenuService.getRevenus(query.BankId, query);
+      this.revenus = [...data.rows];
       this.count = +data.count;
       return this.revenus;
     },
-    async getRevenu(revenuId: string) {
-      this.revenu = undefined;
+    async getRevenu(bankId: string, revenuId: string) {
       this.revenu = this.revenus.find((revenu) => revenu.id === revenuId)
       if (!this.revenu) {
-        const res = await revenuService.getRevenu(revenuId);
+        const res = await revenuService.getRevenu(bankId, revenuId);
         this.revenu = res.data;
       }
       return this.revenu;
     },
-    async createRevenu(fileData: File) {
+    async createRevenu(bankId: string, fileData: File) {
       try {
-        await revenuService.createRevenu(fileData);
-        const res = await this.getRevenus({ currentPage: '1', perPage: '12', force: 'false' });
+        await revenuService.createRevenu(bankId, fileData);
+        await this.getRevenus({ currentPage: '1', perPage: '12', force: 'false' });
       } catch (error) {
         if (error) indexStore.setError(error);
       }

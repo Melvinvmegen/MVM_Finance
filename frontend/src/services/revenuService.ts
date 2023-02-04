@@ -1,23 +1,23 @@
 import api from "./api";
 import type Revenu from "../types/revenu";
+import { useUserStore } from "../store/userStore";
+const userStore = useUserStore();
 
 class RevenuService {
-  getRevenus(query: any = {}): Promise<any> {
-    const queryParams = query;
-    return api.get("user/revenus", { params: queryParams });
+  getRevenus(bankId: string, query: any = {}): Promise<any> {
+    return api.get(`user/${userStore.auth.userId}/banks/${bankId}/revenus/`, { params: query });
   }
 
   updateRevenu(revenuData: Revenu): Promise<any> {
-    console.log("revenuData.id", revenuData.id)
-    return api.put(`user/revenu/${revenuData.id}`, revenuData);
+    return api.put(`user/${userStore.auth.userId}/banks/${revenuData.BankId}/revenus/${revenuData.id}`, revenuData);
   }
 
-  getRevenu(revenuId: string): Promise<any> {
-    return api.get(`user/revenu/${revenuId}`);
+  getRevenu(bankId: string, revenuId: string): Promise<any> {
+    return api.get(`user/${userStore.auth.userId}/banks/${bankId}/revenus/${revenuId}`);
   }
 
-  createRevenu(fileData: File): Promise<any> {
-    return api.post(`user/revenu`, fileData);
+  createRevenu(bankId: string, fileData: File): Promise<any> {
+    return api.post(`user/${userStore.auth.userId}/banks/${bankId}/revenus`, fileData);
   }
 }
 

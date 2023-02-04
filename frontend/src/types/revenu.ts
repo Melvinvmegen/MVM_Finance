@@ -21,4 +21,5 @@ export default interface Revenu {
   Transactions: Array<Transaction>;
   count?: number;
   rows?: Array<Revenu>;
+  BankId?: number;
 }

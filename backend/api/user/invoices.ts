@@ -17,7 +17,7 @@ type Invoice = Prisma.InvoicesGetPayload<{
 }>
 
 router.get(
-  "/invoices",
+  "/",
   async (req: Request, res: Response, next: NextFunction) => {
     const { CustomerId } = req.query;
     const { per_page, offset, options } = setFilters(req.query);
@@ -40,6 +40,9 @@ router.get(
             orderBy: {
               id: 'desc'
             },
+            include: {
+              Revenus: true,
+            },
           });
 
           return { rows: invoices, count };
@@ -55,7 +58,7 @@ router.get(
 );
 
 router.get(
-  "/invoice/:id",
+  "/:id",
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
     const isPDF = req.query.pdf;
@@ -95,11 +98,10 @@ router.get(
 );
 
 router.post(
-  "/invoice",
+  "/",
   async (req: Request, res: Response, next: NextFunction) => {
     const { InvoiceItems, ...invoiceBody } = req.body;
 
-    console.log("InvoiceItems", InvoiceItems)
     try {
       const invoice = await prisma.invoices.create({
         data: {
@@ -122,7 +124,7 @@ router.post(
 );
 
 router.put(
-  "/invoice/:id",
+  "/:id",
   async (req: Request, res: Response, next: NextFunction) => {
     const { InvoiceItems, id, ...invoiceBody } = req.body;
 
@@ -132,6 +134,9 @@ router.put(
           id,
         },
         data: invoiceBody,
+        include: {
+          Revenus: true,
+        }
       });
       const existing_invoice_items = await prisma.invoiceItems.findMany({
         where: {
@@ -176,7 +181,7 @@ router.get(
 );
 
 router.delete(
-  "/invoice/:id",
+  "/:id",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const invoice = await prisma.invoices.delete({

@@ -1,66 +1,93 @@
 <template lang="pug">
-v-container
-  v-row
-    v-col(cols="12" md="8")
-      v-card(elevation="3")
-        v-card-title
-          v-row(justify="space-between" align="center")
-            v-col.text-uppercase(cols="11") Clients
-            v-spacer  
-            v-col(cols="1" class="d-flex justify-center align-center")
-              router-link(:to="'/customers/new'")
-                v-btn(icon="mdi-plus" color="primary")
+v-row
+  v-col(cols="12" md="8")
+    v-card(elevation="3")
+      v-card-title
+        v-row(justify="space-between" align="center")
+          v-col.text-uppercase(cols="11") Clients
+          v-spacer  
+          v-col(cols="1" class="d-flex justify-center align-center")
+            router-link(:to="'/customers/new'")
+              v-btn(icon="mdi-plus" color="primary")
 
-        v-card-text
-          customer-table
-      .mt-4
-      v-card(elevation="3")
-        v-card-title
-          v-row(justify="space-between" align="center")
-            v-col.text-uppercase(cols="11") Revenus
-            v-spacer
-            v-col(cols="1")
-              v-btn(icon="mdi-plus" @click="triggerUpload" color="primary")
-              input.mr-2(type="file" id="csv" name="csv" accept=".csv" style="display:none;" @change="uploadFile")
+      v-card-text
+        customer-table
+    .mt-4
+  v-col(cols="12" md="4")
+    v-card(position="absolute" class="v-col v-col-3")
+      v-card-text
+        v-row(justify="space-around" align="center")
+          v-card-subtitle Chiffres d'affaires
+          v-card-title {{ returnTotals(true, "totalTTC") }} €
+        v-row(justify="space-around" align="center")
+          v-card-subtitle Impayés
+          v-card-title {{ returnTotals((false || null), "totalTTC") }} €
+        v-row(justify="space-around" align="center")
+          v-card-subtitle TVA collectée
+          v-card-title {{ returnTotals(true, "tvaAmount") }} €
+      hr.mx-2.my-4
+      v-card-text
+        v-card-title Répartition du chiffre d'affaires par client 
+        pie(v-if="chartData" :chart-data='chartData' :chart-options='chartOptions')
 
-        v-card-text
-          revenu-table
-    v-col(cols="12" md="4")
-      weather
-      .mt-4
-      crypto-table
 </template>
 
 <script setup lang="ts">
-import useDelete from "../../hooks/delete";
-import type customer from "../types/customer";
+import { computed } from "vue";
 import customerTable from "../../components/customer/customerTable";
-import revenuTable from "../../components/revenu/revenuTable.vue";
-import cryptoTable from "../../components/crypto/cryptoTable.vue";
-import weather from "../../components/general/weather.vue";
-import { useRouter } from "vue-router";
-import { useIndexStore } from "../../store/indexStore.ts"
-import { useRevenuStore } from "../../store/revenuStore.ts";
-import type Customer from "../../types/customer";
-import axios from "axios";
+import Pie from "../../components/general/pieChart.vue";
+import { useCustomerStore } from "../../store/customerStore";
 
-const { deleteItem } = useDelete();
-const router = useRouter();
-const indexStore = useIndexStore();
-const revenuStore = useRevenuStore();
+const customerStore = useCustomerStore();
 
-function triggerUpload() {
-  document.getElementById('csv').click();
-}
-
-async function uploadFile(event) {
-  indexStore.setLoading(true); 
-  try {
-    const form = new FormData();
-    form.append("file", event.target.files[0]);
-    await revenuStore.createRevenu(form);
-  } finally {
-    indexStore.setLoading(false);
+const chartData = computed(() => {
+  const chartData = {
+    labels: customerStore.customers.map((customer) => customer.company),
+    datasets: [
+      {
+        label: "",
+        data: [],
+        backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20", "#FC2E20", "#FDB750"],
+      },
+    ],
+  };
+  const total = returnTotals(true, "totalTTC");
+  for (let customer of customerStore.customers) {
+    if (customer.Invoices) {
+      const invoices_percentage_of_total = (
+        (customer.Invoices.reduce((sum, invoice) => sum + invoice.totalTTC, 0) / total) *
+        100
+      ).toFixed(2);
+      chartData.datasets[0].data.push(invoices_percentage_of_total);
+    } else {
+      chartData.datasets[0].data.push(0);
+    }
   }
+  return chartData;
+});
+
+const chartOptions = {
+  responsive: true,
+  plugins: {
+    tooltip: {
+      callbacks: {
+        label: function (context) {
+          let tooltipData = context.dataset.data[context.dataIndex];
+          return ` ${tooltipData}%`;
+        },
+      },
+    },
+  },
+};
+
+function returnTotals(paid, field: string) {
+  let total = 0;
+  for (let customer of customerStore.customers) {
+    total += customer.Invoices.filter((invoice) => invoice.paid === paid).reduce(
+      (sum, invoice) => sum + invoice[field],
+      0
+    );
+  }
+  return +total.toFixed(2);
 }
 </script>

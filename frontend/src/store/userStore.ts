@@ -54,7 +54,7 @@ export const useUserStore = defineStore("userStore", {
     logout() {
       if (api.defaults.headers.common) delete api.defaults.headers.common["Authorization"];
       TokenService.removeUser();
-      this.auth = null;
+      return this.auth = null;
     },
 
     signUp(user: User) {

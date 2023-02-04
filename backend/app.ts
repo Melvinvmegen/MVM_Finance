@@ -1,4 +1,5 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Response, NextFunction } from "express";
+import { Request as JWTRequest } from "express-jwt";
 import morgan from "morgan";
 import cors from "cors";
 import chalk from "chalk";
@@ -6,14 +7,16 @@ import bodyParser from "body-parser";
 import compression from "compression";
 import { settings } from "./util/settings.js";
 import { expressjwt } from "express-jwt";
-import auth from "./api/public/auth.js"
-import customers from "./api/user/customers.js"
-import invoices from "./api/user/invoices.js"
-import quotations from "./api/user/quotations.js"
-import revenus from "./api/user/revenus.js"
-import cryptos from "./api/user/cryptos.js"
-import * as dotenv from "dotenv"
-dotenv.config()
+import auth from "./api/public/auth.js";
+import customers from "./api/user/customers.js";
+import invoices from "./api/user/invoices.js";
+import quotations from "./api/user/quotations.js";
+import revenus from "./api/user/revenus.js";
+import cryptos from "./api/user/cryptos.js";
+import banks from "./api/user/banks.js";
+import { prisma } from "./util/prisma.js";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 // Init web server
 const app = express();
@@ -31,18 +34,74 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Auth routes
-app.use("/api/public", expressjwt({secret: settings.jwt.secret, algorithms: ["HS512"], credentialsRequired: false}), auth);
+app.use(
+  "/api/public",
+  expressjwt({
+    secret: settings.jwt.secret,
+    algorithms: ["HS512"],
+    credentialsRequired: false,
+  }),
+  auth
+);
+
+const validateBelongsToUser = () => {
+  return (req: JWTRequest, res: Response, next: NextFunction) => {
+    if (req.auth?.userId != req.params.user_id) {
+      return res.sendStatus(403);
+    }
+    next();
+  };
+};
+
+const validateCustomerBelongsToUser = () => {
+  return async (req: JWTRequest, res: Response, next: NextFunction) => {
+    try {
+      await prisma.customers.findFirst({
+        where: {
+          id: +req.params.customer_id,
+          UserId: +req?.auth?.userId,
+        },
+      });
+    } catch (error) {
+      return res.sendStatus(403);
+    }
+
+    next();
+  };
+};
+
+const validateBelongsToBank = () => {
+  return async (req: JWTRequest, res: Response, next: NextFunction) => {
+    const user = await prisma.users.findUnique({
+      where: {
+        id: +req?.auth?.userId,
+      },
+      include: {
+        Banks: true,
+      },
+    });
+
+    const banks = user?.Banks?.filter(
+      (bank) => bank.UserId == req.params.bank_id
+    );
+
+    if (!banks?.length) return res.sendStatus(403);
+
+    next();
+  };
+};
 
 // Protect all routes
-app.use("/api/user", expressjwt({secret: settings.jwt.secret, algorithms: ["HS512"]}));
-app.use("/api/user", customers);
-app.use("/api/user", invoices);
-app.use("/api/user", quotations);
-app.use("/api/user", revenus);
-app.use("/api/user", cryptos);
+app.use("/api/user",expressjwt({ secret: settings.jwt.secret, algorithms: ["HS512"] }));
+app.use("/api/user/:user_id/customers", validateBelongsToUser(), customers);
+app.use("/api/user/:user_id/customers/:customer_id/invoices", validateCustomerBelongsToUser(), invoices);
+app.use("/api/user/:user_id/customers/:customer_id/quotations", validateCustomerBelongsToUser(), quotations);
+app.use("/api/user/:user_id/banks", validateBelongsToUser(), banks);
+app.use("/api/user/:user_id/banks/:bank_id/revenus", validateBelongsToBank(), revenus);
+app.use("/api/user/:user_id/cryptos", validateBelongsToUser(), cryptos);
 
 // Error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: JWTRequest, res: Response, next: NextFunction) => {
   switch (err.name) {
     case "AppError":
       console.debug(
@@ -95,7 +154,6 @@ const port = process.env.PORT || 8080;
 const server = app.listen(port, () => {
   console.log(`⚡️ [server]: Server is running at http://localhost:${port}`);
 });
-
 
 // CleanUp after crash
 function shutdownGracefully() {

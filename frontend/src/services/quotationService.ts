@@ -1,39 +1,41 @@
 import api from "./api";
 import type Quotation from "../types/quotation";
+import { useUserStore } from "../store/userStore"
+const userStore = useUserStore()
 
 class QuotationService {
-  getQuotations(query: any): Promise<any> {
+  getQuotations(customerId: string, query: any): Promise<any> {
     const queryParams = query;
-    return api.get("/user/quotations", {
+    return api.get(`user/${userStore.auth.userId}/customers/${customerId}/quotations`, {
       params: queryParams,
     });
   }
 
   createQuotation(quotationData: Quotation): Promise<any> {
-    return api.post("/user/quotation", quotationData);
+    return api.post(`user/${userStore.auth.userId}/customers/${quotationData.CustomerId}/quotations`, quotationData);
   }
 
   updateQuotation(quotationData: Quotation): Promise<any> {
-    return api.put(`/user/quotation/${quotationData.id}`, quotationData);
+    return api.put(`user/${userStore.auth.userId}/customers/${quotationData.CustomerId}/quotations/${quotationData.id}`, quotationData);
   }
 
-  getQuotation(quotationId: string): Promise<any> {
-    return api.get(`/user/quotation/${quotationId}`);
+  getQuotation(customerId: string, quotationId: string): Promise<any> {
+    return api.get(`user/${userStore.auth.userId}/customers/${customerId}/quotations/${quotationId}`);
   }
 
-  getQuotationPDF(quotationId: string): Promise<any> {
-    return api.get(`/user/quotation/${quotationId}`, {
+  getQuotationPDF(customerId: string, quotationId: string): Promise<any> {
+    return api.get(`user/${userStore.auth.userId}/customers/${customerId}/quotations/${quotationId}`, {
       responseType: "blob",
       params: { pdf: true },
     });
   }
 
-  convertToInvoice(quotationId: string): Promise<any> {
-    return api.post(`/user/convert_quotation/${quotationId}`);
+  convertToInvoice(customerId: number, quotationId: string): Promise<any> {
+    return api.post(`user/${userStore.auth.userId}/customers/${customerId}/quotations/convert_quotation/${quotationId}`);
   }
 
-  destroyQuotation(quotationId: string): Promise<any> {
-    return api.delete(`/user/quotation/${quotationId}`);
+  destroyQuotation(customerId: string, quotationId: string): Promise<any> {
+    return api.delete(`user/${userStore.auth.userId}/customers/${customerId}/quotations/${quotationId}`);
   }
 }
 

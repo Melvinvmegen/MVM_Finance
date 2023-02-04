@@ -8,26 +8,28 @@ datasource db {
 }
 
 model Costs {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(255)
+  id        Int          @id @default(autoincrement())
+  name      String       @db.VarChar(255)
   total     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
   RevenuId  Int
   tvaAmount Float?
-  Revenus   Revenus  @relation(fields: [RevenuId], references: [id])
+  category  CostCategory @default(TODEFINE)
+  Revenus   Revenus      @relation(fields: [RevenuId], references: [id])
 }
 
 model Credits {
-  id        Int      @id @default(autoincrement())
-  creditor  String   @db.VarChar(255)
-  reason    String?  @db.VarChar(255)
+  id        Int            @id @default(autoincrement())
+  creditor  String         @db.VarChar(255)
+  reason    String?        @db.VarChar(255)
   total     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
   RevenuId  Int
-  refund    Boolean? @default(true)
-  Revenus   Revenus  @relation(fields: [RevenuId], references: [id])
+  refund    Boolean?       @default(true)
+  category  CreditCategory @default(REFUND)
+  Revenus   Revenus        @relation(fields: [RevenuId], references: [id])
 }
 
 model CryptoCurrencies {
@@ -41,6 +43,8 @@ model CryptoCurrencies {
   category      String?        @db.VarChar(255)
   profit        Float?
   sold          Boolean        @default(false)
+  UserId        Int?
+  Users         Users?         @relation(fields: [UserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_crypto_currency_user")
   Transactions  Transactions[]
 }
 
@@ -56,6 +60,8 @@ model Customers {
   siret      String?      @db.VarChar(255)
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
+  UserId     Int?
+  Users      Users?       @relation(fields: [UserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_customer_user")
   Invoices   Invoices[]
   Quotations Quotations[]
 }
@@ -123,13 +129,13 @@ model Quotations {
 }
 
 model RefreshTokens {
-  id         Int       @id @default(autoincrement())
-  token      String    @db.VarChar(255)
-  expiryDate DateTime  @db.Timestamptz(6)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  token      String   @db.VarChar(255)
+  expiryDate DateTime @db.Timestamptz(6)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   UserId     Int
-  Users      Users     @relation(fields: [UserId], references: [id], onDelete: Cascade)
+  Users      Users    @relation(fields: [UserId], references: [id], onDelete: Cascade)
 }
 
 model Revenus {
@@ -144,6 +150,8 @@ model Revenus {
   tva_collected  Float          @default(0)
   tva_dispatched Float          @default(0)
   refund         Float          @default(0)
+  BankId         Int?
+  Banks          Banks?         @relation(fields: [BankId], references: [id], onDelete: Restrict)
   Costs          Costs[]
   Credits        Credits[]
   Invoices       Invoices[]
@@ -152,28 +160,62 @@ model Revenus {
 }
 
 model Transactions {
-  id         Int       @id @default(autoincrement())
-  buyingDate DateTime? @db.Timestamptz(6)
-  exchange   String?   @db.VarChar(255)
-  price      Float     @default(0)
-  quantity   Float     @default(0)
-  fees       Float     @default(0)
-  total      Float     @default(0)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  CryptoCurrencyId     Int?
-  RevenuId             Int?
-  CryptoCurrencies     CryptoCurrencies?  @relation(fields: [CryptoCurrencyId], references: [id], onDelete: Cascade)
-  Revenus    Revenus?  @relation(fields: [RevenuId], references: [id])
+  id               Int               @id @default(autoincrement())
+  buyingDate       DateTime?         @db.Timestamptz(6)
+  exchange         String?           @db.VarChar(255)
+  price            Float             @default(0)
+  quantity         Float             @default(0)
+  fees             Float             @default(0)
+  total            Float             @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  CryptoCurrencyId Int?
+  RevenuId         Int?
+  CryptoCurrencies CryptoCurrencies? @relation(fields: [CryptoCurrencyId], references: [id], onDelete: Cascade)
+  Revenus          Revenus?          @relation(fields: [RevenuId], references: [id])
 }
 
 model Users {
-  id            Int             @id @default(autoincrement())
-  password      String          @db.VarChar(255)
-  email         String          @db.VarChar(255)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  RefreshTokens RefreshTokens[]
+  id                    Int                @id @default(autoincrement())
+  password              String             @db.VarChar(255)
+  email                 String             @unique @db.VarChar(255)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  revenusModuleActive   Boolean            @default(true)
+  customersModuleActive Boolean            @default(true)
+  cryptosModuleActive   Boolean            @default(true)
+  Banks                 Banks[]
+  CryptoCurrencies      CryptoCurrencies[]
+  Customers             Customers[]
+  RefreshTokens         RefreshTokens[]
+}
 
-  @@unique(email)
+model Banks {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(45)
+  amount    Float
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  UserId    Int?
+  Users     Users?    @relation(fields: [UserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bank_user")
+  Revenus   Revenus[]
+}
+
+enum CostCategory {
+  GENERAL
+  TAX
+  INTERESTS
+  TRIP
+  HEALTH
+  SERVICES
+  HOUSING
+  TODEFINE
+}
+
+enum CreditCategory {
+  SALARY
+  REFUND
+  CRYPTO
+  STOCK
+  RENTAL
 }

@@ -39,11 +39,11 @@ v-card(elevation="3")
             th.text-left
               | Actions
         tbody
-          tr(v-for="invoice in items.filter(item => item.CustomerId === props.customerId)", :key="invoice.id" @click='pushToShow($event, invoice)')
-            td {{ invoice.RevenuId }}
+          tr(v-for="invoice in items.filter(item => item?.CustomerId === props?.customerId)", :key="invoice.id" @click='pushToShow($event, invoice)')
+            td {{ revenuDate(invoice.Revenus) }}
             td {{ invoice.lastName + invoice.firstName }}
-            td {{ invoice.total }}
-            td {{ invoice.tvaApplicable }}
+            td {{ invoice.totalTTC }}
+            td {{ invoice.tvaAmount }}
             td {{ invoice.paid }}
             td
               v-row
@@ -70,8 +70,8 @@ import type Invoice from "../../types/Invoice";
 import PaymentForm from "../general/paymentForm.vue";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
-import { useInvoiceStore } from "../../store/invoiceStore.ts";
-import { useIndexStore } from "../../store/indexStore.ts";
+import { useInvoiceStore } from "../../store/invoiceStore";
+import { useIndexStore } from "../../store/indexStore";
 
 const props = defineProps({
   customerId: {
@@ -93,7 +93,6 @@ const itemName = "Invoices";
 const router = useRouter();
 const searchFrom = ref(null);
 const selectedInvoice = ref(null);
-const show = ref(false);
 filterAll(itemName);
 
 async function sendEmail(invoice: Invoice) {
@@ -106,6 +105,12 @@ async function sendEmail(invoice: Invoice) {
 function resetAll() {
   searchFrom.value.reset()
   filterAll(itemName, true)
+}
+
+function revenuDate(revenu: Revenu) {
+  if (!revenu) return;
+  const date = new Date(revenu.createdAt);
+  return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 }
 
 function pushToShow(event, invoice: Invoice) {

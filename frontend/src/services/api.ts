@@ -5,7 +5,7 @@ import { useIndexStore } from "../store/indexStore"
 import { useUserStore } from "../store/userStore"
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_APP_API_URL || "http://146.59.146.130:8080/api",
+  baseURL: import.meta.env.VITE_APP_API_URL || "http://localhost:8080/api",
   headers: {
     "Content-type": "application/json",
   },

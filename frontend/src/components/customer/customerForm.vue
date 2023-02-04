@@ -36,12 +36,12 @@ v-card
 </template>
 
 <script setup lang="ts">
-import { ref, toRef } from "vue";
+import { ref } from "vue";
 import type { PropType } from "vue";
-import { useRouter } from "vue-router";
 import type Customer from "../types/Customer";
-import { useIndexStore } from "../../store/indexStore.ts";
-import { useCustomerStore } from "../../store/customerStore.ts";
+import { useIndexStore } from "../../store/indexStore";
+import { useCustomerStore } from "../../store/customerStore";
+import { useRouter } from "vue-router";
 
 const props = defineProps({
   initialCustomer: {
@@ -49,9 +49,9 @@ const props = defineProps({
     required: true,
   },
 });
+const router = useRouter();
 const customerStore = useCustomerStore();
 const indexStore = useIndexStore();
-const router = useRouter();
 let mutableCustomer = ref<Customer>({
   firstName: "",
   lastName: "",
@@ -62,7 +62,6 @@ let mutableCustomer = ref<Customer>({
   city: "",
   siret: "",
 });
-
 
 if (Object.entries(props.initialCustomer).length) {
   mutableCustomer.value = { ...props.initialCustomer };
@@ -75,8 +74,8 @@ async function handleSubmit(): Promise<void> {
   mutableCustomer.value.updatedAt = new Date();
   try {
     const res = await customerStore[action](mutableCustomer.value);
-    if (res && res.id) {
-      window.location.href = `/customers/edit/${res.id}`;
+    if (res && !mutableCustomer.value.id) {
+      router.push(`/customers`);
     }
   } finally {
     indexStore.setLoading(false);

@@ -24,7 +24,6 @@ export const useCryptoStore = defineStore("cryptoStore", {
       }
     },
     async updateCrypto(cryptoData: Crypto) {
-      console.log("cryptoData", cryptoData)
       try {
         await cryptoService.updateCrypto(cryptoData);
         this.updateStore(cryptoData);

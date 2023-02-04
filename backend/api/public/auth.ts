@@ -73,6 +73,9 @@ router.post("/login", async (req: Request, res: Response, next: NextFunction) =>
         userId: user.id,
         refresh_token,
         token,
+        cryptosModuleActive: user.cryptosModuleActive,
+        customersModuleActive: user.customersModuleActive,
+        revenusModuleActive: user.revenusModuleActive
       });
     } catch (error) {
       return next(error);

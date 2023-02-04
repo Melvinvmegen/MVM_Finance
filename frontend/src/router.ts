@@ -15,8 +15,8 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
-        path: "/customers",
-        component: () => import("./pages/user/customers.vue"),
+        path: "/dashboard",
+        component: () => import("./pages/user/dashboard.vue"),
       },
       {
         path: "/customers",
@@ -53,9 +53,17 @@ const routes: Array<RouteRecordRaw> = [
         props: true,
       },
       {
+        path: "/revenus",
+        component: () => import("./pages/user/revenus.vue"),
+      },
+      {
         path: "/revenus/edit/:id",
         component: () => import("./pages/user/revenu.vue"),
         props: true,
+      },
+      {
+        path: "/cryptos",
+        component: () => import("./pages/user/cryptos.vue"),
       },
     ],
   },
@@ -78,7 +86,7 @@ router.beforeEach( async (to, from, next) => {
   await userStore.signIn({ currentPath: to });
   if (userStore.auth) {
     if (to.path === "/login" || to.path === "/") {
-      next("/customers");
+      next("/dashboard");
     }
     next();
   } else {

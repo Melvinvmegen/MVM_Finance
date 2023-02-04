@@ -33,7 +33,8 @@ function generateHeader(doc: any, invoice: Invoice) {
     .font("Helvetica")
     .text("A l'attention de M. ou Mme", 50, 170, { align: "right" })
     .text(`${invoice.firstName} ${invoice.lastName}`, 50, 190, { align: "right" })
-    .text(`${invoice.address} ${invoice.city}`, 50, 210, { align: "right" })
+    .text(`${invoice.address}`, 50, 210, { align: "right" })
+    .text(`${invoice.city}`, 50, 230, { align: "right" })
     .moveDown();
 }
 
@@ -43,7 +44,7 @@ function generateTableHeader(doc: any, invoice: Invoice) {
   doc
     .fillColor("#444444")
     .fontSize(20)
-    .text(`${invoice.constructor.name === 'Quotation' ? 'Devis' : 'Facture'} n° : ${invoice.id}`, 50, 260)
+    .text(`${invoice.hasOwnProperty('cautionPaid') ? 'Devis' : 'Facture'} n° : ${invoice.id}`, 50, 260)
     .fontSize(10)
     .text(`Le : ${date}`, 50, 290)
     .text(`Mode de réglement : paiement à réception (RIB ci-dessous).`, 50, 310);

@@ -16,9 +16,8 @@ v-form(@submit.prevent="handleSubmit" key="signIn")
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive } from "vue";
-import axios from "axios";
-import { useIndexStore } from "../../store/indexStore.ts";
+import { reactive } from "vue";
+import { useIndexStore } from "../../store/indexStore";
 
 const indexStore = useIndexStore();
 const user = reactive({

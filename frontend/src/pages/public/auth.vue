@@ -18,14 +18,13 @@ v-container(:class="display.mobile.value ? 'pt-0' : 'pa-0'")
 
 <script setup lang="ts">
 import AuthService from "../../services/authService";
-import { computed, ref, reactive } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
-import axios from "axios";
-import SignInForm from "../../components/auth/signInForm";
-import SignUpForm from "../../components/auth/signUpForm";
-import { useIndexStore } from "../../store/indexStore.ts";
-import { useUserStore } from "../../store/userStore.ts";
+import SignInForm from "../../components/auth/signInForm.vue";
+import SignUpForm from "../../components/auth/signUpForm.vue";
+import { useIndexStore } from "../../store/indexStore";
+import { useUserStore } from "../../store/userStore";
 
 const indexStore = useIndexStore();
 const userStore = useUserStore();
@@ -35,17 +34,16 @@ const isSignIn = ref(true);
 const loggedIn = computed(() => userStore.auth);
 
 if (loggedIn.value) {
-  router.push("/customers");
+  router.push("/dashboard");
 }
 
 async function handleSubmit(user: any): Promise<void> {
   indexStore.setLoading(true);
   const action = isSignIn.value ? "signIn" : "signUp";
   try {
-    
     const auth = await AuthService.signIn(user);
-    const res = await userStore[action](auth);
-    if (isSignIn.value) router.push("/customers");
+    await userStore[action](auth);
+    if (isSignIn.value) window.location.href = `${window.location.origin}/dashboard`;
     isSignIn.value = true;
   } finally {
     indexStore.setLoading(false);

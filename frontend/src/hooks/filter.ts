@@ -27,7 +27,6 @@ export default function useFilter(store: any, itemName: string, additionalFilter
     }
   }
 
-
   const compute = {
     items: computed(() => store[itemName]),
     pages: computed(() => Math.ceil(store.count / query.perPage)),
@@ -37,11 +36,15 @@ export default function useFilter(store: any, itemName: string, additionalFilter
     () => query.currentPage, 
     () => filterAll(itemName, true));
 
-  async function filterAll(itemName: string, force = false) {
+  async function filterAll(itemName: string, force = false, additionalFilters = {}) {
     indexStore.setLoading(true);
     try {
-      if (compute.items.value?.length > 0 && !force && !("CustomerId" in query))
-      return;
+      if (compute.items.value?.length > 0 && !force && !("CustomerId" in query)) return;
+      if (additionalFilters) {
+        for (const filter in additionalFilters) {
+          query[filter] = additionalFilters[filter];
+        }
+      }
       query.force = force;
       await store[`get${itemName.charAt(0).toUpperCase() + itemName.slice(1)}`](query);
       return Promise.resolve("Success")

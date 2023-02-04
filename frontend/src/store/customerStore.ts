@@ -24,8 +24,8 @@ export const useCustomerStore = defineStore("customerStore", {
     async createCustomer(customerData: Customer) {
       try {
         const res = await customerService.createCustomer(customerData);
-        this.customers.unshift(customerData);
-        return res.data.customer;
+        this.customers.unshift(res.data);
+        return res.data;
       } catch (error) {
         if (error) indexStore.setError(error);
       }

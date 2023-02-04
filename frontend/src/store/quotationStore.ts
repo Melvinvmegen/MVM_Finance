@@ -13,50 +13,50 @@ export const useQuotationStore = defineStore("quotationStore", {
   }),
   actions: {
     async getQuotations(query: any) {
-      const { data } : { data: { rows: Quotation[], count: string } } = await quotationService.getQuotations(query);
+      const { data } : { data: { rows: Quotation[], count: string } } = await quotationService.getQuotations(query.CustomerId, query);
       this.quotations = [ ...data.rows ];
       this.count = +data.count;
       return this.quotations;
     },
-    async getQuotation(quotationId: string) {
-      const res = await quotationService.getQuotation(quotationId);
+    async getQuotation(customerId: string, quotationId: string) {
+      const res = await quotationService.getQuotation(customerId, quotationId);
       return res.data;
     },
-    async getQuotationPDF(quotationId: string) {
-      const res = await quotationService.getQuotationPDF(quotationId);
+    async getQuotationPDF(customerId: string, quotationId: string) {
+      const res = await quotationService.getQuotationPDF(customerId, quotationId);
       return res;
     },
     async createQuotation(quotationData: Quotation) {
       try {
         const res = await quotationService.createQuotation(quotationData);
-        this.addQuotation(quotationData);
-        return res.data.quotation;
+        this.addQuotation(res.data);
+        return res.data;
       } catch (error) {
         if (error) indexStore.setError(error);
       }
     },
     async convertToInvoice(quotationData: Quotation) {
       try {
-        const res = await quotationService.convertToInvoice(quotationData.id);
-        const invoice = res.data.invoice;
-        quotationData.InvoiceId = invoice.id
-        this.updateStore(quotationData);
-        invoiceStore.addInvoice(invoice)
+        const res = await quotationService.convertToInvoice(quotationData.CustomerId, quotationData.id);
+        this.updateStore(res.data);
+        invoiceStore.addInvoice(res.data);
+        return res.data;
       } catch (error) {
         if (error) indexStore.setError(error);
       }
     },
     async updateQuotation(quotationData: Quotation) {
       try {
-        await quotationService.updateQuotation(quotationData)
-        this.updateStore(quotationData);
+        const res = await quotationService.updateQuotation(quotationData)
+        this.updateStore(res.data);
+        return res.data;
       } catch (error) {
         if (error) indexStore.setError(error);
       }
     },
-    async deleteQuotation(quotationId: string) {
+    async deleteQuotation(customerId: string, quotationId: string) {
       try {
-        await quotationService.destroyQuotation(quotationId)
+        await quotationService.destroyQuotation(customerId, quotationId)
         const quotationIndex = this.quotations.findIndex(
           (item) => item.id === quotationId
         );

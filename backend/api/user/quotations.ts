@@ -8,7 +8,7 @@ import { prisma } from "../../util/prisma.js";
 const router = express.Router();
 
 router.get(
-  "/quotations",
+  "/",
   async (req: Request, res: Response, next: NextFunction) => {
     const { CustomerId } = req.query;
     const { per_page, offset, options } = setFilters(req.query);
@@ -31,6 +31,9 @@ router.get(
             orderBy: {
               id: 'desc'
             },
+            include: {
+              Revenus: true,
+            },
           });
 
           return { rows: quotations, count };
@@ -46,7 +49,7 @@ router.get(
 );
 
 router.get(
-  "/quotation/:id",
+  "/:id",
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
     const isPDF = req.query.pdf;
@@ -86,7 +89,7 @@ router.get(
 );
 
 router.post(
-  "/quotation",
+  "/",
   async (req: Request, res: Response, next: NextFunction) => {
     const { InvoiceItems, ...quotationBody } = req.body;
 
@@ -112,7 +115,7 @@ router.post(
 );
 
 router.put(
-  "/quotation/:id",
+  "/:id",
   async (req: Request, res: Response, next: NextFunction) => {
     const { InvoiceItems, id, ...quotationBody } = req.body;
 
@@ -122,6 +125,9 @@ router.put(
           id,
         },
         data: quotationBody,
+        include: {
+          Revenus: true,
+        }
       });
       const existing_invoice_items = await prisma.invoiceItems.findMany({
         where: {
@@ -129,12 +135,13 @@ router.put(
         },
       });
 
-      if (InvoiceItems)
+      if (InvoiceItems) {
         await updateCreateOrDestroyChildItems(
           "InvoiceItems",
           existing_invoice_items,
           InvoiceItems
         );
+      }
 
       await invalidateCache(`quotations_customer_${quotation.CustomerId}`);
       await invalidateCache(`quotation_${quotation.id}`);
@@ -216,7 +223,7 @@ router.post(
 );
 
 router.delete(
-  "/quotation/:id",
+  "/:id",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const quotation = await prisma.quotations.delete({

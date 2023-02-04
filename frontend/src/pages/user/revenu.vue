@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container
   v-row(v-if="revenu")
-    v-col(cols='9')
+    v-col(cols='8')
       v-card
         v-form(@submit.prevent="handleSubmit")
           v-card-title.my-4
@@ -21,9 +21,9 @@ v-container
               transition-group(name='slide-up')
                 v-row(v-for='invoice in revenu.Invoices' :key="invoice.id")
                   v-col(cols="3")
-                    v-text-field(label='name' density="compact" v-model="invoice.company" type='text' variant="outlined")
+                    v-text-field(label='name' density="compact" :model-value="invoice.company || invoice.lastName" disabled variant="outlined")
                   v-col(cols="2")
-                    v-text-field(label='Total' density="compact" v-model="invoice.total" :disabled='true' type='number' variant="outlined")
+                    v-text-field(label='Total' density="compact" :model-value="invoice.total" disabled variant="outlined")
 
             div(v-if='revenu.Quotations?.length')
               v-card-title Devis :
@@ -42,7 +42,9 @@ v-container
                   v-text-field(label='creditor' density="compact" v-model="credit.creditor" type='text' variant="outlined")
                 v-col(cols="3")
                   v-text-field(label='Raison' density="compact" v-model="credit.reason" type='text' variant="outlined")
-                v-col(cols="3")
+                v-col(cols="2")
+                  v-select(label='Category' density="compact" v-model="credit.category" :items="creditCategories" variant="outlined")
+                v-col(cols="2")
                   v-text-field(label='Total' density="compact" v-model.number="credit.total" @change="updateTotal(credit)" type='number' variant="outlined")
                 v-col(cols="1")
                   v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
@@ -59,9 +61,11 @@ v-container
               v-row(v-for='(cost, index) in costs' :key="cost.id || index")
                 v-col(cols="3")
                   v-text-field(label='Référence' density="compact" v-model="cost.name" type='text' variant="outlined")
-                v-col(cols="3")
+                v-col(cols="2")
+                  v-select(label='Category' density="compact" v-model="cost.category" :items="costCategories" variant="outlined")
+                v-col(cols="2")
                   v-text-field(label='Montant TVA' density="compact" v-model.number="cost.tvaAmount" @change="updateTotal(cost)" type='number' variant="outlined")
-                v-col(cols="3")
+                v-col(cols="2")
                   v-text-field(label='Total' density="compact" v-model.number="cost.total" @change="updateTotal(cost)" type='number' variant="outlined")
                 v-col(cols="1")
                   v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
@@ -75,28 +79,33 @@ v-container
           v-card-actions
             v-row(dense justify="center")
               v-col.d-flex.justify-center(cols="12" lg="8")
+                v-btn.bg-primary.text-white(@click='router.go(-1)') {{ "Retour" }}
                 v-btn.bg-secondary.text-white(type="submit") {{ "Editer un revenu" }}
-    v-col(cols='3')
-      total-field(
-        :initial-total='revenu.total',
-        :parent='revenu'
-      )
+    v-col(cols='4')
+      v-card
+        v-card-text
+          total-field(
+            :initial-total='revenu.total',
+            :parent='revenu'
+          )
+        v-card-text
+          v-card-title Revenus : {{ revenu.total }} €
+          pie(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
+          v-card-title Costs : {{ revenu.expense }} €
+          pie(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
 </template>
 
 <script setup lang="ts">
-import { ref, computed, shallowRef, onUnmounted } from "vue";
-import { storeToRefs } from "pinia";
+import { ref, computed, shallowRef, onUnmounted, watch } from "vue";
 import type Revenu from "../types/Revenu";
 import type Cost from "../types/Cost";
 import type Credit from "../types/Credit";
-import type Customer from "../types/Customer";
-import type Invoice from "../types/Invoice";
-import type Quotation from "../types/Quotation";
 import { useRouter } from "vue-router";
 import TotalField from "../../components/general/totalField.vue";
 import { useRoute } from "vue-router";
-import { useIndexStore } from "../../store/indexStore.ts";
-import { useRevenuStore } from "../../store/revenuStore.ts";
+import { useIndexStore } from "../../store/indexStore";
+import { useRevenuStore } from "../../store/revenuStore";
+import Pie from "../../components/general/pieChart.vue";
 
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
@@ -105,6 +114,8 @@ const router = useRouter();
 const revenu = shallowRef<Revenu | null>({});
 const costs = ref<Cost[] | null>(null);
 const credits = ref<Credit[] | null>(null);
+const costCategories = ["GENERAL", "TAX", "INTERESTS", "TRIP", "HEALTH", "SERVICES", "HOUSING", "TODEFINE"];
+const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL"];
 const creditItemTemplate = {
   total: 0,
   creditor: "",
@@ -114,9 +125,16 @@ const creditItemTemplate = {
   updatedAt: new Date(),
 };
 
+const costChartData = ref(null);
+const creditChartData = ref(null);
+const chartOptions = {
+  responsive: true,
+};
+
 const costItemTemplate = {
   total: 0,
   name: "",
+  category: "",
   tvaAmount: 0,
   RevenuId: null,
   createdAt: new Date(),
@@ -124,12 +142,15 @@ const costItemTemplate = {
 };
 
 indexStore.setLoading(true);
-revenuStore.getRevenu(route.params.id).then((data) => {
+revenuStore.getRevenu(route.query.bankId, route.params.id).then((data) => {
   revenu.value = data;
   costs.value = data.Costs;
   credits.value = data.Credits;
   creditItemTemplate.RevenuId = revenu.value.id;
   costItemTemplate.RevenuId = revenu.value.id;
+  groupModelByCategory(costs, "costs", costCategories);
+  groupModelByCategory(credits, "credits", creditCategories);
+
   indexStore.setLoading(false);
 });
 
@@ -176,7 +197,7 @@ async function handleSubmit() {
   try {
     const res = await revenuStore.updateRevenu(revenu.value);
     if (res && res.id) {
-      router.push({ path: `/customers` });
+      router.push(`/revenus`);
     }
   } finally {
     indexStore.setLoading(false);
@@ -191,9 +212,62 @@ const revenuMonth = computed(() => {
   });
 });
 
+const computedCostCategories = computed(() => {
+  return costs.value ? costs.value.map((cost) => cost.category) : [];
+});
+
+const computedCreditCategories = computed(() => {
+  return credits.value ? credits.value.map((credit) => credit.category) : [];
+});
+
+function groupModelByCategory(model, model_name, items) {
+  const groupedModel = model.value.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = {
+        category: item.category,
+        [`${model_name}`]: [],
+      };
+    }
+
+    acc[item.category][`${model_name}`].push(item);
+    return acc;
+  }, {});
+
+  const modelTotalByCategory = items.map((category) => {
+    if (groupedModel[category]) {
+      return groupedModel[category][`${model_name}`].reduce((sum, model) => sum + model.total, 0);
+    } else {
+      return 0;
+    }
+  });
+
+  return model_name === "costs"
+    ? (costChartData.value = {
+        labels: items,
+        datasets: [
+          {
+            data: modelTotalByCategory,
+            backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20", "#FC2E20", "#FDB750", "#010100"],
+          },
+        ],
+      })
+    : (creditChartData.value = {
+        labels: items,
+        datasets: [
+          {
+            data: modelTotalByCategory,
+            backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20"],
+          },
+        ],
+      });
+}
+
+watch(computedCostCategories, () => groupModelByCategory(costs, "costs", costCategories));
+watch(computedCreditCategories, () => groupModelByCategory(credits, "credits", creditCategories));
+
 onUnmounted(() => {
   revenu.value = null;
   costs.value = null;
   credits.value = null;
-})
+});
 </script>

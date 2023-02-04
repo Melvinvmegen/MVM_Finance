@@ -2,7 +2,7 @@
 v-form(@submit.prevent ref="searchFrom")
   v-row
     v-col(cols="12" sm="3" md="2")
-      v-text-field(variant="outlined" density="compact" hide-details label='Nom & prénom' name='by_name' v-model='query.firstName' @blur='filterAll(itemName, true)')
+      v-text-field(variant="outlined" density="compact" hide-details label='Nom' name='by_name' v-model='query.lastName' @blur='filterAll(itemName, true)')
 
     v-col(cols="12" sm="3" md="2")
       v-text-field(variant="outlined" density="compact" hide-details label='Email' name='by_email' v-model='query.email' @blur='filterAll(itemName, true)')
@@ -43,9 +43,9 @@ v-col(cols="12")
         td {{ customer.firstName }}
         td {{ customer.email }}
         td {{ customer.phone }}
-        td {{ customer.invoices_total }}
+        td {{ returnPaidInvoiceTotal(customer) }}
         td {{ returnUnpaidInvoiceTotal(customer) }}
-        td {{ customer.tva_amount_collected }}
+        td {{ returnTvaAmount(customer) }}
         td
           v-btn(color='red' variant="text" icon="mdi-delete" @click.stop="deleteItem(customer, 'Customer', `Vous êtes sur de vouloir supprimer la customer ${customer.firstName} ${customer.lastName}` )" :key='customer.id')
 
@@ -56,12 +56,9 @@ v-pagination(v-model="query.currentPage" :total-visible='query.perPage' :length=
 import useFilter from "../../hooks/filter";
 import useDelete from "../../hooks/delete";
 import type Customer from "../../types/Customer";
-import RevenuTable from "../../components/revenu/revenuTable";
-import CryptoTable from "../../components/crypto/cryptoTable.vue";
-import Weather from "../../components/general/weather.vue";
 import { useRouter } from "vue-router";
-import { ref, onUnmounted } from 'vue'
-import { useCustomerStore } from "../../store/customerStore.ts";
+import { ref } from 'vue'
+import { useCustomerStore } from "../../store/customerStore";
 
 const customerStore = useCustomerStore();
 const { compute, filterAll, query } = useFilter(customerStore, "customers");
@@ -75,20 +72,28 @@ filterAll(itemName);
 
 function returnUnpaidInvoiceTotal(customer: Customer) {
   if (customer.Invoices) {
-    return customer.Invoices.filter((invoice) => !invoice.paid).reduce((sum, invoice) => sum + invoice.total, 0);
+    return customer.Invoices.filter((invoice) => !invoice.paid).reduce((sum, invoice) => sum + (invoice.totalTTC || invoice.total), 0);
+  }
+}
+
+function returnPaidInvoiceTotal(customer: Customer) {
+  if (customer.Invoices) {
+    return customer.Invoices.filter((invoice) => invoice.paid).reduce((sum, invoice) => sum + (invoice.totalTTC || invoice.total), 0);
+  }
+}
+
+function returnTvaAmount(customer: Customer) {
+  if (customer.Invoices) {
+    return customer.Invoices.filter((invoice) => invoice.paid).reduce((sum, invoice) => sum + invoice.tvaAmount, 0);
   }
 }
 
 function resetAll() {
-  searchFrom.value.reset()
+  searchFrom?.value?.reset()
   filterAll(itemName, true)
 }
 
 function pushToShow(customer: Customer) {
   if (customer.id) router.push({ path: `/customers/edit/${customer.id}`});
 }
-
-onUnmounted(() => {
-  items.value = null;
-})
 </script>

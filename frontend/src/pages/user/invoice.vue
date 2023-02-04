@@ -16,12 +16,14 @@ v-container
               v-col(cols="2")
                 v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="invoice.RevenuId" label='Revenu' density="compact" )
               v-col(cols="2")
-                input(name='paymentDate' v-model="invoice.paymentDate" type='hidden')
-                DatePicker(
+                Datepicker(
                   name="paymentDate",
-                  class="form-control",
                   v-model="invoice.paymentDate",
-                  inputFormat="dd/MM/yyyy"
+                  format="dd/MM/yyyy"
+                  dark
+                  position="center"
+                  :month-change-on-scroll="false"
+                  auto-apply
                 )
                 v-icon mdi-calendar
               v-col(cols="2")
@@ -71,35 +73,35 @@ v-container
 </template>
 
 <script setup lang="ts">
-import { ref, provide } from "vue";
-import type { PropType } from "vue";
+import { ref } from "vue";
 import type Invoice from "../types/Invoice";
 import type Customer from "../types/Customer";
 import type Revenu from "../types/Revenu";
 import { useRouter } from "vue-router";
-import useTotal from "../../hooks/total.ts";
+import useTotal from "../../hooks/total";
 import TotalField from "../../components/general/totalField.vue";
-import DatePicker from "vue3-datepicker";
+import Datepicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 import { useRoute } from "vue-router";
-import { useIndexStore } from "../../store/indexStore.ts";
-import { useCustomerStore } from "../../store/customerStore.ts";
-import { useInvoiceStore } from "../../store/invoiceStore.ts";
-import { useRevenuStore } from "../../store/revenuStore.ts";
+import { useIndexStore } from "../../store/indexStore";
+import { useCustomerStore } from "../../store/customerStore";
+import { useInvoiceStore } from "../../store/invoiceStore";
+import { useRevenuStore } from "../../store/revenuStore";
 
 const props = defineProps({
   id: [Number, String],
-})
+});
 const indexStore = useIndexStore();
 const customerStore = useCustomerStore();
 const invoiceStore = useInvoiceStore();
 const revenuStore = useRevenuStore();
 const route = useRoute();
 const router = useRouter();
-const invoice = ref<Invoice | any>({})
-const customer = ref<Customer | any>({})
-const revenus = ref<Revenu | any>([])
-const customerId = route.query.customerId
-const { setTotal, itemsTotal, totalTTC, tvaAmount } = useTotal();
+const invoice = ref<Invoice | any>({});
+const customer = ref<Customer | any>({});
+const revenus = ref<Revenu | any>([]);
+const customerId = route.query.customerId;
+const { itemsTotal, totalTTC, tvaAmount } = useTotal();
 const invoiceItemTemplate = {
   quantity: 0,
   name: "",
@@ -107,7 +109,7 @@ const invoiceItemTemplate = {
   total: 0,
 };
 const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus()];
-if (props.id) setupPromises.push(invoiceStore.getInvoice(props.id));
+if (props.id) setupPromises.push(invoiceStore.getInvoice(customerId, props.id));
 
 indexStore.setLoading(true);
 
@@ -116,10 +118,8 @@ Promise.all(setupPromises).then((data) => {
   revenus.value = data[1];
 
   if (data.length > 2) {
-    invoice.value = <Invoice>{...data[2]};
-    invoice.value.paymentDate = new Date(
-      invoice.value.paymentDate
-    );
+    invoice.value = <Invoice>{ ...data[2] };
+    invoice.value.paymentDate = new Date(invoice.value.paymentDate);
     invoiceItemTemplate.InvoiceId = invoice.value.id;
   } else {
     invoice.value.firstName = customer.value.firstName;
@@ -133,7 +133,7 @@ Promise.all(setupPromises).then((data) => {
     invoice.value.tvaAmount = 0;
   }
   indexStore.setLoading(false);
-})
+});
 
 function updateTotal(item) {
   item.total = item.quantity * item.unit;
@@ -150,21 +150,19 @@ function addItem() {
 }
 
 function removeItem(item) {
-  const index = invoice.value.InvoiceItems.findIndex(
-    (invoice_item) => invoice_item.id === item.id
-  )
+  const index = invoice.value.InvoiceItems.findIndex((invoice_item) => invoice_item.id === item.id);
   invoice.value.InvoiceItems.splice(index, 1);
   const total = invoice.value.InvoiceItems?.reduce((sum, invoice) => sum + invoice.total, 0);
-  updateTotal(item)
+  updateTotal(item);
 }
 
 async function handleSubmit(): Promise<void> {
-  indexStore.setLoading(true); 
+  indexStore.setLoading(true);
   const action = invoice.value.id ? "updateInvoice" : "createInvoice";
   try {
     const res = await invoiceStore[action](invoice.value);
     if (res && customerId) {
-      router.push({ path: `/customers/edit/${customerId}`});
+      router.push({ path: `/customers/edit/${customerId}` });
     }
   } finally {
     indexStore.setLoading(false);
