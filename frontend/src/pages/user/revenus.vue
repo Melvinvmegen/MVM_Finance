@@ -12,8 +12,26 @@ v-row
 
       v-card-text
         revenu-table
+    v-card(elevation="3" class="mt-4")
+      v-card-text
+        v-row(justify="space-around" align="center")
+          v-col(cols="12" md="6")
+            v-row(justify="space-around" align="center")       
+              v-col(cols="12" md="6")
+                v-card-subtitle Dépense mensuel moyenne :
+                v-card-title {{ returnExpenseAverage() }} €
+              v-col(cols="12" md="6")
+                v-card-subtitle Dépense recurrent mensuel :
+                v-card-title {{ returnRecurrentCost }} €
+            bar(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
+          v-col(cols="12" md="6")
+            v-row(justify="space-around" align="start")
+              v-card-subtitle Revenu mensuel moyen :
+              v-card-title.pt-0.mb-4 {{ returnRevenuAverage() }} €
+            bar(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
+
   v-col(cols="12" md="4")
-    v-card(position="absolute" class="v-col v-col-3")
+    v-card
       v-card-text
         v-row(justify="space-around" align="center")
           v-card-subtitle Chiffre d'affaires
@@ -27,18 +45,21 @@ v-row
         hr.mx-2.my-4
         v-row(justify="space-around" align="center")
           v-card-subtitle Résultat Net
-          v-card-title {{ Math.round(returnRevenuTotal() + returnRevenusCostTotal() - returnTaxAmount()) }} €
+          v-card-title {{ Math.round(returnRevenuTotal() + returnRevenusCostTotal()) }} €
       hr.mx-2.my-4
       v-card-text
-        v-row(justify="space-around" align="center")
-          v-card-subtitle Dépense mensuel moyenne :
-          v-card-title {{ returnExpenseAverage() }} €
-        bar(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
-        hr.mx-2.my-4
-        v-row(justify="space-around" align="center")
-          v-card-subtitle Revenu mensuel moyen :
-          v-card-title {{ returnRevenuAverage() }} €
-        bar(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
+        v-row(justify="center" align="center")
+          v-col(cols="12" md="10")
+            v-row(justify="space-around" align="center")
+              v-card-subtitle Répartition des coûts :
+            br
+            Pie(v-if="costPieChartData" :chart-data='costPieChartData' :chart-options='pieChartOptions')
+            hr.mx-2.my-10
+            v-row(justify="space-around" align="center")
+              v-card-subtitle Répartition des revenus :
+            br
+            Pie(v-if="creditPieChartData" :chart-data='creditPieChartData' :chart-options='pieChartOptions')
+
 </template>
 
 <script setup lang="ts">
@@ -48,6 +69,7 @@ import { useIndexStore } from "../../store/indexStore";
 import { useRevenuStore } from "../../store/revenuStore";
 import { useBankStore } from "../../store/bankStore";
 import Bar from "../../components/general/barChart.vue";
+import Pie from "../../components/general/pieChart.vue";
 
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
@@ -56,6 +78,92 @@ const bankStore = useBankStore();
 if (!bankStore.banks.length) {
   bankStore.getBanks();
 }
+
+const costPieChartData = computed(() => {
+  const costCategories = ["GENERAL", "TAX", "INTERESTS", "TRIP", "HEALTH", "SERVICES", "HOUSING", "INVESTMENT", "TODEFINE"];
+  const costs = revenuStore.revenus.flatMap((revenu) => revenu.Costs);
+  const groupedModel = costs.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = {
+        category: item.category,
+        costs: [],
+      };
+    }
+
+    acc[item.category].costs.push(item);
+    return acc;
+  }, {});
+
+  const modelTotalByCategory = costCategories.map((category) => {
+    if (groupedModel[category]) {
+      return groupedModel[category].costs.reduce((sum, model) => sum + model.total, 0);
+    } else {
+      return 0;
+    }
+  });
+
+  const total = modelTotalByCategory.reduce((sum, model) => sum + model, 0);
+
+  return {
+    labels: costCategories,
+    datasets: [
+      {
+        data: modelTotalByCategory.map((model) => Math.round((model / total) * 100)),
+        backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20", "#FC2E20", "#FDB750", "#010100"],
+      },
+    ],
+  };
+});
+
+const creditPieChartData = computed(() => {
+  const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER"];
+  const credits = revenuStore.revenus.flatMap((revenu) => revenu.Credits);
+  const groupedModel = credits.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = {
+        category: item.category,
+        credits: [],
+      };
+    }
+
+    acc[item.category].credits.push(item);
+    return acc;
+  }, {});
+
+  const modelTotalByCategory = creditCategories.map((category) => {
+    if (groupedModel[category]) {
+      return groupedModel[category].credits.reduce((sum, model) => sum + model.total, 0);
+    } else {
+      return 0;
+    }
+  });
+
+  const total = modelTotalByCategory.reduce((sum, model) => sum + model, 0);
+
+  return {
+    labels: creditCategories,
+    datasets: [
+      {
+        data: modelTotalByCategory.map((model) => Math.round((model / total) * 100)),
+        backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20", "#FC2E20", "#FDB750", "#010100"],
+      },
+    ],
+  };
+});
+
+const pieChartOptions = {
+  responsive: true,
+  plugins: {
+    tooltip: {
+      callbacks: {
+        label: function (context) {
+          let tooltipData = context.dataset.data[context.dataIndex];
+          return ` ${tooltipData}%`;
+        },
+      },
+    },
+  },
+};
 
 const costChartData = computed(() => {
   const reversed_revenus = revenuStore.revenus.slice().reverse();
@@ -78,6 +186,7 @@ const costChartData = computed(() => {
 
   return chartData;
 });
+
 const creditChartData = computed(() => {
   const reversed_revenus = revenuStore.revenus.slice().reverse();
   const chartData = {
@@ -93,7 +202,7 @@ const creditChartData = computed(() => {
       },
     ],
   };
-  chartData.datasets[0].data.push
+  chartData.datasets[0].data.push;
   for (let revenu of reversed_revenus) {
     chartData.datasets[0].data.push(revenu.total);
   }
@@ -169,4 +278,8 @@ function returnRevenuAverage() {
   const total_revenu = revenuStore.revenus.reduce((sum: number, revenu: Revenu) => sum + revenu.total, 0);
   return Math.round(total_revenu / revenuStore.revenus.length);
 }
+
+const returnRecurrentCost = computed(() => {
+  return revenuStore.revenus[1]?.Costs?.filter((c) => c.recurrent).reduce((sum, cost) => sum + cost.total, 0) || 0;
+})
 </script>

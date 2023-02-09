@@ -14,6 +14,7 @@ export default interface Revenu {
   taxPercentage: number;
   tva_collected: number;
   tva_dispatched: number;
+  watchers: string;
   Invoices: Array<Invoice>;
   Costs: Array<Cost>;
   Credits: Array<Credit>;

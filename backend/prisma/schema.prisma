@@ -15,6 +15,7 @@ model Costs {
   updatedAt DateTime     @updatedAt
   RevenuId  Int
   tvaAmount Float?
+  recurrent Boolean      @default(false)
   category  CostCategory @default(TODEFINE)
   Revenus   Revenus      @relation(fields: [RevenuId], references: [id])
 }
@@ -27,7 +28,6 @@ model Credits {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   RevenuId  Int
-  refund    Boolean?       @default(true)
   category  CreditCategory @default(REFUND)
   Revenus   Revenus        @relation(fields: [RevenuId], references: [id])
 }
@@ -98,9 +98,9 @@ model Invoices {
   tvaApplicable Boolean        @default(false)
   totalTTC      Float          @default(0)
   tvaAmount     Float          @default(0)
+  InvoiceItems  InvoiceItems[]
   Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade)
   Revenus       Revenus?       @relation(fields: [RevenuId], references: [id])
-  InvoiceItems  InvoiceItems[]
   Quotations    Quotations[]
 }
 
@@ -122,10 +122,10 @@ model Quotations {
   totalTTC      Float          @default(0)
   tvaAmount     Float?         @default(0)
   paymentDate   DateTime?      @db.Timestamptz(6)
+  InvoiceItems  InvoiceItems[]
   Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade)
   Invoices      Invoices?      @relation(fields: [InvoiceId], references: [id])
   Revenus       Revenus?       @relation(fields: [RevenuId], references: [id])
-  InvoiceItems  InvoiceItems[]
 }
 
 model RefreshTokens {
@@ -151,11 +151,12 @@ model Revenus {
   tva_dispatched Float          @default(0)
   refund         Float          @default(0)
   BankId         Int?
-  Banks          Banks?         @relation(fields: [BankId], references: [id], onDelete: Restrict)
+  watchers       String?        @db.Text
   Costs          Costs[]
   Credits        Credits[]
   Invoices       Invoices[]
   Quotations     Quotations[]
+  Banks          Banks?         @relation(fields: [BankId], references: [id], onDelete: Restrict)
   Transactions   Transactions[]
 }
 
@@ -181,9 +182,9 @@ model Users {
   email                 String             @unique @db.VarChar(255)
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
-  revenusModuleActive   Boolean            @default(true)
-  customersModuleActive Boolean            @default(true)
   cryptosModuleActive   Boolean            @default(true)
+  customersModuleActive Boolean            @default(true)
+  revenusModuleActive   Boolean            @default(true)
   Banks                 Banks[]
   CryptoCurrencies      CryptoCurrencies[]
   Customers             Customers[]
@@ -210,6 +211,7 @@ enum CostCategory {
   SERVICES
   HOUSING
   TODEFINE
+  INVESTMENT
 }
 
 enum CreditCategory {
@@ -218,4 +220,5 @@ enum CreditCategory {
   CRYPTO
   STOCK
   RENTAL
+  TRANSFER
 }

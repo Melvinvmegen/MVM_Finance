@@ -108,7 +108,7 @@ const invoiceItemTemplate = {
   unit: 0,
   total: 0,
 };
-const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus()];
+const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus({BankId: 1})];
 if (props.id) setupPromises.push(invoiceStore.getInvoice(customerId, props.id));
 
 indexStore.setLoading(true);

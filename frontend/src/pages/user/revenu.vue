@@ -38,12 +38,20 @@ v-container
             v-card-title Credits :
             transition-group(name='slide-up')
               v-row(v-for='(credit, index) in credits' :key="credit.id || index")
+                v-col(cols="2")
+                    Datepicker(
+                      name="createdAt",
+                      v-model="credit.createdAt",
+                      format="dd/MM/yyyy"
+                      dark
+                      position="center"
+                      :month-change-on-scroll="false"
+                      auto-apply
+                    )
                 v-col(cols="3")
                   v-text-field(label='creditor' density="compact" v-model="credit.creditor" type='text' variant="outlined")
-                v-col(cols="3")
-                  v-text-field(label='Raison' density="compact" v-model="credit.reason" type='text' variant="outlined")
                 v-col(cols="2")
-                  v-select(label='Category' density="compact" v-model="credit.category" :items="creditCategories" variant="outlined")
+                  v-select(label='Category' density="compact" v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal(credit)" variant="outlined")
                 v-col(cols="2")
                   v-text-field(label='Total' density="compact" v-model.number="credit.total" @change="updateTotal(credit)" type='number' variant="outlined")
                 v-col(cols="1")
@@ -57,14 +65,33 @@ v-container
 
             hr.my-8
             v-card-title Coûts :
+            v-spacer
+            v-autocomplete(
+              chips
+              label="Autocomplete"
+              :items="costsNames"
+              v-model="revenu.watchers"
+              multiple)
             transition-group(name='slide-up')
-              v-row(v-for='(cost, index) in costs' :key="cost.id || index")
+              v-row(v-for='(cost, index) in costs' :key="cost.id || index" :class="{'bg-red-darken-4': cost.category === 'TODEFINE'}")
+                v-col(cols="1")
+                  v-checkbox(v-model="cost.recurrent" color="secondary")
+                v-col(cols="2")
+                  Datepicker(
+                    name="createdAt",
+                    v-model="cost.createdAt",
+                    format="dd/MM/yyyy"
+                    dark
+                    position="center"
+                    :month-change-on-scroll="false"
+                    auto-apply
+                  )
                 v-col(cols="3")
                   v-text-field(label='Référence' density="compact" v-model="cost.name" type='text' variant="outlined")
                 v-col(cols="2")
                   v-select(label='Category' density="compact" v-model="cost.category" :items="costCategories" variant="outlined")
-                v-col(cols="2")
-                  v-text-field(label='Montant TVA' density="compact" v-model.number="cost.tvaAmount" @change="updateTotal(cost)" type='number' variant="outlined")
+                v-col(cols="1")
+                  v-text-field(label='TVA' density="compact" v-model.number="cost.tvaAmount" @change="updateTotal(cost)" type='number' variant="outlined")
                 v-col(cols="2")
                   v-text-field(label='Total' density="compact" v-model.number="cost.total" @change="updateTotal(cost)" type='number' variant="outlined")
                 v-col(cols="1")
@@ -90,9 +117,14 @@ v-container
           )
         v-card-text
           v-card-title Revenus : {{ revenu.total }} €
-          pie(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
+          Pie(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
           v-card-title Costs : {{ revenu.expense }} €
-          pie(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
+          Pie(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
+          hr.mx-2.my-4
+          v-card-title Watchers :
+          v-row(align="center" class="ml-1 mt-1" v-for='watcher in splitedWatchers' closable-chips :key="watcher")
+            v-card-subtitle - {{ watcher }}
+            v-card-title {{ revenu.Costs.filter((c) => c.name.includes(watcher)).reduce((sum, c) => sum + c.total, 0) }} €
 </template>
 
 <script setup lang="ts">
@@ -106,6 +138,8 @@ import { useRoute } from "vue-router";
 import { useIndexStore } from "../../store/indexStore";
 import { useRevenuStore } from "../../store/revenuStore";
 import Pie from "../../components/general/pieChart.vue";
+import Datepicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
@@ -114,8 +148,18 @@ const router = useRouter();
 const revenu = shallowRef<Revenu | null>({});
 const costs = ref<Cost[] | null>(null);
 const credits = ref<Credit[] | null>(null);
-const costCategories = ["GENERAL", "TAX", "INTERESTS", "TRIP", "HEALTH", "SERVICES", "HOUSING", "TODEFINE"];
-const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL"];
+const costCategories = [
+  "GENERAL",
+  "TAX",
+  "INTERESTS",
+  "TRIP",
+  "HEALTH",
+  "SERVICES",
+  "HOUSING",
+  "INVESTMENT",
+  "TODEFINE",
+];
+const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER"];
 const creditItemTemplate = {
   total: 0,
   creditor: "",
@@ -144,6 +188,7 @@ const costItemTemplate = {
 indexStore.setLoading(true);
 revenuStore.getRevenu(route.query.bankId, route.params.id).then((data) => {
   revenu.value = data;
+  revenu.value.watchers = data?.watchers?.split(",");
   costs.value = data.Costs;
   credits.value = data.Credits;
   creditItemTemplate.RevenuId = revenu.value.id;
@@ -176,11 +221,13 @@ function removeItem(item, itemName) {
 
 function updateTotal() {
   const tvaCollected = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.tvaAmount, 0);
-  const tvaDispatched = costs.value.reduce((sum, cost) => sum + +cost.tvaAmount, 0);
+  const tvaDispatched = costs.value.reduce((sum, cost) => sum + Number(cost.tvaAmount), 0);
   const totalInvoices = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.total, 0);
-  const totalPro = credits.value.filter((c) => !c.refund).reduce((sum, credit) => sum + +credit.total, 0);
-  const totalRefunds = credits.value.filter((c) => c.refund).reduce((sum, credit) => sum + +credit.total, 0);
-  const totalCosts = costs.value.reduce((sum, cost) => sum + +cost.total, 0);
+  const totalPro = credits.value.filter((c) => c.category !== "REFUND").reduce((sum, credit) => sum + +credit.total, 0);
+  const totalRefunds = credits.value
+    .filter((c) => c.category === "REFUND")
+    .reduce((sum, credit) => sum + +credit.total, 0);
+  const totalCosts = costs.value.reduce((sum, cost) => sum + Number(cost.total), 0);
 
   revenu.value.tva_dispatched = tvaDispatched;
   revenu.value.tva_collected = tvaCollected;
@@ -264,6 +311,23 @@ function groupModelByCategory(model, model_name, items) {
 
 watch(computedCostCategories, () => groupModelByCategory(costs, "costs", costCategories));
 watch(computedCreditCategories, () => groupModelByCategory(credits, "credits", creditCategories));
+
+const costsNames = computed(() => {
+  const arr = costs.value ? costs.value.map((cost) => cost.name.replace(/[\d+/+]/g, "").trim()) : [];
+
+  return [...new Set(arr)];
+});
+
+const splitedWatchers = computed(() => {
+  let watchers = revenu.value.watchers;
+  if (!!watchers && typeof watchers === "object") {
+    return watchers = Object.entries(watchers).map((i) => i[1]);
+  } else if (!!watchers && typeof watchers === "string") {
+    return watchers.split(",");
+  } else {
+    return [];
+  }
+})
 
 onUnmounted(() => {
   revenu.value = null;

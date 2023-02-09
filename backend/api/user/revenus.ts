@@ -42,8 +42,8 @@ router.get("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
             Credits: true,
             Costs: {
               orderBy: {
-                createdAt: 'desc'
-              }
+                createdAt: "desc",
+              },
             },
             Quotations: true,
             Transactions: true,
@@ -75,8 +75,16 @@ router.get(
           },
           include: {
             Invoices: true,
-            Credits: true,
-            Costs: true,
+            Credits: {
+              orderBy: {
+                createdAt: "asc",
+              },
+            },
+            Costs: {
+              orderBy: {
+                createdAt: "asc",
+              },
+            },
             Quotations: true,
             Transactions: true,
             Banks: true,
@@ -144,7 +152,8 @@ router.put(
         },
         data: {
           ...revenuBody,
-          BankId: +req?.auth?.userId
+          watchers: revenuBody.watchers.join(),
+          BankId: +req?.auth?.userId,
         },
         include: {
           Credits: true,
@@ -162,14 +171,13 @@ router.put(
   }
 );
 
-let cost_category_cache: {[key: string]: any} = {};
+let cost_category_cache: { [key: string]: any } = {};
 
 router.post(
   "/",
   upload.single("file"),
   async (req: JWTRequest, res: Response) => {
     const file = req.file;
-
     try {
       if (!file) throw new AppError(400, "Please upload a CSV file!");
 
@@ -253,15 +261,22 @@ router.post(
               let cost_category = cost_category_cache[name];
               if (!cost_category) {
                 cost_category = await prisma.costs.findFirst({
+                  orderBy: { createdAt: "desc" },
                   select: {
                     category: true,
+                    recurrent: true,
                   },
                   where: {
-                    name,
+                    name: {
+                      contains: name,
+                    },
                   },
                 });
                 if (cost_category) {
-                  cost_category_cache[name] = cost_category.category;
+                  cost_category_cache[name] = {
+                    category: cost_category.category,
+                    recurrent: cost_category.recurrent,
+                  };
                 }
               }
 
@@ -272,6 +287,11 @@ router.post(
                   RevenuId: revenu!.id,
                 },
               });
+
+              if (cost_category_cache[name]) {
+                newObj.category = cost_category_cache[name].category;
+                newObj.recurrent = cost_category_cache[name].recurrent;
+              }
 
               if (!cost) {
                 cost = await prisma.costs.create({
