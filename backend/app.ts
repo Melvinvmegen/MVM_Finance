@@ -87,6 +87,7 @@ const validateBelongsToBank = () => {
 
     if (!banks?.length) return res.sendStatus(403);
 
+    // @ts-ignore
     req.originalParams = Object.assign({}, req.params);
     next();
   };

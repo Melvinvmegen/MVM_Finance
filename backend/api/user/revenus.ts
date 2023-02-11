@@ -176,7 +176,8 @@ let cost_category_cache: { [key: string]: any } = {};
 router.post(
   "/",
   upload.single("file"),
-  async (req: JWTRequest, res: Response) => {
+  // @ts-ignore
+  async (req: FullRequest, res: Response) => {
     const file = req.file;
     try {
       if (!file) throw new AppError(400, "Please upload a CSV file!");
