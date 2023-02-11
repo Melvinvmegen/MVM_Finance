@@ -52,12 +52,12 @@ import { useRouter } from "vue-router";
 import { ref, onUnmounted, onBeforeMount } from "vue";
 import { useIndexStore } from "../../store/indexStore";
 import { useRevenuStore } from "../../store/revenuStore";
+import { useBankStore } from "../../store/bankStore";
 
+const bankStore = useBankStore();
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
-const { compute, filterAll, query } = useFilter(revenuStore, "revenus", {
-  BankId: 1,
-});
+const { compute, filterAll, query } = useFilter(revenuStore, "revenus");
 query.id = undefined;
 
 const itemName = "Revenus";
@@ -66,14 +66,17 @@ const { items, pages } = compute;
 const searchFrom = ref(null);
 
 onBeforeMount(async () => {
+  if (!bankStore.$state.banks.length)await bankStore.getBanks();
   if (!revenuStore.revenus.length) {
-    await filterAll("Revenus", true);
+    await filterAll("Revenus", true, {
+      BankId: bankStore.$state.banks[0]?.id,
+    });
     revenuStore.revenus.value = items.value;
   }
 });
 
 function pushToShow(event, revenu: Revenu) {
-  if (event.target.nodeName !== "TD") return
+  if (event.target.nodeName !== "TD") return;
   router.push(`/revenus/edit/${revenu.id}?bankId=${revenu.BankId}`);
 }
 
@@ -92,25 +95,16 @@ function returnRevenuNet(revenu: Revenu) {
 
 function returnInvestmentTotal(revenu: Revenu) {
   if (revenu.Transactions) {
-    const total = revenu.Transactions.reduce(
-      (sum, investment) => sum + investment.total,
-      0
-    );
-    return total.toFixed(2) 
+    const total = revenu.Transactions.reduce((sum, investment) => sum + investment.total, 0);
+    return total.toFixed(2);
   } else {
     return 0;
   }
 }
 
 function returnTVABalance(revenu: Revenu) {
-  const tvaDispatched = revenu.Costs?.reduce(
-    (sum, cost) => sum + cost.tvaAmount,
-    0
-  );
-  const tvaCollected = revenu.Invoices?.reduce(
-    (sum, invoice) => sum + invoice.tvaAmount,
-    0
-  );
+  const tvaDispatched = revenu.Costs?.reduce((sum, cost) => sum + cost.tvaAmount, 0);
+  const tvaCollected = revenu.Invoices?.reduce((sum, invoice) => sum + invoice.tvaAmount, 0);
 
   if (revenu.Invoices) {
     return (tvaDispatched - tvaCollected).toFixed(2);
@@ -121,5 +115,5 @@ function returnTVABalance(revenu: Revenu) {
 
 onUnmounted(() => {
   items.value = null;
-})
+});
 </script>

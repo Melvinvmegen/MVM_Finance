@@ -28,7 +28,7 @@ export const useRevenuStore = defineStore("revenuStore", {
     async createRevenu(bankId: string, fileData: File) {
       try {
         await revenuService.createRevenu(bankId, fileData);
-        await this.getRevenus({ BankId: 1, currentPage: '1', perPage: '12', force: 'false' });
+        await this.getRevenus({ BankId: bankId, currentPage: '1', perPage: '12', force: 'false' });
       } catch (error) {
         if (error) indexStore.setError(error);
       }

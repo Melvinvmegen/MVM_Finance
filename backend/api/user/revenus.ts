@@ -152,7 +152,7 @@ router.put(
         },
         data: {
           ...revenuBody,
-          watchers: revenuBody.watchers.join(),
+          watchers: revenuBody.watchers?.join(),
           BankId: +req?.auth?.userId,
         },
         include: {
@@ -180,7 +180,6 @@ router.post(
     const file = req.file;
     try {
       if (!file) throw new AppError(400, "Please upload a CSV file!");
-
       let revenu: Revenu | null;
       const costs: any[] = [];
       const credits: any[] = [];
@@ -221,6 +220,7 @@ router.post(
                   gte: beginning_of_month,
                   lte: end_of_month,
                 },
+                BankId: Number(req.originalParams?.bank_id),
               },
               include: {
                 Costs: true,
@@ -242,7 +242,7 @@ router.post(
                       beginning_of_month.getHours() + 4
                     )
                   ),
-                  BankId: +req?.auth?.userId,
+                  BankId: Number(req.originalParams?.bank_id),
                 },
                 include: {
                   Costs: true,

@@ -3,7 +3,8 @@ import type User from "../types/user";
 
 class AuthService {
   async signUp(data: User): Promise<any> {
-    return await api.post("/users/signup", data);
+    const response = await api.post("/public/signup", data);
+    return response.data;
   }
 
   async signIn(data: User): Promise<any> {

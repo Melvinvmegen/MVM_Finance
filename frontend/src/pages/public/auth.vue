@@ -11,9 +11,9 @@ v-container(:class="display.mobile.value ? 'pt-0' : 'pa-0'")
             transition(name="switch" mode="out-in")
               sign-in-form(@submit="handleSubmit" v-if='isSignIn')
               sign-up-form(@submit="handleSubmit" v-else)
-      //- br
-      //- span
-      //-   u.text-underline.d-flex.justify-center.mx-8(@click='changeMode') {{ isSignIn ? "Je créé un compte" : "J'ai déjà un compte"}}
+      br
+      span
+        u.text-underline.d-flex.justify-center.mx-8(@click='changeMode') {{ isSignIn ? "Je créé un compte" : "J'ai déjà un compte"}}
 </template>
 
 <script setup lang="ts">
@@ -39,12 +39,11 @@ if (loggedIn.value) {
 
 async function handleSubmit(user: any): Promise<void> {
   indexStore.setLoading(true);
-  const action = isSignIn.value ? "signIn" : "signUp";
   try {
+    if (!isSignIn.value) await AuthService.signUp(user);
     const auth = await AuthService.signIn(user);
-    await userStore[action](auth);
-    if (isSignIn.value) window.location.href = `${window.location.origin}/dashboard`;
-    isSignIn.value = true;
+    await userStore.signIn(auth);
+    window.location.href = `${window.location.origin}/dashboard`;
   } finally {
     indexStore.setLoading(false);
   }

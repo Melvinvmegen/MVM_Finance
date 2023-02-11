@@ -99,9 +99,7 @@ import LineChart from "../../components/general/lineChart.vue";
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
 const bankStore = useBankStore();
-const { compute, filterAll } = useFilter(revenuStore, "revenus", {
-  BankId: 1,
-});
+const { compute, filterAll } = useFilter(revenuStore, "revenus");
 const { items } = compute;
 const show_modal = ref(false);
 let mutable_bank = ref({
@@ -114,14 +112,16 @@ let costChartData = ref(null);
 let creditChartData = ref(null);
 let lineChartData = ref(null);
 const dates: string[] = [];
-let revenu = ref(null)
+let revenu = ref(null);
 
 onBeforeMount(async () => {
+  await bankStore.getBanks();
   if (!revenuStore.revenus.length) {
-    await filterAll("Revenus");
+    await filterAll("Revenus", true, {
+      BankId: bankStore.$state.banks[0]?.id,
+    });
     revenuStore.revenus.value = items.value;
   }
-  await bankStore.getBanks();
   if (bankStore.$state.banks.length) mutable_bank.value = bankStore.$state.banks[0];
   revenu.value = items.value[0];
   const today = new Date(revenu.value?.Costs?.at(0)?.createdAt);
@@ -292,7 +292,7 @@ async function handleSubmit(): Promise<void> {
   indexStore.setLoading(true);
   let action = mutable_bank.value.id ? "updateBank" : "createBank";
   const bankRevenu = mutable_bank.value;
-  delete bankRevenu['Revenus']
+  delete bankRevenu["Revenus"];
   try {
     mutable_bank = await bankStore[action](bankRevenu);
     show_modal.value = false;

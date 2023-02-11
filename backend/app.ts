@@ -82,11 +82,12 @@ const validateBelongsToBank = () => {
     });
 
     const banks = user?.Banks?.filter(
-      (bank) => bank.UserId === +req.params.bank_id
+      (bank) => bank.id === Number(req.params.bank_id)
     );
 
     if (!banks?.length) return res.sendStatus(403);
 
+    req.originalParams = Object.assign({}, req.params);
     next();
   };
 };
