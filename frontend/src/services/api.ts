@@ -57,7 +57,6 @@ apiClient.interceptors.response.use(
       case 403:
         console.log("403 Forbidden", errorData);
         indexStore.setError(errorData.message);
-        userStore.logout();
         break;
       case 404:
         console.log("404 Not found", errorData);
