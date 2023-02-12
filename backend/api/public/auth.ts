@@ -44,9 +44,10 @@ router.post("/login", async (req: Request, res: Response, next: NextFunction) =>
           "Incorrect credentials, please check your login and password"
         );
 
-      const passwordCheck = bcrypt.compare(req.body.password, user.password);
-      if (!passwordCheck)
+      const passwordCheck = await bcrypt.compare(req.body.password, user.password);
+      if (!passwordCheck) {
         throw new AppError(404, "Email and password don't match!");
+      }
 
       const token = createToken(
         { email: user.email, userId: user.id },
