@@ -234,7 +234,6 @@ function updateTotal() {
   revenu.value.expense = totalCosts;
   revenu.value.pro = totalInvoices + totalPro;
   revenu.value.perso = totalRefunds;
-  revenu.value.refund = totalRefunds;
   revenu.value.total = totalInvoices + totalPro + totalRefunds;
 }
 

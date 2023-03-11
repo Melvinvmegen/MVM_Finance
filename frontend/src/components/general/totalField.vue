@@ -1,5 +1,5 @@
 <template lang="pug">
-template(v-if="model")
+template(v-if="model.InvoiceItems")
   v-card-subtitle(v-if="quotationId") Devis n°{{ quotationId }}
   v-card-subtitle Facture n°{{ model.id }}
   v-card-subtitle.justify-end {{ model.company }}
