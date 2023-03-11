@@ -113,7 +113,7 @@ v-container
         v-card-text
           total-field(
             :initial-total='revenu.total',
-            :parent='revenu'
+            :model='revenu'
           )
         v-card-text
           v-card-title Revenus : {{ revenu.total }} €

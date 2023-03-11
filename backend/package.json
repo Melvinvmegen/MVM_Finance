@@ -52,7 +52,7 @@
     "@types/pdfkit": "^0.12.8",
     "concurrently": "^7.5.0",
     "nodemon": "^2.0.12",
-    "prisma": "^4.9.0",
+    "prisma": "^4.11.0",
     "typescript": "^4.8.4"
   }
 }

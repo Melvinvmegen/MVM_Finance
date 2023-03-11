@@ -67,7 +67,7 @@ v-container
         :initial-tva-applicable='quotation.tvaApplicable',
         :initial-tva-amount='tvaAmount || quotation.tvaAmount'
         :initial-total-t-t-c='totalTTC || quotation.totalTTC',
-        :parent='quotation'
+        :model='quotation'
       )
 </template>
 
@@ -96,7 +96,18 @@ const quotationStore = useQuotationStore();
 const revenuStore = useRevenuStore();
 const route = useRoute();
 const router = useRouter();
-const quotation = ref<Quotation | any>({})
+const quotation = ref<Quotation | any>({
+  firstName: "",
+  lastName: "",
+  company: "",
+  address: "",
+  city: "",
+  CustomerId: null,
+  total: 0,
+  tvaAmount: 0,
+  tvaApplicable: false,
+  totalTTC: 0,
+})
 const customer = ref<Customer | any>({})
 const revenus = ref<Revenu | any>([])
 const customerId = route.query.customerId
@@ -131,7 +142,6 @@ Promise.all(setupPromises).then((data) => {
     quotation.value.address = customer.value.address;
     quotation.value.city = customer.value.city;
     quotation.value.CustomerId = customer.value.id;
-    quotation.value.total = 0;
   }
   indexStore.setLoading(false);
 })
@@ -141,8 +151,8 @@ function updateTotal(item) {
   quotation.value.total = quotation.value.InvoiceItems?.reduce((sum, quotation) => sum + quotation.total, 0);
   if (quotation.value.tvaApplicable) {
     quotation.value.tvaAmount = quotation.value.total * 0.2;
-    quotation.value.totalTTC = quotation.value.total + quotation.value.tvaAmount;
   }
+  quotation.value.totalTTC = quotation.value.total + quotation.value.tvaAmount;
 }
 
 function addItem() {
@@ -155,7 +165,7 @@ function removeItem(item) {
     (quotationItem) => quotationItem.id === item.id
   )
   quotation.value.InvoiceItems.splice(index, 1);
-  const total = quotation.value.InvoiceItems?.reduce((sum, quotation) => sum + quotation.total, 0);
+  quotation.value.InvoiceItems?.reduce((sum, quotation) => sum + quotation.total, 0);
   updateTotal(item)
 }
 

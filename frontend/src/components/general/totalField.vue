@@ -1,49 +1,52 @@
 <template lang="pug">
-template(v-if="parent.InvoiceItems")
-  v-card-subtitle Facture n°{{ parent.id }}
-  v-card-subtitle.justify-end {{ parent.company }}
+template(v-if="model")
+  v-card-subtitle(v-if="quotationId") Devis n°{{ quotationId }}
+  v-card-subtitle Facture n°{{ model.id }}
+  v-card-subtitle.justify-end {{ model.company }}
   v-card-subtitle.justify-end A l'attention de M. ou Mme
-  v-card-subtitle.justify-end {{ parent.firstName }} {{ parent.lastName }}
-  v-card-subtitle.justify-end {{ parent.address }}  {{ parent.zipcode }}  {{ parent.city }}
-v-row(justify="space-around" align="center" v-if="parent.pro")
+  v-card-subtitle.justify-end {{ model.firstName }} {{ model.lastName }}
+  v-card-subtitle.justify-end {{ model.address }}  {{ model.zipcode }}  {{ model.city }}
+v-row(justify="space-around" align="center" v-if="model.pro")
   v-card-subtitle Total Pro
-  v-card-title {{ Math.round(parent.pro) }} €
-v-row(justify="space-around" align="center" v-if="parent.perso")
+  v-card-title {{ Math.round(model.pro) }} €
+v-row(justify="space-around" align="center" v-if="model.perso")
   v-card-subtitle Total Perso
-  v-card-title {{ Math.round(parent.perso) }} €
+  v-card-title {{ Math.round(model.perso) }} €
 hr.mx-2.my-4
 v-row(justify="space-around" align="center")
   v-card-subtitle Total
-  v-card-title {{ Math.round(parent.total) }} €
+  v-card-title {{ Math.round(model.total) }} €
 v-row(justify="space-around" v-if='initialTvaApplicable' align="center")
   v-card-subtitle Dont TVA
   v-card-title {{ Math.round(initialTvaAmount) }} €
-v-row(justify="space-around" align="center" v-if="parent.expense")
+v-row(justify="space-around" align="center" v-if="model.expense")
   v-card-subtitle Dépenses
-  v-card-title(v-if="parent.expense") {{ Math.round(parent.expense) }} €
-  v-card-title(v-else) {{ Math.round(parent.expense) }} €
+  v-card-title(v-if="model.expense") {{ Math.round(model.expense) }} €
+  v-card-title(v-else) {{ Math.round(model.expense) }} €
 hr.mx-2.my-4
 v-row(justify="space-around" align="center" v-if='initialTvaApplicable')
     v-card-subtitle Total TTC
     v-card-title {{ Math.round(initialTotalTTC) }} €
-v-row(justify="space-around" align="center" v-if="parent.total && parent.expense")
+v-row(justify="space-around" align="center" v-if="model.total && model.expense")
   v-card-subtitle Balance
-  v-card-title {{ Math.round(parent.total - Math.abs(parent.expense)) }} €
+  v-card-title {{ Math.round(model.total - Math.abs(model.expense)) }} €
 hr.mx-2.my-4
-v-row(justify="space-around" align="center" v-if='parent.tva_collected')
+v-row(justify="space-around" align="center" v-if='model.tva_collected')
   v-card-subtitle TVA collectée
-  v-card-title -{{ Math.round(parent.tva_collected) }} €
-v-row(justify="space-around" align="center" v-if='parent.tva_dispatched')
+  v-card-title -{{ Math.round(model.tva_collected) }} €
+v-row(justify="space-around" align="center" v-if='model.tva_dispatched')
   v-card-subtitle TVA déductible
-  v-card-title {{ Math.round(parent.tva_dispatched) }} €
-v-row(justify="space-around" align="center" v-if='parent.tva_collected')
+  v-card-title {{ Math.round(model.tva_dispatched) }} €
+v-row(justify="space-around" align="center" v-if='model.tva_collected')
   v-card-subtitle TVA Total
-  v-card-title {{ Math.round(+parent.tva_dispatched - +parent.tva_collected) }} €
+  v-card-title {{ Math.round(+model.tva_dispatched - +model.tva_collected) }} €
 </template>
 
 <script setup lang="ts">
-defineProps({
-  parent: {
+import { defineProps, computed } from "vue";
+
+const props = defineProps({
+  model: {
     type: Object,
   },
   initialTvaApplicable: {
@@ -62,5 +65,12 @@ defineProps({
     type: Number,
     default: 0,
   },
+});
+
+const quotationId = computed(() => {
+  if (props.model?.InvoiceItems?.length) {
+    return props.model?.InvoiceItems[0]?.QuotationId;
+  }
+  return "";
 });
 </script>

@@ -66,7 +66,7 @@ const { items, pages } = compute;
 const searchFrom = ref(null);
 
 onBeforeMount(async () => {
-  if (!bankStore.$state.banks.length)await bankStore.getBanks();
+  if (!bankStore.$state.banks.length) await bankStore.getBanks();
   if (!revenuStore.revenus.length) {
     await filterAll("Revenus", true, {
       BankId: bankStore.$state.banks[0]?.id,

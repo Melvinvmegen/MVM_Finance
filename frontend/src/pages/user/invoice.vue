@@ -68,7 +68,7 @@ v-container
         :initial-tva-applicable='invoice.tvaApplicable',
         :initial-tva-amount='tvaAmount || invoice.tvaAmount'
         :initial-total-t-t-c='totalTTC || invoice.totalTTC',
-        :parent='invoice'
+        :model='invoice'
       )
 </template>
 
@@ -97,7 +97,18 @@ const invoiceStore = useInvoiceStore();
 const revenuStore = useRevenuStore();
 const route = useRoute();
 const router = useRouter();
-const invoice = ref<Invoice | any>({});
+const invoice = ref<Invoice | any>({
+  firstName: "",
+  lastName: "",
+  company: "",
+  address: "",
+  city: "",
+  CustomerId: null,
+  total: 0,
+  tvaAmount: 0,
+  tvaApplicable: false,
+  totalTTC: 0,
+});
 const customer = ref<Customer | any>({});
 const revenus = ref<Revenu | any>([]);
 const customerId = route.query.customerId;
@@ -128,9 +139,6 @@ Promise.all(setupPromises).then((data) => {
     invoice.value.address = customer.value.address;
     invoice.value.city = customer.value.city;
     invoice.value.CustomerId = customer.value.id;
-    invoice.value.total = 0;
-    invoice.value.totalTTC = 0;
-    invoice.value.tvaAmount = 0;
   }
   indexStore.setLoading(false);
 });
@@ -140,8 +148,8 @@ function updateTotal(item) {
   invoice.value.total = invoice.value.InvoiceItems?.reduce((sum, invoice) => sum + invoice.total, 0);
   if (invoice.value.tvaApplicable) {
     invoice.value.tvaAmount = invoice.value.total * 0.2;
-    invoice.value.totalTTC = invoice.value.total + invoice.value.tvaAmount;
   }
+  invoice.value.totalTTC = invoice.value.total + invoice.value.tvaAmount;
 }
 
 function addItem() {
@@ -152,7 +160,7 @@ function addItem() {
 function removeItem(item) {
   const index = invoice.value.InvoiceItems.findIndex((invoice_item) => invoice_item.id === item.id);
   invoice.value.InvoiceItems.splice(index, 1);
-  const total = invoice.value.InvoiceItems?.reduce((sum, invoice) => sum + invoice.total, 0);
+  invoice.value.InvoiceItems?.reduce((sum, invoice) => sum + invoice.total, 0);
   updateTotal(item);
 }
 
