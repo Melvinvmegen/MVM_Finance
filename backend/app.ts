@@ -8,6 +8,7 @@ import compression from "compression";
 import { settings } from "./util/settings.js";
 import { expressjwt } from "express-jwt";
 import auth from "./api/public/auth.js";
+import checkout from "./api/payment/checkout.js";
 import customers from "./api/user/customers.js";
 import invoices from "./api/user/invoices.js";
 import quotations from "./api/user/quotations.js";
@@ -30,6 +31,9 @@ app.use("/api/", morgan(settings.constants.web.logFormat));
 // Express API Parse JSON
 app.use(bodyParser.json());
 
+// Express API Parse FormData
+app.use(bodyParser.urlencoded({ extended: false }));
+
 // Handle options requests
 app.use(cors());
 
@@ -43,6 +47,17 @@ app.use(
   }),
   auth
 );
+
+// Stripe routes
+app.use(
+  "/api/payment",
+  expressjwt({
+    secret: settings.jwt.secret,
+    algorithms: ["HS512"],
+    credentialsRequired: false,
+  }),
+  checkout
+)
 
 const validateBelongsToUser = () => {
   return (req: JWTRequest, res: Response, next: NextFunction) => {

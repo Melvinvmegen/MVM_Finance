@@ -29,6 +29,9 @@ const settings = {
   cache: {
     redisURL: process.env.REDIS_URL || "redis://@localhost:6360",
   },
+  stripe: {
+    apiKey: process.env.STRIPE_API_KEY || "sk_test_51IJbEYGesxfbePZUuH0T6891FLaldtgfufjJOvvPicn9rEHXAdpy5MQufIxUIER6cYWig0YkePmTGJoNEJ3AicBl00uPKeWA3y"
+  }
 };
 
 export { settings };

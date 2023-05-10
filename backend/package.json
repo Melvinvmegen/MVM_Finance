@@ -38,7 +38,8 @@
     "pdfkit": "^0.12.3",
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.4",
-    "redis": "4.5.0"
+    "redis": "4.5.0",
+    "stripe": "^12.4.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
