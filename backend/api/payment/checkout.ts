@@ -12,7 +12,8 @@ const stripe = new Stripe(
 const router = express.Router();
 
 router.post('/checkout', async (req: Request, res: Response, next: NextFunction) => {
-  const domain = req.body.domain;
+  const redirectUrl = req.body.redirectUrl;
+  const backUrl = req.body.backUrl;
   let session;
   try {    
     session = await stripe.checkout.sessions.create({
@@ -23,8 +24,8 @@ router.post('/checkout', async (req: Request, res: Response, next: NextFunction)
         },
       ],
       mode: "payment",
-      success_url: `${domain}?success=true`,
-      cancel_url: `${domain}?canceled=true`,
+      success_url: redirectUrl,
+      cancel_url: backUrl,
     });
   } catch (error) {
     return next(error);
