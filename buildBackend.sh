@@ -19,12 +19,12 @@ fi
 echo "Building docker image ..."
 docker build -t "$IMAGE_NAME:$VERSION" .
 
-if [[ -z "$DOCKER_USERNAME" ]] || [[ -z "$DOCKER_PASSWORD" ]];
+if [[ -z "${{ secrets.DOCKER_USERNAME }}" ]] || [[ -z "${{ secrets.DOCKER_PASSWORD }}" ]];
 then
-	echo "Docker idents not found. Please DOCKER_USERNAME and DOCKER_USERNAME environment variables to be able to push"
+	echo "Docker idents not found. Please DOCKER_USERNAME and DOCKER_PASSWORD environment variables are needed to be able to push"
 	exit -1
 fi
 
 echo "Pushing docker image ..."
-docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
 docker push "$IMAGE_NAME:$VERSION"
