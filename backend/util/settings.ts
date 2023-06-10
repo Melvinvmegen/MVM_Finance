@@ -1,3 +1,4 @@
+import { basicAuth } from 'express-basic-auth';
 const settings = {
   database: {
     dbConnectionUri:
@@ -29,8 +30,18 @@ const settings = {
   cache: {
     redisURL: process.env.REDIS_URL || "redis://@localhost:6360",
   },
+  basicAuth: {
+    user: process.env.BASIC_AUTH_USER || "",
+    password: process.env.BASIC_AUTH_PASSWORD || "",
+  },
+  webhooks: {
+    contentUrl: process.env.CONTENT_WEBHOOK_URL,
+    contentUser: process.env.CONTENT_WEBHOOK_USER,
+    contentPassword: process.env.CONTENT_WEBHOOK_USER,
+  },
   stripe: {
-    apiKey: process.env.STRIPE_API_KEY || "sk_test_51IJbEYGesxfbePZUuH0T6891FLaldtgfufjJOvvPicn9rEHXAdpy5MQufIxUIER6cYWig0YkePmTGJoNEJ3AicBl00uPKeWA3y"
+    apiKey: process.env.STRIPE_API_KEY || "sk_test_51IJbEYGesxfbePZUuH0T6891FLaldtgfufjJOvvPicn9rEHXAdpy5MQufIxUIER6cYWig0YkePmTGJoNEJ3AicBl00uPKeWA3y",
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "whsec_c8073d61c36abab4d488d068f065d7a84c468de780722c8e90ad3d9cf1f0b340",
   }
 };
 

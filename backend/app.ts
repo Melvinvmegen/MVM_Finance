@@ -8,7 +8,12 @@ import compression from "compression";
 import { settings } from "./util/settings.js";
 import { expressjwt } from "express-jwt";
 import auth from "./api/public/auth.js";
-import checkout from "./api/payment/checkout.js";
+import paymentCheckout from "./api/payment/checkout.js";
+import paymentCustomers from "./api/payment/customers.js";
+import paymentSubscriptions from "./api/payment/subscriptions.js";
+import paymentIntents from "./api/payment/payment-intents.js";
+import paymentWehbooks from "./api/payment/webhooks.js";
+import prices from "./api/payment/prices.js";
 import customers from "./api/user/customers.js";
 import invoices from "./api/user/invoices.js";
 import quotations from "./api/user/quotations.js";
@@ -16,6 +21,7 @@ import revenus from "./api/user/revenus.js";
 import cryptos from "./api/user/cryptos.js";
 import banks from "./api/user/banks.js";
 import { prisma } from "./util/prisma.js";
+import basicAuth from "express-basic-auth";
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -28,14 +34,17 @@ app.use(compression());
 // Logger
 app.use("/api/", morgan(settings.constants.web.logFormat));
 
+// Handle options requests
+app.use(cors());
+
+// Parse Raw before bodyParser enabled
+app.use("/api/payment/webhooks", bodyParser.raw({ type: '*/*' }), paymentWehbooks);
+
 // Express API Parse JSON
 app.use(bodyParser.json());
 
 // Express API Parse FormData
 app.use(bodyParser.urlencoded({ extended: false }));
-
-// Handle options requests
-app.use(cors());
 
 // Auth routes
 app.use(
@@ -51,13 +60,15 @@ app.use(
 // Stripe routes
 app.use(
   "/api/payment",
-  expressjwt({
-    secret: settings.jwt.secret,
-    algorithms: ["HS512"],
-    credentialsRequired: false,
-  }),
-  checkout
-)
+  basicAuth({
+    users: { [settings.basicAuth.user]: settings.basicAuth.password },
+  })
+);
+app.use("/api/payment/checkout", paymentCheckout);
+app.use("/api/payment/customers", paymentCustomers);
+app.use("/api/payment/subscriptions", paymentSubscriptions);
+app.use("/api/payment/payment-intents", paymentIntents);
+app.use("/api/payment/prices", prices);
 
 const validateBelongsToUser = () => {
   return (req: JWTRequest, res: Response, next: NextFunction) => {
