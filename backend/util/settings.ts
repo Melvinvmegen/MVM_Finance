@@ -36,7 +36,7 @@ const settings = {
   webhooks: {
     contentUrl: process.env.CONTENT_WEBHOOK_URL,
     contentUser: process.env.CONTENT_WEBHOOK_USER,
-    contentPassword: process.env.CONTENT_WEBHOOK_USER,
+    contentPassword: process.env.CONTENT_WEBHOOK_PASSWORD,
   },
   stripe: {
     apiKey: process.env.STRIPE_API_KEY || "sk_test_51IJbEYGesxfbePZUuH0T6891FLaldtgfufjJOvvPicn9rEHXAdpy5MQufIxUIER6cYWig0YkePmTGJoNEJ3AicBl00uPKeWA3y",
