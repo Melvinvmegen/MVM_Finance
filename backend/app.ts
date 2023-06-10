@@ -59,12 +59,21 @@ app.use(
 
 // Stripe routes
 app.use(
+  "/api/payment/checkout",
+  expressjwt({
+    secret: settings.jwt.secret,
+    algorithms: ["HS512"],
+    credentialsRequired: false,
+  }),
+  paymentCheckout
+)
+
+app.use(
   "/api/payment",
   basicAuth({
     users: { [settings.basicAuth.user]: settings.basicAuth.password },
   })
 );
-app.use("/api/payment/checkout", paymentCheckout);
 app.use("/api/payment/customers", paymentCustomers);
 app.use("/api/payment/subscriptions", paymentSubscriptions);
 app.use("/api/payment/payment-intents", paymentIntents);
