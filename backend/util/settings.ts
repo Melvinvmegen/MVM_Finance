@@ -1,4 +1,3 @@
-import { basicAuth } from 'express-basic-auth';
 const settings = {
   database: {
     dbConnectionUri:
