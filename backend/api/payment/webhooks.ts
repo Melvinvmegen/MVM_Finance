@@ -235,6 +235,11 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         await stripe.subscriptions.del(
           subscription.stripeId
         );
+
+        await sendWebhook({
+          customerId: customer.id,
+          subscriptionId: null,
+        });
         // TODO : set failed invoice
       } catch (error) {
         console.log("error", error);
@@ -263,7 +268,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   res.sendStatus(200);
 });
 
-async function sendWebhook(object: { customerId: number; tokens?: string, subscriptionId?: number }) {
+async function sendWebhook(object: { customerId: number; tokens?: string, subscriptionId?: number | null }) {
   // @ts-ignore
   await axios.post(settings.webhooks.contentUrl, object, {
     headers: {

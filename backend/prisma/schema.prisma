@@ -211,7 +211,7 @@ model Subscriptions {
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   status         SubscriptionStatus @default(DRAFT)
-  amount         Int                @default(0)
+  amount         Float                @default(0)
   startDate      DateTime?
   endDate        DateTime?
   proratedAmount Float?
