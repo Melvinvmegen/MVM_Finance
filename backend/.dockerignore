@@ -3,3 +3,7 @@ yarn-error.log
 Dockerfile
 .git
 .gitignore
+.prettierrc.json
+.eslintrc.json
+.vscode
+node_modules
