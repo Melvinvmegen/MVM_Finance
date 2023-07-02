@@ -11,13 +11,8 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   let event;
 
   try {
-    if (!req.headers["stripe-signature"])
-      return next(new AppError(400, "Unauthorized"));
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      req.headers["stripe-signature"],
-      settings.stripe.webhookSecret
-    );
+    if (!req.headers["stripe-signature"]) return next(new AppError(400, "Unauthorized"));
+    event = stripe.webhooks.constructEvent(req.body, req.headers["stripe-signature"], settings.stripe.webhookSecret);
   } catch (err) {
     console.log(`⚠️  Webhook signature verification failed.` + err);
     return res.sendStatus(400);
@@ -38,16 +33,15 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
     case "payment_intent.succeeded":
       try {
         console.log("Handling payment_intent.succeeded event...", object);
-        const { PaymentId } =
-          await prisma.paymentIntents.update({
-            where: {
-              // @ts-ignore
-              stripeId: object?.id,
-            },
-            data: {
-              status: "CAPTURED",
-            },
-          });
+        const { PaymentId } = await prisma.paymentIntents.update({
+          where: {
+            // @ts-ignore
+            stripeId: object?.id,
+          },
+          data: {
+            status: "CAPTURED",
+          },
+        });
 
         if (PaymentId) {
           const payment = await prisma.payments.update({
@@ -71,23 +65,20 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         }
       } catch (error) {
         console.log("error", error);
-        return next(
-          new AppError(500, "Stripe webhook payment_intent.succeeded failed")
-        );
+        return next(new AppError(500, "Stripe webhook payment_intent.succeeded failed"));
       }
       break;
     case "payment_intent.payment_failed":
       console.log("Handling payment_intent.payment_failed event...", object);
-      const { id, PaymentId, ...paymentIntent } =
-        await prisma.paymentIntents.update({
-          where: {
-            // @ts-ignore
-            stripeId: object.id,
-          },
-          data: {
-            status: "FAILED",
-          },
-        });
+      const { id, PaymentId, ...paymentIntent } = await prisma.paymentIntents.update({
+        where: {
+          // @ts-ignore
+          stripeId: object.id,
+        },
+        data: {
+          status: "FAILED",
+        },
+      });
 
       if (PaymentId) {
         await prisma.payments.update({
@@ -96,19 +87,14 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
           },
           data: {
             status: "FAILED",
-            paymentTries: { increment: 1 }
+            paymentTries: { increment: 1 },
           },
         });
       }
       try {
       } catch (error) {
         console.log("error", error);
-        return next(
-          new AppError(
-            500,
-            "Stripe webhook payment_intent.payment_failed failed"
-          )
-        );
+        return next(new AppError(500, "Stripe webhook payment_intent.payment_failed failed"));
       }
       break;
     case "invoice.paid":
@@ -120,20 +106,20 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
             CustomerId: customer.id,
           },
         });
-        
+
         if (!subscription) return res.sendStatus(404);
-        
+
         const paymentIntent = await prisma.paymentIntents.findUnique({
           where: {
             // @ts-ignore
             stripeId: object.payment_intent,
-          }
-        })
-        
+          },
+        });
+
         if (paymentIntent) {
           await prisma.paymentIntents.update({
             where: {
-            // @ts-ignore
+              // @ts-ignore
               stripeId: object.payment_intent,
             },
             data: {
@@ -141,9 +127,9 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
               // @ts-ignore
               SubscriptionId: subscription.id,
               // @ts-ignore
-              amount: object.amount_due / 100
-            }
-          })
+              amount: object.amount_due / 100,
+            },
+          });
         } else {
           await prisma.paymentIntents.create({
             data: {
@@ -152,9 +138,9 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
               stripeId: object.payment_intent,
               SubscriptionId: subscription.id,
               // @ts-ignore
-              amount: object.amount_due / 100
-            }
-          })
+              amount: object.amount_due / 100,
+            },
+          });
         }
         await prisma.subscriptions.update({
           where: {
@@ -164,7 +150,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
             status: "VALIDATED",
             startDate: subscription.startDate || new Date(),
             // @ts-ignore
-            amount: object.amount_due / 100
+            amount: object.amount_due / 100,
           },
         });
 
@@ -202,13 +188,13 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
           where: {
             // @ts-ignore
             stripeId: object.payment_intent,
-          }
-        })
-        
+          },
+        });
+
         if (paymentIntent) {
           await prisma.paymentIntents.update({
             where: {
-            // @ts-ignore
+              // @ts-ignore
               stripeId: object.payment_intent,
             },
             data: {
@@ -216,9 +202,9 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
               // @ts-ignore
               SubscriptionId: subscription.id,
               // @ts-ignore
-              amount: object.amount_due / 100
-            }
-          })
+              amount: object.amount_due / 100,
+            },
+          });
         } else {
           await prisma.paymentIntents.create({
             data: {
@@ -227,14 +213,12 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
               stripeId: object.payment_intent,
               SubscriptionId: subscription.id,
               // @ts-ignore
-              amount: object.amount_due / 100
-            }
-          })
+              amount: object.amount_due / 100,
+            },
+          });
         }
 
-        await stripe.subscriptions.del(
-          subscription.stripeId
-        );
+        await stripe.subscriptions.del(subscription.stripeId);
 
         await sendWebhook({
           customerId: customer.id,
@@ -243,9 +227,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         // TODO : set failed invoice
       } catch (error) {
         console.log("error", error);
-        return next(
-          new AppError(500, "Stripe webhook invoice.payment_failed failed")
-        );
+        return next(new AppError(500, "Stripe webhook invoice.payment_failed failed"));
       }
       break;
     case "invoice.finalized":
@@ -255,9 +237,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         // TODO : create Invoices
       } catch (error) {
         console.log("error", error);
-        return next(
-          new AppError(500, "Stripe webhook invoice.finalized failed")
-        );
+        return next(new AppError(500, "Stripe webhook invoice.finalized failed"));
       }
       break;
     default:
@@ -268,11 +248,11 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   res.sendStatus(200);
 });
 
-async function sendWebhook(object: { customerId: number; tokens?: string, subscriptionId?: number | null }) {
+async function sendWebhook(object: { customerId: number; tokens?: string; subscriptionId?: number | null }) {
   // @ts-ignore
   await axios.post(settings.webhooks.contentUrl, object, {
     headers: {
-      'content-type': 'text/json',
+      "content-type": "text/json",
       Authorization: `Basic ${Buffer.from(
         `${settings.webhooks.contentUser}:${settings.webhooks.contentPassword}`
       ).toString("base64")}`,

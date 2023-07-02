@@ -1,4 +1,4 @@
 interface Error {
   statusCode?: number;
-  params?: any
+  params?: any;
 }

@@ -62,66 +62,80 @@ router.get("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
   }
 });
 
-router.get(
-  "/:id",
-  async (req: JWTRequest, res: Response, next: NextFunction) => {
-    const id = req.params.id;
+router.get("/:id", async (req: JWTRequest, res: Response, next: NextFunction) => {
+  const id = req.params.id;
 
-    try {
-      const revenu = await getOrSetCache(`revenu_${id}`, async () => {
-        const revenu_fetched = await prisma.revenus.findUnique({
-          where: {
-            id: +req.params.id,
-          },
-          include: {
-            Invoices: true,
-            Credits: {
-              orderBy: {
-                createdAt: "asc",
-              },
+  try {
+    const revenu = await getOrSetCache(`revenu_${id}`, async () => {
+      const revenu_fetched = await prisma.revenus.findUnique({
+        where: {
+          id: +req.params.id,
+        },
+        include: {
+          Invoices: true,
+          Credits: {
+            orderBy: {
+              createdAt: "asc",
             },
-            Costs: {
-              orderBy: {
-                createdAt: "asc",
-              },
-            },
-            Quotations: true,
-            Transactions: true,
-            Banks: true,
           },
-        });
-
-        if (revenu_fetched?.Banks?.UserId !== req?.auth?.userId) {
-          throw new AppError(401, "Revenu not found!");
-        }
-
-        return revenu_fetched;
+          Costs: {
+            orderBy: {
+              createdAt: "asc",
+            },
+          },
+          Quotations: true,
+          Transactions: true,
+          Banks: true,
+        },
       });
 
-      res.json(revenu);
-    } catch (error) {
-      return next(error);
-    }
+      if (revenu_fetched?.Banks?.UserId !== req?.auth?.userId) {
+        throw new AppError(401, "Revenu not found!");
+      }
+
+      return revenu_fetched;
+    });
+
+    res.json(revenu);
+  } catch (error) {
+    return next(error);
   }
-);
+});
 
-router.put(
-  "/:id",
-  async (req: JWTRequest, res: Response, next: NextFunction) => {
-    const {
-      Credits,
-      Costs,
-      Quotations,
-      Transactions,
-      Invoices,
-      Banks,
-      UserId,
-      ...revenuBody
-    } = req.body;
+router.put("/:id", async (req: JWTRequest, res: Response, next: NextFunction) => {
+  const { Credits, Costs, Quotations, Transactions, Invoices, Banks, UserId, ...revenuBody } = req.body;
 
-    let revenu = await prisma.revenus.findUnique({
+  let revenu = await prisma.revenus.findUnique({
+    where: {
+      id: +req.params.id,
+    },
+    include: {
+      Credits: true,
+      Costs: true,
+      Banks: true,
+    },
+  });
+
+  if (revenu?.Banks?.UserId !== req?.auth?.userId) {
+    throw new AppError(401, "Revenu not found!");
+  }
+
+  try {
+    if (revenu && Credits) {
+      await updateCreateOrDestroyChildItems("Credits", revenu.Credits, Credits);
+    }
+    if (revenu && Costs) {
+      await updateCreateOrDestroyChildItems("Costs", revenu.Costs, Costs);
+    }
+
+    revenu = await prisma.revenus.update({
       where: {
         id: +req.params.id,
+      },
+      data: {
+        ...revenuBody,
+        watchers: revenuBody.watchers?.join(),
+        BankId: +req?.auth?.userId,
       },
       include: {
         Credits: true,
@@ -130,46 +144,13 @@ router.put(
       },
     });
 
-    if (revenu?.Banks?.UserId !== req?.auth?.userId) {
-      throw new AppError(401, "Revenu not found!");
-    }
-
-    try {
-      if (revenu && Credits) {
-        await updateCreateOrDestroyChildItems(
-          "Credits",
-          revenu.Credits,
-          Credits
-        );
-      }
-      if (revenu && Costs) {
-        await updateCreateOrDestroyChildItems("Costs", revenu.Costs, Costs);
-      }
-
-      revenu = await prisma.revenus.update({
-        where: {
-          id: +req.params.id,
-        },
-        data: {
-          ...revenuBody,
-          watchers: revenuBody.watchers?.join(),
-          BankId: +req?.auth?.userId,
-        },
-        include: {
-          Credits: true,
-          Costs: true,
-          Banks: true,
-        },
-      });
-
-      await invalidateCache("revenus");
-      await invalidateCache(`revenu_${revenu?.id}`);
-      res.json(revenu);
-    } catch (error) {
-      return next(error);
-    }
+    await invalidateCache("revenus");
+    await invalidateCache(`revenu_${revenu?.id}`);
+    res.json(revenu);
+  } catch (error) {
+    return next(error);
   }
-);
+});
 
 let cost_category_cache: { [key: string]: any } = {};
 
@@ -233,16 +214,8 @@ router.post(
             if (revenu?.Banks?.UserId !== req?.auth?.userId) {
               revenu = await prisma.revenus.create({
                 data: {
-                  createdAt: new Date(
-                    beginning_of_month.setHours(
-                      beginning_of_month.getHours() + 4
-                    )
-                  ),
-                  updatedAt: new Date(
-                    beginning_of_month.setHours(
-                      beginning_of_month.getHours() + 4
-                    )
-                  ),
+                  createdAt: new Date(beginning_of_month.setHours(beginning_of_month.getHours() + 4)),
+                  updatedAt: new Date(beginning_of_month.setHours(beginning_of_month.getHours() + 4)),
                   BankId: Number(req.originalParams?.bank_id),
                 },
                 include: {

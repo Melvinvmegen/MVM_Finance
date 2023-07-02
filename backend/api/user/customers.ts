@@ -36,29 +36,26 @@ router.get("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
   }
 });
 
-router.get(
-  "/:id",
-  async (req: JWTRequest, res: Response, next: NextFunction) => {
-    try {
-      const { id } = req.params;
-      const customer = await getOrSetCache(`customer_${id}`, async () => {
-        const customer = await prisma.customers.findFirst({
-          where: {
-            id: +id,
-            UserId: +req?.auth?.userId,
-          },
-        });
-
-        if (!customer) throw new AppError(404, "Customer not found!");
-        return customer;
+router.get("/:id", async (req: JWTRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const customer = await getOrSetCache(`customer_${id}`, async () => {
+      const customer = await prisma.customers.findFirst({
+        where: {
+          id: +id,
+          UserId: +req?.auth?.userId,
+        },
       });
 
-      res.json(customer);
-    } catch (error) {
-      return next(error);
-    }
+      if (!customer) throw new AppError(404, "Customer not found!");
+      return customer;
+    });
+
+    res.json(customer);
+  } catch (error) {
+    return next(error);
   }
-);
+});
 
 router.post("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
   try {
@@ -69,7 +66,7 @@ router.post("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
       },
       include: {
         Invoices: true,
-      }
+      },
     });
     await invalidateCache("customers");
     res.json(customer);
@@ -78,53 +75,47 @@ router.post("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
   }
 });
 
-router.put(
-  "/:id",
-  async (req: JWTRequest, res: Response, next: NextFunction) => {
-    const { Invoices, Quotations, ...body } = req.body;
-    try {
-      let customer = await prisma.customers.findFirst({
-        where: {
-          id: +body.id,
-          UserId: req?.auth?.userId,
-        },
-      });
+router.put("/:id", async (req: JWTRequest, res: Response, next: NextFunction) => {
+  const { Invoices, Quotations, ...body } = req.body;
+  try {
+    let customer = await prisma.customers.findFirst({
+      where: {
+        id: +body.id,
+        UserId: req?.auth?.userId,
+      },
+    });
 
-      if (!customer) throw new AppError(404, "Customer not found!");
+    if (!customer) throw new AppError(404, "Customer not found!");
 
-      customer = await prisma.customers.update({
-        where: {
-          id: +req.body.id,
-        },
-        data: {
-          ...body,
-          UserId: req?.auth?.userId,
-        },
-      });
+    customer = await prisma.customers.update({
+      where: {
+        id: +req.body.id,
+      },
+      data: {
+        ...body,
+        UserId: req?.auth?.userId,
+      },
+    });
 
-      await invalidateCache(`customer_${customer.id}`);
-      res.json(customer);
-    } catch (error) {
-      return next(error);
-    }
+    await invalidateCache(`customer_${customer.id}`);
+    res.json(customer);
+  } catch (error) {
+    return next(error);
   }
-);
+});
 
-router.delete(
-  "/:id",
-  async (req: JWTRequest, res: Response, next: NextFunction) => {
-    try {
-      await prisma.customers.delete({
-        where: {
-          id: +req.params.id,
-        },
-      });
-      await invalidateCache("customers");
-      res.json();
-    } catch (error) {
-      return next(error);
-    }
+router.delete("/:id", async (req: JWTRequest, res: Response, next: NextFunction) => {
+  try {
+    await prisma.customers.delete({
+      where: {
+        id: +req.params.id,
+      },
+    });
+    await invalidateCache("customers");
+    res.json();
+  } catch (error) {
+    return next(error);
   }
-);
+});
 
 export default router;

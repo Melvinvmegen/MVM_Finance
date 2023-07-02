@@ -13,7 +13,7 @@ redisClient.on("error", function (err: Error) {
 });
 
 const getOrSetCache = async (key: any, cb: () => any, force = false) => {
-  try {    
+  try {
     // const result = await redisClient.get(key)
     // console.log("cache result", result)
     //   if (result && !force) {
@@ -28,19 +28,19 @@ const getOrSetCache = async (key: any, cb: () => any, force = false) => {
     //   }
     return cb();
   } catch (error) {
-    new AppError(500, `Caching error: ${error}`)
+    new AppError(500, `Caching error: ${error}`);
   }
 };
 
 const invalidateCache = async (key: string) => {
-    try {
-      const result = await redisClient.del(key)
-      const message = result ? "CACHE INVALIDATED" : "CACHE NOT FOUND";
-      console.log(chalk.green(key, message));
-      return result;
-    } catch (error) {
-      new AppError(500, `Caching error: ${error}`)
-    }
+  try {
+    const result = await redisClient.del(key);
+    const message = result ? "CACHE INVALIDATED" : "CACHE NOT FOUND";
+    console.log(chalk.green(key, message));
+    return result;
+  } catch (error) {
+    new AppError(500, `Caching error: ${error}`);
+  }
 };
 
 export { redisClient, getOrSetCache, invalidateCache };

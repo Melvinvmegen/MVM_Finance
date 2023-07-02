@@ -5,32 +5,29 @@ import stripe from "../../util/stripe.js";
 
 const router = express.Router();
 
-router.get(
-  "/:paymentIntentId",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const paymentIntent = await prisma.paymentIntents.findUnique({
-        where: {
-          stripeId: req.params.paymentIntentId,
-        },
-        select: {
-          status: true,
-          amount: true,
-          PaymentId: true,
-        },
-      });
+router.get("/:paymentIntentId", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const paymentIntent = await prisma.paymentIntents.findUnique({
+      where: {
+        stripeId: req.params.paymentIntentId,
+      },
+      select: {
+        status: true,
+        amount: true,
+        PaymentId: true,
+      },
+    });
 
-      if (!paymentIntent) throw new AppError(404, "Not found");
+    if (!paymentIntent) throw new AppError(404, "Not found");
 
-      res.json({
-        ...paymentIntent,
-        type: paymentIntent.PaymentId ? "payment" : "subscription",
-      });
-    } catch (error) {
-      return next(error);
-    }
+    res.json({
+      ...paymentIntent,
+      type: paymentIntent.PaymentId ? "payment" : "subscription",
+    });
+  } catch (error) {
+    return next(error);
   }
-);
+});
 
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   const amount = Number(req.body.amount);
@@ -74,39 +71,36 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   res.send(stripePaymentIntent.client_secret);
 });
 
-router.put(
-  "/payment-intents/:payment_intent_id/refund",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const paymentIntent = await prisma.paymentIntents.findUnique({
-        where: {
-          id: Number(req.params.payment_intent_id),
-        },
+router.put("/payment-intents/:payment_intent_id/refund", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const paymentIntent = await prisma.paymentIntents.findUnique({
+      where: {
+        id: Number(req.params.payment_intent_id),
+      },
+    });
+
+    let refund;
+    if (paymentIntent?.stripeId && paymentIntent?.PaymentId) {
+      refund = await stripe.refunds.create({
+        payment_intent: paymentIntent?.stripeId,
+        ...(req.body.amount && { amount: req.body.amount }),
       });
 
-      let refund;
-      if (paymentIntent?.stripeId && paymentIntent?.PaymentId) {
-        refund = await stripe.refunds.create({
-          payment_intent: paymentIntent?.stripeId,
-          ...(req.body.amount && { amount: req.body.amount }),
-        });
-
-        await stripe.paymentIntents.cancel(paymentIntent?.stripeId);
-        await prisma.payments.update({
-          where: {
-            id: paymentIntent.PaymentId,
-          },
-          data: {
-            status: "REFUNDED",
-            stripeRefundId: refund?.id,
-          },
-        });
-      }
-    } catch (error) {
-      console.log("Refund failed:", error);
-      throw new AppError(401, "Unauthorized");
+      await stripe.paymentIntents.cancel(paymentIntent?.stripeId);
+      await prisma.payments.update({
+        where: {
+          id: paymentIntent.PaymentId,
+        },
+        data: {
+          status: "REFUNDED",
+          stripeRefundId: refund?.id,
+        },
+      });
     }
+  } catch (error) {
+    console.log("Refund failed:", error);
+    throw new AppError(401, "Unauthorized");
   }
-);
+});
 
 export default router;

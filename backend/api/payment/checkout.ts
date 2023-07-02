@@ -1,11 +1,11 @@
 import express, { Request, Response, NextFunction } from "express";
-import stripe from "../../util/stripe.js"
+import stripe from "../../util/stripe.js";
 
 const router = express.Router();
 
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   let session;
-  try {    
+  try {
     session = await stripe.checkout.sessions.create({
       line_items: [
         {

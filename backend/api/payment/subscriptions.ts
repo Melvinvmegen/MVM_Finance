@@ -16,8 +16,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
       },
     });
 
-    if (!customer || !customer.stripeId)
-      throw new AppError(404, "Customer not found");
+    if (!customer || !customer.stripeId) throw new AppError(404, "Customer not found");
 
     const stripePrice = await stripe.prices.retrieve(priceId);
     if (stripePrice && stripePrice.unit_amount) {
@@ -86,101 +85,83 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.put(
-  "/:subscriptionId/refund",
-  async (req: Request, res: Response, next: NextFunction) => {
-    const subscriptionId = Number(req.params.subscriptionId);
+router.put("/:subscriptionId/refund", async (req: Request, res: Response, next: NextFunction) => {
+  const subscriptionId = Number(req.params.subscriptionId);
+  const subscription = await prisma.subscriptions.findFirst({
+    where: {
+      id: subscriptionId,
+      status: "VALIDATED",
+    },
+    include: {
+      PaymentIntents: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+  });
+
+  if (!subscription || !subscription.stripeId) throw new AppError(404, "Subscription not found");
+
+  try {
+    const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeId);
+    if (stripeSubscription?.id) {
+      const startDate = new Date(stripeSubscription.current_period_start * 1000);
+      const endDate = new Date(stripeSubscription.current_period_end * 1000);
+      const currentDate = new Date();
+      // @ts-ignore
+      const totalMinutes = Math.ceil((endDate - startDate) / (1000 * 60));
+      // @ts-ignore
+      const unusedMinutes = Math.ceil((endDate - currentDate) / (1000 * 60));
+      const refundPercentage = unusedMinutes / totalMinutes;
+      const refundAmount = Math.round(refundPercentage * (stripeSubscription.items.data[0].price.unit_amount || 0));
+
+      const stripePaymentIntentId = subscription.PaymentIntents[0].stripeId;
+      let refund;
+      if (refundAmount && stripePaymentIntentId) {
+        refund = await stripe.refunds.create({
+          amount: refundAmount,
+          payment_intent: stripePaymentIntentId,
+        });
+      }
+      await stripe.subscriptions.del(subscription.stripeId);
+
+      const updatedSubscription = await prisma.subscriptions.update({
+        where: {
+          id: subscriptionId,
+        },
+        data: {
+          status: "CANCELLED",
+          endDate: new Date(),
+          proratedAmount: refundAmount / 100,
+          refundId: refund?.id,
+        },
+      });
+
+      res.json(updatedSubscription);
+    }
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get("/:subscriptionId", async (req: Request, res: Response, next: NextFunction) => {
+  try {
     const subscription = await prisma.subscriptions.findFirst({
       where: {
-        id: subscriptionId,
-        status: "VALIDATED",
-      },
-      include: {
-        PaymentIntents: {
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
+        id: Number(req.params.subscriptionId),
       },
     });
 
-    if (!subscription || !subscription.stripeId)
-      throw new AppError(404, "Subscription not found");
+    if (!subscription) throw new AppError(404, "Not found");
 
-    try {
-      const stripeSubscription = await stripe.subscriptions.retrieve(
-        subscription.stripeId
-      );
-      if (stripeSubscription?.id) {
-        const startDate = new Date(
-          stripeSubscription.current_period_start * 1000
-        );
-        const endDate = new Date(
-          stripeSubscription.current_period_end * 1000
-        );
-        const currentDate = new Date();
-        // @ts-ignore
-        const totalMinutes = Math.ceil((endDate - startDate) / (1000 * 60));
-        // @ts-ignore
-        const unusedMinutes = Math.ceil((endDate - currentDate) / (1000 * 60));
-        const refundPercentage = unusedMinutes / totalMinutes;
-        const refundAmount = Math.round(
-          refundPercentage *
-            (stripeSubscription.items.data[0].price.unit_amount || 0)
-        );
-
-        const stripePaymentIntentId = subscription.PaymentIntents[0].stripeId;
-        let refund;
-        if (refundAmount && stripePaymentIntentId) {
-          refund = await stripe.refunds.create({
-            amount: refundAmount,
-            payment_intent: stripePaymentIntentId,
-          });
-        }
-        await stripe.subscriptions.del(
-          subscription.stripeId
-        );
-
-        const updatedSubscription = await prisma.subscriptions.update({
-          where: {
-            id: subscriptionId,
-          },
-          data: {
-            status: "CANCELLED",
-            endDate: new Date(),
-            proratedAmount: refundAmount / 100,
-            refundId: refund?.id,
-          },
-        });
-
-        res.json(updatedSubscription);
-      }
-    } catch (error) {
-      return next(error);
-    }
+    res.json({
+      ...subscription,
+      stripeId: null,
+    });
+  } catch (error) {
+    return next(error);
   }
-);
-
-router.get(
-  "/:subscriptionId",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const subscription = await prisma.subscriptions.findFirst({
-        where: {
-          id: Number(req.params.subscriptionId),
-        },
-      });
-
-      if (!subscription) throw new AppError(404, "Not found");
-
-      res.json({
-        ...subscription,
-        stripeId: null,
-      });
-    } catch (error) {
-      return next(error);
-    }
-  }
-);
+});
 
 export default router;

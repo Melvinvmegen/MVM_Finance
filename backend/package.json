@@ -9,17 +9,26 @@
   "private": true,
   "scripts": {
     "test": "test",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/app.js\"",
+    "dev": "yarn run prisma_generate && concurrently npm:serve npm:prisma_deploy npm:watch",
+    "serve": "nodemon -q dist/app.js",
+    "watch": "npx tsc --watch",
+    "prisma_generate": "node ./scripts/generatePrismaClient.js",
+    "prisma_deploy": "echo Applying migrations ... && prisma migrate deploy",
+    "prisma_migrate": "prisma migrate dev",
+    "prisma_watch": "prisma generate --watch",
     "redis": "redis-server --port 6360",
     "start": "node dist/app.js",
-    "build": "npx tsc"
+    "build": "npx tsc",
+    "lint": "eslint . --ignore-path .gitignore",
+    "fix": "eslint . --fix --ignore-path .gitignore && prettier --write .",
+    "format": "prettier --write ."
   },
   "keywords": [
     "NodeJs",
     "Express"
   ],
   "dependencies": {
-    "@prisma/client": "4.9.0",
+    "@prisma/client": "4.16.1",
     "@sendinblue/client": "^3.2.2",
     "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
@@ -52,9 +61,9 @@
     "@types/multer": "^1.4.7",
     "@types/node": "^18.11.9",
     "@types/pdfkit": "^0.12.8",
-    "concurrently": "^7.5.0",
+    "concurrently": "^8.2.0",
     "nodemon": "^2.0.12",
-    "prisma": "^4.11.0",
+    "prisma": "^4.16.1",
     "typescript": "^4.8.4",
     "prettier": "^2.8.8",
     "eslint": "^8.43.0",

@@ -7,9 +7,7 @@ const settings = {
     timezone: process.env.DB_TIMEZONE || "Europe/Paris",
   },
   jwt: {
-    secret:
-      process.env.JWT_SECRET ||
-      Buffer.from("Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=", "base64"),
+    secret: process.env.JWT_SECRET || Buffer.from("Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=", "base64"),
     algorithms: ["HS512"],
     expiresIn: process.env.JWT_EXPIRES_IN || 10 * 24 * 3600,
     refreshTokenExpiration: process.env.JWT_REFRESH_EXPIRATION || 86400,
@@ -39,9 +37,12 @@ const settings = {
     contentPassword: process.env.CONTENT_WEBHOOK_PASSWORD,
   },
   stripe: {
-    apiKey: process.env.STRIPE_API_KEY || "sk_test_51IJbEYGesxfbePZUuH0T6891FLaldtgfufjJOvvPicn9rEHXAdpy5MQufIxUIER6cYWig0YkePmTGJoNEJ3AicBl00uPKeWA3y",
-    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "whsec_c8073d61c36abab4d488d068f065d7a84c468de780722c8e90ad3d9cf1f0b340",
-  }
+    apiKey:
+      process.env.STRIPE_API_KEY ||
+      "sk_test_51IJbEYGesxfbePZUuH0T6891FLaldtgfufjJOvvPicn9rEHXAdpy5MQufIxUIER6cYWig0YkePmTGJoNEJ3AicBl00uPKeWA3y",
+    webhookSecret:
+      process.env.STRIPE_WEBHOOK_SECRET || "whsec_c8073d61c36abab4d488d068f065d7a84c468de780722c8e90ad3d9cf1f0b340",
+  },
 };
 
 export { settings };

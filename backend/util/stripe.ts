@@ -1,11 +1,8 @@
-import Stripe from 'stripe';
+import Stripe from "stripe";
 import { settings } from "./settings.js";
 
-const stripe = new Stripe(
-  settings.stripe.apiKey,
-  {
-    apiVersion: "2022-11-15",
-  }
-);
+const stripe = new Stripe(settings.stripe.apiKey, {
+  apiVersion: "2022-11-15",
+});
 
 export default stripe;

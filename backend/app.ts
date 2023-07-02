@@ -38,7 +38,7 @@ app.use("/api/", morgan(settings.constants.web.logFormat));
 app.use(cors());
 
 // Parse Raw before bodyParser enabled
-app.use("/api/payment/webhooks", bodyParser.raw({ type: '*/*' }), paymentWehbooks);
+app.use("/api/payment/webhooks", bodyParser.raw({ type: "*/*" }), paymentWehbooks);
 
 // Express API Parse JSON
 app.use(bodyParser.json());
@@ -66,7 +66,7 @@ app.use(
     credentialsRequired: false,
   }),
   paymentCheckout
-)
+);
 
 app.use(
   "/api/payment",
@@ -116,9 +116,7 @@ const validateBelongsToBank = () => {
       },
     });
 
-    const banks = user?.Banks?.filter(
-      (bank) => bank.id === Number(req.params.bank_id)
-    );
+    const banks = user?.Banks?.filter((bank) => bank.id === Number(req.params.bank_id));
 
     if (!banks?.length) return res.sendStatus(403);
 
@@ -129,7 +127,7 @@ const validateBelongsToBank = () => {
 };
 
 // Protect all routes
-app.use("/api/user",expressjwt({ secret: settings.jwt.secret, algorithms: ["HS512"] }));
+app.use("/api/user", expressjwt({ secret: settings.jwt.secret, algorithms: ["HS512"] }));
 app.use("/api/user/:user_id/customers", validateBelongsToUser(), customers);
 app.use("/api/user/:user_id/customers/:customer_id/invoices", validateCustomerBelongsToUser(), invoices);
 app.use("/api/user/:user_id/customers/:customer_id/quotations", validateCustomerBelongsToUser(), quotations);
@@ -144,13 +142,7 @@ app.use((err: Error, req: JWTRequest, res: Response, next: NextFunction) => {
       console.debug(
         chalk.yellow("NotFoundError"),
         chalk.yellow(err.message),
-        "at .../" +
-          err.stack
-            ?.split("\n")[1]
-            .split(/[\\/]/)
-            .slice(-3)
-            .join("/")
-            .slice(0, -1)
+        "at .../" + err.stack?.split("\n")[1].split(/[\\/]/).slice(-3).join("/").slice(0, -1)
       );
       res.status(err.statusCode || 400);
       res.json({
@@ -163,21 +155,14 @@ app.use((err: Error, req: JWTRequest, res: Response, next: NextFunction) => {
       });
       break;
     case "UnauthorizedError":
-      console.debug(
-        chalk.yellow("UnauthorizedError"),
-        chalk.yellow(err.message)
-      );
+      console.debug(chalk.yellow("UnauthorizedError"), chalk.yellow(err.message));
       res.status(err.statusCode || 401);
       res.json({
         error: err,
       });
       break;
     default:
-      console.error(
-        chalk.bold.red("Technical error " + err.name),
-        chalk.red(err.message),
-        err
-      );
+      console.error(chalk.bold.red("Technical error " + err.name), chalk.red(err.message), err);
       res.status(err.statusCode || 500);
       res.json({
         error: err,
