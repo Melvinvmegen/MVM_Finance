@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "Vue.volar",
+    "Vue.vscode-typescript-vue-plugin",
+    "formulahendry.auto-close-tag",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "formulahendry.auto-rename-tag",
+    "naumovs.color-highlight",
+    "mikestead.dotenv",
+    "sibiraj-s.vscode-scss-formatter",
+    "redhat.vscode-yaml",
+    "yoavbls.pretty-ts-errors",
+    "Prisma.prisma",
+    "neotan.vscode-auto-restart-typescript-eslint-servers"
+  ]
+}
