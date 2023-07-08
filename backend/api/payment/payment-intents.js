@@ -1,15 +1,12 @@
-import express from "express";
 import { prisma } from "../../util/prisma.js";
 import { AppError } from "../../util/AppError.js";
 import stripe from "../../util/stripe.js";
 
-const router = express.Router();
-
-router.get("/:paymentIntentId", async (req, res, next) => {
-  try {
+async function routes(app, options) {
+  app.get("/payment-intents/:paymentIntentId", async (request, reply) => {
     const paymentIntent = await prisma.paymentIntents.findUnique({
       where: {
-        stripeId: req.params.paymentIntentId,
+        stripeId: request.params.paymentIntentId,
       },
       select: {
         status: true,
@@ -20,62 +17,59 @@ router.get("/:paymentIntentId", async (req, res, next) => {
 
     if (!paymentIntent) throw new AppError(404, "Not found");
 
-    res.json({
+    return {
       ...paymentIntent,
       type: paymentIntent.PaymentId ? "payment" : "subscription",
+    };
+  });
+
+  app.post("/payment-intents", async (request, reply) => {
+    const amount = Number(request.body.amount);
+    const customer = await prisma.customers.findUnique({
+      where: { id: request.body.customerId },
     });
-  } catch (error) {
-    return next(error);
-  }
-});
 
-router.post("/", async (req, res, next) => {
-  const amount = Number(req.body.amount);
-  const customer = await prisma.customers.findUnique({
-    where: { id: req.body.customerId },
+    if (!customer) throw new AppError(404, "Customer not found");
+
+    const stripePaymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: "eur",
+      payment_method: request.body.paymentMethodId,
+      automatic_payment_methods: { enabled: true },
+    });
+
+    if (!stripePaymentIntent) throw new AppError(401, "Unauthorized");
+
+    const payment = await prisma.payments.create({
+      data: {
+        amount: amount / 100,
+        CustomerId: customer.id,
+        // TODO: allow config for multiple users
+        UserId: 1,
+        billingAddress: request.body.billingAddress,
+        billingZipCode: request.body.billingZipCode,
+        billingCity: request.body.billingCity,
+        billingCountry: request.body.billingCountry,
+        stripePriceId: request.body.priceId,
+      },
+    });
+
+    await prisma.paymentIntents.create({
+      data: {
+        amount: amount / 100,
+        stripeId: stripePaymentIntent?.id,
+        PaymentId: payment.id,
+      },
+    });
+
+    // TODO: check this works
+    reply.send(stripePaymentIntent.client_secret);
   });
 
-  if (!customer) throw new AppError(404, "Customer not found");
-
-  const stripePaymentIntent = await stripe.paymentIntents.create({
-    amount,
-    currency: "eur",
-    payment_method: req.body.paymentMethodId,
-    automatic_payment_methods: { enabled: true },
-  });
-
-  if (!stripePaymentIntent) throw new AppError(401, "Unauthorized");
-
-  const payment = await prisma.payments.create({
-    data: {
-      amount: amount / 100,
-      CustomerId: customer.id,
-      // TODO: allow config for multiple users
-      UserId: 1,
-      billingAddress: req.body.billingAddress,
-      billingZipCode: req.body.billingZipCode,
-      billingCity: req.body.billingCity,
-      billingCountry: req.body.billingCountry,
-      stripePriceId: req.body.priceId,
-    },
-  });
-
-  await prisma.paymentIntents.create({
-    data: {
-      amount: amount / 100,
-      stripeId: stripePaymentIntent?.id,
-      PaymentId: payment.id,
-    },
-  });
-
-  res.send(stripePaymentIntent.client_secret);
-});
-
-router.put("/payment-intents/:payment_intent_id/refund", async (req, res, next) => {
-  try {
+  app.put("/payment-intents/:payment_intent_id/refund", async (request, reply) => {
     const paymentIntent = await prisma.paymentIntents.findUnique({
       where: {
-        id: Number(req.params.payment_intent_id),
+        id: Number(request.params.payment_intent_id),
       },
     });
 
@@ -83,7 +77,7 @@ router.put("/payment-intents/:payment_intent_id/refund", async (req, res, next) 
     if (paymentIntent?.stripeId && paymentIntent?.PaymentId) {
       refund = await stripe.refunds.create({
         payment_intent: paymentIntent?.stripeId,
-        ...(req.body.amount && { amount: req.body.amount }),
+        ...(request.body.amount && { amount: request.body.amount }),
       });
 
       await stripe.paymentIntents.cancel(paymentIntent?.stripeId);
@@ -97,10 +91,10 @@ router.put("/payment-intents/:payment_intent_id/refund", async (req, res, next) 
         },
       });
     }
-  } catch (error) {
-    console.log("Refund failed:", error);
-    throw new AppError(401, "Unauthorized");
-  }
-});
 
-export default router;
+    // TODO: are we supposed to return something?
+    return;
+  });
+}
+
+export default routes;

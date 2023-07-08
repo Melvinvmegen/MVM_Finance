@@ -1,15 +1,12 @@
-import express from "express";
 import { prisma } from "../../util/prisma.js";
 import { AppError } from "../../util/AppError.js";
 import stripe from "../../util/stripe.js";
 
-const router = express.Router();
+async function routes(app, options) {
+  app.post("/subscriptions", async (request, reply) => {
+    const { customerId, paymentMethodId, priceId } = request.body;
 
-router.post("/", async (req, res, next) => {
-  const { customerId, paymentMethodId, priceId } = req.body;
-
-  let stripeSubscription;
-  try {
+    let stripeSubscription;
     const customer = await prisma.customers.findUnique({
       where: {
         id: customerId,
@@ -78,32 +75,29 @@ router.post("/", async (req, res, next) => {
         },
       });
 
-      res.send(stripePaymentIntent?.client_secret);
+      // TODO: check this works
+      reply.send(stripePaymentIntent?.client_secret);
     }
-  } catch (error) {
-    return next(error);
-  }
-});
-
-router.put("/:subscriptionId/refund", async (req, res, next) => {
-  const subscriptionId = Number(req.params.subscriptionId);
-  const subscription = await prisma.subscriptions.findFirst({
-    where: {
-      id: subscriptionId,
-      status: "VALIDATED",
-    },
-    include: {
-      PaymentIntents: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-    },
   });
 
-  if (!subscription || !subscription.stripeId) throw new AppError(404, "Subscription not found");
+  app.put("/subscriptions/:subscriptionId/refund", async (request, reply) => {
+    const subscriptionId = Number(request.params.subscriptionId);
+    const subscription = await prisma.subscriptions.findFirst({
+      where: {
+        id: subscriptionId,
+        status: "VALIDATED",
+      },
+      include: {
+        PaymentIntents: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
+    });
 
-  try {
+    if (!subscription || !subscription.stripeId) throw new AppError(404, "Subscription not found");
+
     const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeId);
     if (stripeSubscription?.id) {
       const startDate = new Date(stripeSubscription.current_period_start * 1000);
@@ -138,30 +132,24 @@ router.put("/:subscriptionId/refund", async (req, res, next) => {
         },
       });
 
-      res.json(updatedSubscription);
+      return updatedSubscription;
     }
-  } catch (error) {
-    return next(error);
-  }
-});
+  });
 
-router.get("/:subscriptionId", async (req, res, next) => {
-  try {
+  app.get("/subscriptions/:subscriptionId", async (request, reply) => {
     const subscription = await prisma.subscriptions.findFirst({
       where: {
-        id: Number(req.params.subscriptionId),
+        id: Number(request.params.subscriptionId),
       },
     });
 
     if (!subscription) throw new AppError(404, "Not found");
 
-    res.json({
+    return {
       ...subscription,
       stripeId: null,
-    });
-  } catch (error) {
-    return next(error);
-  }
-});
+    };
+  });
+}
 
-export default router;
+export default routes;

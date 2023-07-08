@@ -1,18 +1,16 @@
-import express from "express";
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { pdfGenerator } from "../../util/pdfGenerator.js";
 import { setFilters } from "../../util/filter.js";
 import { AppError } from "../../util/AppError.js";
 import { updateCreateOrDestroyChildItems } from "../../util/childItemsHandler.js";
 import { prisma } from "../../util/prisma.js";
-const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  const { CustomerId } = req.query;
-  const { per_page, offset, options } = setFilters(req.query);
-  const force = req.query.force === "true";
+async function routes(app, options) {
+  app.get("/customers/:CustomerId/quotations", async (request, reply) => {
+    const { CustomerId } = request.params;
+    const { per_page, offset, options } = setFilters(request.params);
+    const force = request.params.force === "true";
 
-  try {
     if (!CustomerId) throw new AppError(404, "Customer not found");
     const quotations_data = await getOrSetCache(
       `quotations_customer_${CustomerId}`,
@@ -39,17 +37,13 @@ router.get("/", async (req, res, next) => {
       force
     );
 
-    res.json(quotations_data);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return quotations_data;
+  });
 
-router.get("/:id", async (req, res, next) => {
-  const id = req.params.id;
-  const isPDF = req.query.pdf;
+  app.get("/customers/:CustomerId/quotations/:id", async (request, reply) => {
+    const id = request.params.id;
+    const isPDF = request.params.pdf;
 
-  try {
     const quotation = await getOrSetCache(`quotation_${id}`, async () => {
       const data = await prisma.quotations.findUnique({
         where: {
@@ -67,22 +61,18 @@ router.get("/:id", async (req, res, next) => {
     if (isPDF) {
       const quotationName = "quotation-" + id + ".pdf";
 
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `inline; filename="${quotationName}"`);
+      reply.setHeader("Content-Type", "application/pdf");
+      reply.setHeader("Content-Disposition", `inline; filename="${quotationName}"`);
       let doc = pdfGenerator(quotation);
-      doc.pipe(res);
+      doc.pipe(reply);
     } else {
-      res.json(quotation);
+      return quotation;
     }
-  } catch (error) {
-    return next(error);
-  }
-});
+  });
 
-router.post("/", async (req, res, next) => {
-  const { InvoiceItems, ...quotationBody } = req.body;
+  app.post("/customers/:CustomerId/quotations", async (request, reply) => {
+    const { InvoiceItems, ...quotationBody } = request.body;
 
-  try {
     const quotation = await prisma.quotations.create({
       data: {
         ...quotationBody,
@@ -96,16 +86,12 @@ router.post("/", async (req, res, next) => {
     });
 
     await invalidateCache(`quotations_customer_${quotation.CustomerId}`);
-    res.json(quotation);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return quotation;
+  });
 
-router.put("/:id", async (req, res, next) => {
-  const { InvoiceItems, id, ...quotationBody } = req.body;
+  app.put("/customers/:CustomerId/quotations/:id", async (request, reply) => {
+    const { InvoiceItems, id, ...quotationBody } = request.body;
 
-  try {
     const quotation = await prisma.quotations.update({
       where: {
         id,
@@ -127,14 +113,10 @@ router.put("/:id", async (req, res, next) => {
 
     await invalidateCache(`quotations_customer_${quotation.CustomerId}`);
     await invalidateCache(`quotation_${quotation.id}`);
-    res.json(quotation);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return quotation;
+  });
 
-router.post("/convert_quotation/:id", async (req, res, next) => {
-  try {
+  app.post("/customers/:CustomerId/quotations/convert_quotation/:id", async (request, reply) => {
     const quotation = await prisma.quotations.findUnique({
       select: {
         id: true,
@@ -158,7 +140,7 @@ router.post("/convert_quotation/:id", async (req, res, next) => {
         },
       },
       where: {
-        id: +req.params.id,
+        id: +request.params.id,
       },
     });
     if (!quotation) throw new AppError(404, "Quotation not found!");
@@ -189,26 +171,20 @@ router.post("/convert_quotation/:id", async (req, res, next) => {
 
     await invalidateCache(`quotations_customer_${quotation.CustomerId}`);
     await invalidateCache(`invoices_customer_${invoice.CustomerId}`);
-    res.json(invoice);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return invoice;
+  });
 
-router.delete("/:id", async (req, res, next) => {
-  try {
+  app.delete("/customers/:CustomerId/quotations/:id", async (request, reply) => {
     const quotation = await prisma.quotations.delete({
-      where: { id: +req.params.id },
+      where: { id: +request.params.id },
       select: {
         CustomerId: true,
       },
     });
 
     await invalidateCache(`quotations_customer_${quotation.CustomerId}`);
-    res.json();
-  } catch (error) {
-    return next(error);
-  }
-});
+    return;
+  });
+}
 
-export default router;
+export default routes;

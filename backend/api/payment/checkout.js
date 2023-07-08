@@ -1,11 +1,8 @@
-import express from "express";
 import stripe from "../../util/stripe.js";
 
-const router = express.Router();
-
-router.post("/", async (req, res, next) => {
-  let session;
-  try {
+async function routes(app, options) {
+  app.post("/checkout", async (request, reply) => {
+    let session;
     session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -14,14 +11,13 @@ router.post("/", async (req, res, next) => {
         },
       ],
       mode: "payment",
-      success_url: req.body.redirectUrl,
-      cancel_url: req.body.backUrl,
+      success_url: request.body.redirectUrl,
+      cancel_url: request.body.backUrl,
     });
-  } catch (error) {
-    return next(error);
-  }
 
-  if (session.url) res.redirect(session.url);
-});
+    // TODO: check this works
+    if (session.url) reply.redirect(session.url);
+  });
+}
 
-export default router;
+export default routes;

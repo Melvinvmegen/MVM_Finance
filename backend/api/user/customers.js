@@ -1,20 +1,20 @@
-import express from "express";
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { setFilters } from "../../util/filter.js";
 import { AppError } from "../../util/AppError.js";
 import { prisma } from "../../util/prisma.js";
-const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  const { per_page, offset, options } = setFilters(req.query);
-  const force = req.query.force === "true";
-  options.UserId = req?.auth?.userId;
+async function routes(app, options) {
+  app.get("/customers", async (request, reply) => {
+    const { per_page, offset, options } = setFilters(request.params);
+    const force = request.params.force === "true";
+    options.UserId = request?.auth?.userId;
 
-  try {
     const result = await getOrSetCache(
       "customers",
       async () => {
-        const count = await prisma.customers.count();
+        const count = await prisma.customers.count({
+          where: options,
+        });
         const rows = await prisma.customers.findMany({
           where: options,
           include: {
@@ -29,20 +29,16 @@ router.get("/", async (req, res, next) => {
       force
     );
 
-    res.json(result);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return { result };
+  });
 
-router.get("/:id", async (req, res, next) => {
-  try {
-    const { id } = req.params;
+  app.get("/customers/:id", async (request, reply) => {
+    const { id } = request.params;
     const customer = await getOrSetCache(`customer_${id}`, async () => {
       const customer = await prisma.customers.findFirst({
         where: {
           id: +id,
-          UserId: +req?.auth?.userId,
+          UserId: 1,
         },
       });
 
@@ -50,37 +46,30 @@ router.get("/:id", async (req, res, next) => {
       return customer;
     });
 
-    res.json(customer);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return { customer };
+  });
 
-router.post("/", async (req, res, next) => {
-  try {
+  app.post("/customers", async (request, reply) => {
     const customer = await prisma.customers.create({
       data: {
-        ...req.body,
-        UserId: req?.auth?.userId,
+        ...request.body,
+        UserId: request?.auth?.userId,
       },
       include: {
         Invoices: true,
       },
     });
     await invalidateCache("customers");
-    res.json(customer);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return { customer };
+  });
 
-router.put("/:id", async (req, res, next) => {
-  const { Invoices, Quotations, ...body } = req.body;
-  try {
+  app.put("/customers/:id", async (request, reply) => {
+    const { Invoices, Quotations, ...body } = request.body;
+
     let customer = await prisma.customers.findFirst({
       where: {
         id: +body.id,
-        UserId: req?.auth?.userId,
+        UserId: request?.auth?.userId,
       },
     });
 
@@ -88,33 +77,27 @@ router.put("/:id", async (req, res, next) => {
 
     customer = await prisma.customers.update({
       where: {
-        id: +req.body.id,
+        id: +request.body.id,
       },
       data: {
         ...body,
-        UserId: req?.auth?.userId,
+        UserId: request?.auth?.userId,
       },
     });
 
     await invalidateCache(`customer_${customer.id}`);
-    res.json(customer);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return { customer };
+  });
 
-router.delete("/:id", async (req, res, next) => {
-  try {
+  app.delete("/customers/:id", async (request, reply) => {
     await prisma.customers.delete({
       where: {
-        id: +req.params.id,
+        id: +request.params.id,
       },
     });
     await invalidateCache("customers");
-    res.json();
-  } catch (error) {
-    return next(error);
-  }
-});
+    return;
+  });
+}
 
-export default router;
+export default routes;

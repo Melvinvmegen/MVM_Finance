@@ -1,15 +1,11 @@
-import express from "express";
 import { prisma } from "../../util/prisma.js";
 import { AppError } from "../../util/AppError.js";
 import stripe from "../../util/stripe.js";
 
-const router = express.Router();
-
-router.post("/", async (req, res, next) => {
-  let customer;
-  const { firstName, lastName, email } = req.body;
-  try {
-    customer = await prisma.customers.findFirst({
+async function routes(app, options) {
+  app.post("/customers", async (request, reply) => {
+    const { firstName, lastName, email } = request.body;
+    let customer = await prisma.customers.findFirst({
       where: {
         email,
       },
@@ -47,11 +43,9 @@ router.post("/", async (req, res, next) => {
         },
       });
     }
-  } catch (error) {
-    return next(error);
-  }
 
-  res.json(customer);
-});
+    return customer;
+  });
+}
 
-export default router;
+export default routes;

@@ -1,4 +1,3 @@
-import express from "express";
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { pdfGenerator } from "../../util/pdfGenerator.js";
 import { sendInvoice } from "../../util/mailer.js";
@@ -6,14 +5,13 @@ import { setFilters } from "../../util/filter.js";
 import { AppError } from "../../util/AppError.js";
 import { updateCreateOrDestroyChildItems } from "../../util/childItemsHandler.js";
 import { prisma } from "../../util/prisma.js";
-const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  const { CustomerId } = req.query;
-  const { per_page, offset, options } = setFilters(req.query);
-  const force = req.query.force === "true";
+async function routes(app, options) {
+  app.get("/customers/:CustomerId/invoices", async (request, reply) => {
+    const { CustomerId } = request.params;
+    const { per_page, offset, options } = setFilters(request.params);
+    const force = request.params.force === "true";
 
-  try {
     if (!CustomerId) throw new AppError(404, "Customer not found");
     const invoices_data = await getOrSetCache(
       `invoices_customer_${CustomerId}`,
@@ -40,17 +38,13 @@ router.get("/", async (req, res, next) => {
       force
     );
 
-    res.json(invoices_data);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return invoices_data;
+  });
 
-router.get("/:id", async (req, res, next) => {
-  const id = req.params.id;
-  const isPDF = req.query.pdf;
+  app.get("/customers/:CustomerId/invoices/:id", async (request, reply) => {
+    const id = request.params.id;
+    const isPDF = request.params.pdf;
 
-  try {
     const invoice = await getOrSetCache(`invoice_${id}`, async () => {
       const data = await prisma.invoices.findFirstOrThrow({
         where: {
@@ -68,22 +62,18 @@ router.get("/:id", async (req, res, next) => {
     if (isPDF) {
       const invoiceName = "invoice-" + id + ".pdf";
 
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
+      reply.setHeader("Content-Type", "application/pdf");
+      reply.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
       const doc = pdfGenerator(invoice);
-      doc.pipe(res);
+      doc.pipe(reply);
     } else {
-      res.json(invoice);
+      return invoice;
     }
-  } catch (error) {
-    return next(error);
-  }
-});
+  });
 
-router.post("/", async (req, res, next) => {
-  const { InvoiceItems, ...invoiceBody } = req.body;
+  app.post("/customers/:CustomerId/invoices", async (request, reply) => {
+    const { InvoiceItems, ...invoiceBody } = request.body;
 
-  try {
     const invoice = await prisma.invoices.create({
       data: {
         ...invoiceBody,
@@ -97,16 +87,12 @@ router.post("/", async (req, res, next) => {
     });
 
     await invalidateCache(`invoices_customer_${invoice.CustomerId}`);
-    res.json(invoice);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return invoice;
+  });
 
-router.put("/:id", async (req, res, next) => {
-  const { InvoiceItems, id, ...invoiceBody } = req.body;
+  app.put("/customers/:CustomerId/invoices/:id", async (request, reply) => {
+    const { InvoiceItems, id, ...invoiceBody } = request.body;
 
-  try {
     const invoice = await prisma.invoices.update({
       where: {
         id,
@@ -126,16 +112,12 @@ router.put("/:id", async (req, res, next) => {
 
     await invalidateCache(`invoices_customer_${invoice.CustomerId}`);
     await invalidateCache(`invoice_${invoice.id}`);
-    res.json(invoice);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return invoice;
+  });
 
-router.get("/send_invoice", async (req, res, next) => {
-  try {
+  app.get("/customers/:CustomerId/invoices/:id/send_invoice", async (request, reply) => {
     const invoice = await prisma.invoices.findFirstOrThrow({
-      where: { id: Number(req.query.id) },
+      where: { id: Number(request.params.id) },
       include: {
         InvoiceItems: true,
         Customers: true,
@@ -143,26 +125,20 @@ router.get("/send_invoice", async (req, res, next) => {
     });
 
     const message = await sendInvoice(invoice);
-    res.json(message);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return message;
+  });
 
-router.delete("/:id", async (req, res, next) => {
-  try {
+  app.delete("/customers/:CustomerId/invoices/:id", async (request, reply) => {
     const invoice = await prisma.invoices.delete({
-      where: { id: +req.params.id },
+      where: { id: +request.params.id },
       select: {
         CustomerId: true,
       },
     });
 
     await invalidateCache(`invoices_customer_${invoice.CustomerId}`);
-    res.json();
-  } catch (error) {
-    return next(error);
-  }
-});
+    return;
+  });
+}
 
-export default router;
+export default routes;

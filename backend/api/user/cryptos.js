@@ -1,17 +1,15 @@
-import express from "express";
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { updateCreateOrDestroyChildItems } from "../../util/childItemsHandler.js";
 import { prisma } from "../../util/prisma.js";
 import { AppError } from "../../util/AppError.js";
 import axios from "axios";
-const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  try {
+async function routes(app, options) {
+  app.get("/cryptos", async (request, reply) => {
     const cryptos = await getOrSetCache(`cryptos`, async () => {
       const data = await prisma.cryptoCurrencies.findMany({
         where: {
-          UserId: req?.auth?.userId,
+          UserId: request.auth?.userId,
         },
         orderBy: [{ sold: "asc" }, { profit: "desc" }],
         include: {
@@ -22,15 +20,11 @@ router.get("/", async (req, res, next) => {
       return data;
     });
 
-    res.json(cryptos);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return cryptos;
+  });
 
-router.post("/", async (req, res, next) => {
-  const { Transactions, ...cryptoBody } = req.body;
-  try {
+  app.post("/cryptos", async (request, reply) => {
+    const { Transactions, ...cryptoBody } = request.body;
     // @ts-ignore
     const response = await axios({
       method: "GET",
@@ -47,12 +41,12 @@ router.post("/", async (req, res, next) => {
       gzip: true,
     });
 
-    const fetchedCrypto = response.data.data.filter((element) => element.name === req.body.name);
+    const fetchedCrypto = response.data.data.filter((element) => element.name === request.body.name);
     const values = fetchedCrypto[0]?.quote?.EUR;
-    const totalTransactions = req.body.Transactions.map(
+    const totalTransactions = request.body.Transactions.map(
       (transaction) => transaction.price * transaction.quantity
     ).reduce((sum, quantiy) => sum + quantiy, 0);
-    const totalQuantityTransactions = req.body.Transactions.map((transaction) => transaction.quantity).reduce(
+    const totalQuantityTransactions = request.body.Transactions.map((transaction) => transaction.quantity).reduce(
       (sum, quantiy) => sum + quantiy,
       0
     );
@@ -74,7 +68,7 @@ router.post("/", async (req, res, next) => {
         },
       });
 
-      if (revenu?.Banks?.UserId !== req?.auth?.userId) revenu = null;
+      if (revenu?.Banks?.UserId !== request.auth?.userId) revenu = null;
 
       return {
         ...transaction,
@@ -86,9 +80,9 @@ router.post("/", async (req, res, next) => {
       data: {
         ...cryptoBody,
         pricePurchase: totalTransactions / totalQuantityTransactions,
-        price: req.body.price || values?.price || 0,
+        price: request.body.price || values?.price || 0,
         priceChange: values?.percent_change_30d || 0,
-        UserId: req?.auth?.userId,
+        UserId: request.auth?.userId,
         Transactions: {
           create: await Promise.all(transactions_created),
         },
@@ -99,20 +93,16 @@ router.post("/", async (req, res, next) => {
     });
 
     await invalidateCache(`cryptos`);
-    res.json(crypto);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return crypto;
+  });
 
-router.put("/:id", async (req, res, next) => {
-  const { Transactions, ...crypto_body } = req.body;
+  app.put("/cryptos/:id", async (request, reply) => {
+    const { Transactions, ...crypto_body } = request.body;
 
-  try {
     let crypto = await prisma.cryptoCurrencies.findFirst({
       where: {
-        id: +req.params.id,
-        UserId: req?.auth?.userId,
+        id: +request.params.id,
+        UserId: request.auth?.userId,
       },
     });
 
@@ -133,7 +123,7 @@ router.put("/:id", async (req, res, next) => {
       json: true,
       gzip: true,
     });
-    const fetchedCrypto = response.data.data.filter((element) => element.name === req.body.name);
+    const fetchedCrypto = response.data.data.filter((element) => element.name === request.body.name);
     const values = fetchedCrypto[0]?.quote?.EUR;
     const totalTransactions = Transactions.map((transaction) => transaction.price * transaction.quantity).reduce(
       (sum, quantity) => sum + quantity,
@@ -168,7 +158,7 @@ router.put("/:id", async (req, res, next) => {
           },
         });
 
-        if (revenu?.Banks?.UserId !== req?.auth?.userId) revenu = null;
+        if (revenu?.Banks?.UserId !== request.auth?.userId) revenu = null;
 
         return {
           ...transaction,
@@ -180,44 +170,40 @@ router.put("/:id", async (req, res, next) => {
     }
 
     crypto = await prisma.cryptoCurrencies.update({
-      where: { id: +req.params.id },
+      where: { id: +request.params.id },
       data: {
         ...crypto_body,
         pricePurchase: totalTransactions / (totalQuantityTransactions || 1),
-        price: req.body.price || values?.price,
+        price: request.body.price || values?.price,
         priceChange: values?.percent_change_30d || 0,
-        UserId: req?.auth?.userId,
+        UserId: request.auth?.userId,
       },
     });
 
     await invalidateCache(`cryptos`);
-    res.json(crypto);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return crypto;
+  });
 
-router.get("/update_cryptos", async (req, res, next) => {
-  let requestOptions = {
-    method: "GET",
-    url: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
-    params: {
-      start: "1",
-      limit: "5000",
-      convert: "EUR",
-    },
-    headers: {
-      "X-CMC_PRO_API_KEY": "9a874839-5e36-4cec-bcbe-ac2f7927c74f",
-    },
-    json: true,
-    gzip: true,
-  };
-  try {
+  app.get("/cryptos/update_cryptos", async (request, reply) => {
+    let requestOptions = {
+      method: "GET",
+      url: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
+      params: {
+        start: "1",
+        limit: "5000",
+        convert: "EUR",
+      },
+      headers: {
+        "X-CMC_PRO_API_KEY": "9a874839-5e36-4cec-bcbe-ac2f7927c74f",
+      },
+      json: true,
+      gzip: true,
+    };
     // @ts-ignore
     const response = await axios(requestOptions);
     const cryptos = await prisma.cryptoCurrencies.findMany({
       where: {
-        UserId: req?.auth?.userId,
+        UserId: request.auth?.userId,
       },
     });
     let updated_cryptos = [];
@@ -238,10 +224,8 @@ router.get("/update_cryptos", async (req, res, next) => {
     }
 
     await invalidateCache(`cryptos`);
-    res.json(updated_cryptos);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return updated_cryptos;
+  });
+}
 
-export default router;
+export default routes;

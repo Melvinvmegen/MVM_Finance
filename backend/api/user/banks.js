@@ -1,18 +1,16 @@
-import express from "express";
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { AppError } from "../../util/AppError.js";
 import { prisma } from "../../util/prisma.js";
-const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  const force = req.query.force === "true";
-  try {
+async function routes(app, options) {
+  app.get("/banks", async (request, reply) => {
+    const force = request.params.force === "true";
     const result = await getOrSetCache(
       "banks",
       async () => {
         const banks = await prisma.banks.findMany({
           where: {
-            UserId: req?.auth?.userId,
+            UserId: request?.auth?.userId,
           },
         });
 
@@ -21,54 +19,42 @@ router.get("/", async (req, res, next) => {
       force
     );
 
-    res.json(result);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return result;
+  });
 
-router.get("/:id", async (req, res, next) => {
-  try {
-    const { id } = req.params;
+  app.get("/banks/:id", async (request, reply) => {
+    const { id } = request.params;
     const bank = await getOrSetCache(`bank_${id}`, async () => {
       const bank = await prisma.banks.findFirst({
         where: {
           id: +id,
-          UserId: req?.auth?.userId,
+          UserId: request?.auth?.userId,
         },
       });
       if (!bank) throw new AppError(404, "Bank not found!");
       return bank;
     });
 
-    res.json(bank);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return bank;
+  });
 
-router.post("/", async (req, res, next) => {
-  try {
+  app.post("/banks", async (request, reply) => {
     const bank = await prisma.banks.create({
       data: {
-        ...req.body,
-        UserId: req?.auth?.userId,
+        ...request.body,
+        UserId: request?.auth?.userId,
       },
     });
     await invalidateCache("banks");
-    res.json(bank);
-  } catch (error) {
-    return next(error);
-  }
-});
+    return bank;
+  });
 
-router.put("/:id", async (req, res, next) => {
-  const { Invoices, Quotations, ...body } = req.body;
-  try {
+  app.put("/banks/:id", async (request, reply) => {
+    const { Invoices, Quotations, ...body } = request.body;
     let bank = await prisma.banks.findFirst({
       where: {
         id: +body.id,
-        UserId: req?.auth?.userId,
+        UserId: request?.auth?.userId,
       },
     });
 
@@ -80,15 +66,12 @@ router.put("/:id", async (req, res, next) => {
       },
       data: {
         ...body,
-        UserId: req?.auth?.userId,
+        UserId: request?.auth?.userId,
       },
     });
 
     await invalidateCache(`bank_${bank.id}`);
-    res.json(bank);
-  } catch (error) {
-    return next(error);
-  }
-});
-
-export default router;
+    return bank;
+  });
+}
+export default routes;
