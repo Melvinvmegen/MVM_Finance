@@ -1,10 +1,10 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import { AppError } from "../../util/AppError.js";
 import stripe from "../../util/stripe.js";
 
 const router = express.Router();
 
-router.get("/:productId", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/:productId", async (req, res, next) => {
   try {
     const prices = await stripe.prices.list({
       product: req.params.productId,

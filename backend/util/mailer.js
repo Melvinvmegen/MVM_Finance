@@ -1,20 +1,12 @@
 import SibApiV3Sdk from "@sendinblue/client";
 import fs from "fs";
 import { pdfGenerator } from "./pdfGenerator.js";
-import { settings } from "../util/settings.js";
-import { AppError } from "../util/AppError.js";
-import { Prisma } from "@prisma/client";
+import { settings } from "./settings.js";
+import { AppError } from "./AppError.js";
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, settings.email.sendinblueApiKey);
 
-type Invoice = Prisma.InvoicesGetPayload<{
-  include: {
-    InvoiceItems: true;
-    Customers: true;
-  };
-}>;
-
-const sendInvoice = async function (invoice: Invoice) {
+const sendInvoice = async function (invoice) {
   const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
   let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
   const id = invoice.id;
@@ -41,7 +33,7 @@ const sendInvoice = async function (invoice: Invoice) {
   });
 };
 
-async function getMessage(invoice: Invoice, invoiceName: string) {
+async function getMessage(invoice, invoiceName) {
   const createdAt = new Date(invoice.createdAt);
   const month = createdAt.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
   const firstname = invoice.firstName;

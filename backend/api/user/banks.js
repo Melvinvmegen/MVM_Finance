@@ -1,11 +1,10 @@
-import express, { Response, NextFunction } from "express";
-import { Request as JWTRequest } from "express-jwt";
+import express from "express";
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { AppError } from "../../util/AppError.js";
 import { prisma } from "../../util/prisma.js";
 const router = express.Router();
 
-router.get("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.get("/", async (req, res, next) => {
   const force = req.query.force === "true";
   try {
     const result = await getOrSetCache(
@@ -28,7 +27,7 @@ router.get("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
   }
 });
 
-router.get("/:id", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.get("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
     const bank = await getOrSetCache(`bank_${id}`, async () => {
@@ -48,7 +47,7 @@ router.get("/:id", async (req: JWTRequest, res: Response, next: NextFunction) =>
   }
 });
 
-router.post("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.post("/", async (req, res, next) => {
   try {
     const bank = await prisma.banks.create({
       data: {
@@ -63,7 +62,7 @@ router.post("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
   }
 });
 
-router.put("/:id", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.put("/:id", async (req, res, next) => {
   const { Invoices, Quotations, ...body } = req.body;
   try {
     let bank = await prisma.banks.findFirst({

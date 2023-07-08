@@ -1,11 +1,6 @@
 import PDFDocument from "pdfkit";
-import { Prisma } from "@prisma/client";
 
-type Invoice = Prisma.InvoicesGetPayload<{
-  include: { InvoiceItems: true };
-}>;
-
-export const pdfGenerator = function (invoice: Invoice) {
+export const pdfGenerator = function (invoice) {
   let doc = new PDFDocument({ margin: 50 });
 
   generateHeader(doc, invoice);
@@ -17,7 +12,7 @@ export const pdfGenerator = function (invoice: Invoice) {
   return doc;
 };
 
-function generateHeader(doc: any, invoice: Invoice) {
+function generateHeader(doc, invoice) {
   doc
     .image("images/logo.png", 50, 45, { width: 100 })
     .fillColor("#444444")
@@ -37,7 +32,7 @@ function generateHeader(doc: any, invoice: Invoice) {
     .moveDown();
 }
 
-function generateTableHeader(doc: any, invoice: Invoice) {
+function generateTableHeader(doc, invoice) {
   let today = new Date(invoice.createdAt);
   const date = formatDate(today);
   doc
@@ -49,7 +44,7 @@ function generateTableHeader(doc: any, invoice: Invoice) {
     .text(`Mode de réglement : paiement à réception (RIB ci-dessous).`, 50, 310);
 }
 
-function generateInvoiceTable(doc: any, invoice: Invoice) {
+function generateInvoiceTable(doc, invoice) {
   let i = 0;
   let invoiceTableTop = 330;
 
@@ -101,7 +96,7 @@ function generateInvoiceTable(doc: any, invoice: Invoice) {
   doc.fontSize(10).font("Helvetica");
 }
 
-function generateTableRow(doc: any, y: number, item: string, unitCost: string, quantity: string, lineTotal: string) {
+function generateTableRow(doc, y, item, unitCost, quantity, lineTotal) {
   doc
     .text(item, 50, y)
     .text(unitCost, 230, y, { width: 90, align: "right" })
@@ -109,22 +104,22 @@ function generateTableRow(doc: any, y: number, item: string, unitCost: string, q
     .text(lineTotal, 430, y, { width: 90, align: "right" });
 }
 
-function generateHr(doc: any, y: number) {
+function generateHr(doc, y) {
   doc.strokeColor("#aaaaaa").lineWidth(1).moveTo(50, y).lineTo(550, y).stroke();
 }
 
-function formatCurrency(cents: number) {
+function formatCurrency(cents) {
   return (cents / 100).toFixed(2) + " €";
 }
 
-function formatDate(date: Date) {
+function formatDate(date) {
   const dd = String(date.getDate()).padStart(2, "0");
   const mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
   const yyyy = date.getFullYear();
   return `${mm} - ${dd} - ${yyyy}`;
 }
 
-function generateFooter(doc: any, invoice: Invoice) {
+function generateFooter(doc, invoice) {
   generateHr(doc, 690);
 
   const tvaText = invoice.tvaApplicable

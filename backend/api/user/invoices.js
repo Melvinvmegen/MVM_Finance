@@ -1,5 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
-import { Prisma } from "@prisma/client";
+import express from "express";
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { pdfGenerator } from "../../util/pdfGenerator.js";
 import { sendInvoice } from "../../util/mailer.js";
@@ -9,14 +8,7 @@ import { updateCreateOrDestroyChildItems } from "../../util/childItemsHandler.js
 import { prisma } from "../../util/prisma.js";
 const router = express.Router();
 
-type Invoice = Prisma.InvoicesGetPayload<{
-  include: {
-    InvoiceItems: true;
-    Customers: true;
-  };
-}>;
-
-router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/", async (req, res, next) => {
   const { CustomerId } = req.query;
   const { per_page, offset, options } = setFilters(req.query);
   const force = req.query.force === "true";
@@ -54,12 +46,12 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/:id", async (req, res, next) => {
   const id = req.params.id;
   const isPDF = req.query.pdf;
 
   try {
-    const invoice: Invoice = await getOrSetCache(`invoice_${id}`, async () => {
+    const invoice = await getOrSetCache(`invoice_${id}`, async () => {
       const data = await prisma.invoices.findFirstOrThrow({
         where: {
           id: +id,
@@ -88,7 +80,7 @@ router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", async (req, res, next) => {
   const { InvoiceItems, ...invoiceBody } = req.body;
 
   try {
@@ -111,7 +103,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
+router.put("/:id", async (req, res, next) => {
   const { InvoiceItems, id, ...invoiceBody } = req.body;
 
   try {
@@ -140,9 +132,9 @@ router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.get("/send_invoice", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/send_invoice", async (req, res, next) => {
   try {
-    const invoice: Invoice = await prisma.invoices.findFirstOrThrow({
+    const invoice = await prisma.invoices.findFirstOrThrow({
       where: { id: Number(req.query.id) },
       include: {
         InvoiceItems: true,
@@ -157,7 +149,7 @@ router.get("/send_invoice", async (req: Request, res: Response, next: NextFuncti
   }
 });
 
-router.delete("/:id", async (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:id", async (req, res, next) => {
   try {
     const invoice = await prisma.invoices.delete({
       where: { id: +req.params.id },

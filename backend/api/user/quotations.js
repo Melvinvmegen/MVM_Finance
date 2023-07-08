@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { pdfGenerator } from "../../util/pdfGenerator.js";
 import { setFilters } from "../../util/filter.js";
@@ -7,7 +7,7 @@ import { updateCreateOrDestroyChildItems } from "../../util/childItemsHandler.js
 import { prisma } from "../../util/prisma.js";
 const router = express.Router();
 
-router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/", async (req, res, next) => {
   const { CustomerId } = req.query;
   const { per_page, offset, options } = setFilters(req.query);
   const force = req.query.force === "true";
@@ -45,7 +45,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/:id", async (req, res, next) => {
   const id = req.params.id;
   const isPDF = req.query.pdf;
 
@@ -79,7 +79,7 @@ router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", async (req, res, next) => {
   const { InvoiceItems, ...quotationBody } = req.body;
 
   try {
@@ -102,7 +102,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
+router.put("/:id", async (req, res, next) => {
   const { InvoiceItems, id, ...quotationBody } = req.body;
 
   try {
@@ -133,7 +133,7 @@ router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.post("/convert_quotation/:id", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/convert_quotation/:id", async (req, res, next) => {
   try {
     const quotation = await prisma.quotations.findUnique({
       select: {
@@ -195,7 +195,7 @@ router.post("/convert_quotation/:id", async (req: Request, res: Response, next: 
   }
 });
 
-router.delete("/:id", async (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:id", async (req, res, next) => {
   try {
     const quotation = await prisma.quotations.delete({
       where: { id: +req.params.id },

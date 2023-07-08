@@ -1,11 +1,11 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import { prisma } from "../../util/prisma.js";
 import { AppError } from "../../util/AppError.js";
 import stripe from "../../util/stripe.js";
 
 const router = express.Router();
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", async (req, res, next) => {
   let customer;
   const { firstName, lastName, email } = req.body;
   try {

@@ -1,8 +1,8 @@
-const setFilters = function (query: any) {
+const setFilters = function (query) {
   const per_page = +query.perPage || 0;
   const page = +query.currentPage || 1;
   const offset = (page - 1) * per_page;
-  const options: any = {};
+  const options = {};
 
   Object.keys(query).forEach(function (key) {
     const value = query[key];

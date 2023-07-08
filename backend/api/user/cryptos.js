@@ -1,5 +1,4 @@
-import express, { Response, NextFunction } from "express";
-import { Request as JWTRequest } from "express-jwt";
+import express from "express";
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { updateCreateOrDestroyChildItems } from "../../util/childItemsHandler.js";
 import { prisma } from "../../util/prisma.js";
@@ -7,7 +6,7 @@ import { AppError } from "../../util/AppError.js";
 import axios from "axios";
 const router = express.Router();
 
-router.get("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.get("/", async (req, res, next) => {
   try {
     const cryptos = await getOrSetCache(`cryptos`, async () => {
       const data = await prisma.cryptoCurrencies.findMany({
@@ -29,7 +28,7 @@ router.get("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
   }
 });
 
-router.post("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.post("/", async (req, res, next) => {
   const { Transactions, ...cryptoBody } = req.body;
   try {
     // @ts-ignore
@@ -48,17 +47,17 @@ router.post("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
       gzip: true,
     });
 
-    const fetchedCrypto = response.data.data.filter((element: any) => element.name === req.body.name);
+    const fetchedCrypto = response.data.data.filter((element) => element.name === req.body.name);
     const values = fetchedCrypto[0]?.quote?.EUR;
     const totalTransactions = req.body.Transactions.map(
-      (transaction: any) => transaction.price * transaction.quantity
-    ).reduce((sum: number, quantiy: number) => sum + quantiy, 0);
-    const totalQuantityTransactions = req.body.Transactions.map((transaction: any) => transaction.quantity).reduce(
-      (sum: number, quantiy: number) => sum + quantiy,
+      (transaction) => transaction.price * transaction.quantity
+    ).reduce((sum, quantiy) => sum + quantiy, 0);
+    const totalQuantityTransactions = req.body.Transactions.map((transaction) => transaction.quantity).reduce(
+      (sum, quantiy) => sum + quantiy,
       0
     );
 
-    const transactions_created = Transactions.map(async (transaction: any) => {
+    const transactions_created = Transactions.map(async (transaction) => {
       const initialDate = new Date(transaction.buyingDate);
       const firstDay = new Date(initialDate.getFullYear(), initialDate.getMonth());
       const lastDay = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0);
@@ -106,7 +105,7 @@ router.post("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
   }
 });
 
-router.put("/:id", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.put("/:id", async (req, res, next) => {
   const { Transactions, ...crypto_body } = req.body;
 
   try {
@@ -134,14 +133,14 @@ router.put("/:id", async (req: JWTRequest, res: Response, next: NextFunction) =>
       json: true,
       gzip: true,
     });
-    const fetchedCrypto = response.data.data.filter((element: any) => element.name === req.body.name);
+    const fetchedCrypto = response.data.data.filter((element) => element.name === req.body.name);
     const values = fetchedCrypto[0]?.quote?.EUR;
-    const totalTransactions = Transactions.map((transaction: any) => transaction.price * transaction.quantity).reduce(
-      (sum: number, quantity: number) => sum + quantity,
+    const totalTransactions = Transactions.map((transaction) => transaction.price * transaction.quantity).reduce(
+      (sum, quantity) => sum + quantity,
       0
     );
-    const totalQuantityTransactions = Transactions.map((transaction: any) => transaction.quantity).reduce(
-      (sum: number, quantity: number) => sum + quantity,
+    const totalQuantityTransactions = Transactions.map((transaction) => transaction.quantity).reduce(
+      (sum, quantity) => sum + quantity,
       0
     );
 
@@ -152,7 +151,7 @@ router.put("/:id", async (req: JWTRequest, res: Response, next: NextFunction) =>
         },
       });
 
-      const new_transactions = Transactions.map(async (transaction: any) => {
+      const new_transactions = Transactions.map(async (transaction) => {
         const initialDate = new Date(transaction.buyingDate);
         const firstDay = new Date(initialDate.getFullYear(), initialDate.getMonth());
         const lastDay = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0);
@@ -198,7 +197,7 @@ router.put("/:id", async (req: JWTRequest, res: Response, next: NextFunction) =>
   }
 });
 
-router.get("/update_cryptos", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.get("/update_cryptos", async (req, res, next) => {
   let requestOptions = {
     method: "GET",
     url: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
@@ -224,7 +223,7 @@ router.get("/update_cryptos", async (req: JWTRequest, res: Response, next: NextF
     let updated_cryptos = [];
 
     for (let crypto of cryptos) {
-      const foundCrypto = response.data.data.filter((element: any) => element.name === crypto.name)[0];
+      const foundCrypto = response.data.data.filter((element) => element.name === crypto.name)[0];
 
       const updated_crypto = await prisma.cryptoCurrencies.update({
         where: {

@@ -1,18 +1,17 @@
 import { createClient } from "redis";
-import chalk from "chalk";
 import { settings } from "./settings.js";
 import { AppError } from "./AppError.js";
 
 const redisClient = createClient({ url: settings.cache.redisURL });
 
 redisClient.on("connected", function () {
-  console.log(chalk.green("Redis is connected"));
+  // console.log(chalk.green("Redis is connected"));
 });
-redisClient.on("error", function (err: Error) {
-  console.debug(chalk.red("Redis error :"), chalk.red(err));
+redisClient.on("error", function (err) {
+  // console.debug(chalk.red("Redis error :"), chalk.red(err));
 });
 
-const getOrSetCache = async (key: any, cb: () => any, force = false) => {
+const getOrSetCache = async (key, cb, force = false) => {
   try {
     // const result = await redisClient.get(key)
     // console.log("cache result", result)
@@ -32,11 +31,11 @@ const getOrSetCache = async (key: any, cb: () => any, force = false) => {
   }
 };
 
-const invalidateCache = async (key: string) => {
+const invalidateCache = async (key) => {
   try {
     const result = await redisClient.del(key);
     const message = result ? "CACHE INVALIDATED" : "CACHE NOT FOUND";
-    console.log(chalk.green(key, message));
+    // console.log(chalk.green(key, message));
     return result;
   } catch (error) {
     new AppError(500, `Caching error: ${error}`);

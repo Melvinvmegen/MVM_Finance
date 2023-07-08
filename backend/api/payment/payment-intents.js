@@ -1,11 +1,11 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import { prisma } from "../../util/prisma.js";
 import { AppError } from "../../util/AppError.js";
 import stripe from "../../util/stripe.js";
 
 const router = express.Router();
 
-router.get("/:paymentIntentId", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/:paymentIntentId", async (req, res, next) => {
   try {
     const paymentIntent = await prisma.paymentIntents.findUnique({
       where: {
@@ -29,7 +29,7 @@ router.get("/:paymentIntentId", async (req: Request, res: Response, next: NextFu
   }
 });
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", async (req, res, next) => {
   const amount = Number(req.body.amount);
   const customer = await prisma.customers.findUnique({
     where: { id: req.body.customerId },
@@ -71,7 +71,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   res.send(stripePaymentIntent.client_secret);
 });
 
-router.put("/payment-intents/:payment_intent_id/refund", async (req: Request, res: Response, next: NextFunction) => {
+router.put("/payment-intents/:payment_intent_id/refund", async (req, res, next) => {
   try {
     const paymentIntent = await prisma.paymentIntents.findUnique({
       where: {

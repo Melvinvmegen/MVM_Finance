@@ -1,11 +1,11 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import { prisma } from "../../util/prisma.js";
 import { AppError } from "../../util/AppError.js";
 import stripe from "../../util/stripe.js";
 
 const router = express.Router();
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", async (req, res, next) => {
   const { customerId, paymentMethodId, priceId } = req.body;
 
   let stripeSubscription;
@@ -85,7 +85,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.put("/:subscriptionId/refund", async (req: Request, res: Response, next: NextFunction) => {
+router.put("/:subscriptionId/refund", async (req, res, next) => {
   const subscriptionId = Number(req.params.subscriptionId);
   const subscription = await prisma.subscriptions.findFirst({
     where: {
@@ -145,7 +145,7 @@ router.put("/:subscriptionId/refund", async (req: Request, res: Response, next: 
   }
 });
 
-router.get("/:subscriptionId", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/:subscriptionId", async (req, res, next) => {
   try {
     const subscription = await prisma.subscriptions.findFirst({
       where: {

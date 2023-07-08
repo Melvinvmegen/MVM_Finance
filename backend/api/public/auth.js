@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { settings } from "../../util/settings.js";
@@ -7,7 +7,7 @@ import { prisma } from "../../util/prisma.js";
 
 const router = express.Router();
 
-router.post("/signup", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/signup", async (req, res, next) => {
   const { email } = req.body;
 
   try {
@@ -32,7 +32,7 @@ router.post("/signup", async (req: Request, res: Response, next: NextFunction) =
   }
 });
 
-router.post("/login", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/login", async (req, res, next) => {
   try {
     const user = await prisma.users.findUnique({
       where: { email: req.body.email },
@@ -70,7 +70,7 @@ router.post("/login", async (req: Request, res: Response, next: NextFunction) =>
   }
 });
 
-router.post("/refreshtoken", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/refreshtoken", async (req, res, next) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) throw new AppError(403, "Refresh Token is required!");
@@ -100,7 +100,7 @@ router.post("/refreshtoken", async (req: Request, res: Response, next: NextFunct
   }
 });
 
-const createToken = (payload: {}, expiresIn: number) => {
+const createToken = (payload, expiresIn) => {
   return jwt.sign(payload, settings.jwt.secret, {
     algorithm: "HS512",
     expiresIn,

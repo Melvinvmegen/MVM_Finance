@@ -1,6 +1,4 @@
-import express, { Response, NextFunction } from "express";
-import { Request as JWTRequest } from "express-jwt";
-import { Prisma } from "@prisma/client";
+import express from "express";
 import { updateCreateOrDestroyChildItems } from "../../util/childItemsHandler.js";
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { setFilters } from "../../util/filter.js";
@@ -12,15 +10,7 @@ import { prisma } from "../../util/prisma.js";
 const upload = multer({ dest: "uploads/" });
 const router = express.Router();
 
-type Revenu = Prisma.RevenusGetPayload<{
-  include: {
-    Costs: true;
-    Credits: true;
-    Banks?: true;
-  };
-}>;
-
-router.get("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.get("/", async (req, res, next) => {
   const { per_page, offset, options } = setFilters(req.query);
   const force = req.query.force === "true";
   options.Banks = {
@@ -62,7 +52,7 @@ router.get("/", async (req: JWTRequest, res: Response, next: NextFunction) => {
   }
 });
 
-router.get("/:id", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.get("/:id", async (req, res, next) => {
   const id = req.params.id;
 
   try {
@@ -102,7 +92,7 @@ router.get("/:id", async (req: JWTRequest, res: Response, next: NextFunction) =>
   }
 });
 
-router.put("/:id", async (req: JWTRequest, res: Response, next: NextFunction) => {
+router.put("/:id", async (req, res, next) => {
   const { Credits, Costs, Quotations, Transactions, Invoices, Banks, UserId, ...revenuBody } = req.body;
 
   let revenu = await prisma.revenus.findUnique({
@@ -152,20 +142,20 @@ router.put("/:id", async (req: JWTRequest, res: Response, next: NextFunction) =>
   }
 });
 
-let cost_category_cache: { [key: string]: any } = {};
+let cost_category_cache = {};
 
 router.post(
   "/",
   upload.single("file"),
   // @ts-ignore
-  async (req: FullRequest, res: Response) => {
+  async (req, res) => {
     const file = req.file;
     try {
       if (!file) throw new AppError(400, "Please upload a CSV file!");
-      let revenu: Revenu | null;
-      const costs: any[] = [];
-      const credits: any[] = [];
-      const revenus: any[] = [];
+      let revenu;
+      const costs = [];
+      const credits = [];
+      const revenus = [];
       fs.createReadStream(file.path)
         .pipe(parse({ delimiter: ",", from_line: 5 }))
         .on("data", (row) => {
@@ -231,7 +221,7 @@ router.post(
             };
 
             if (obj.total < 0) {
-              const name: string = obj.name.replace(/[\d+/+]/g, "").trim();
+              const name = obj.name.replace(/[\d+/+]/g, "").trim();
               let cost_category = cost_category_cache[name];
               if (!cost_category) {
                 cost_category = await prisma.costs.findFirst({
@@ -258,7 +248,7 @@ router.post(
                 where: {
                   name: obj.name,
                   total: obj.total,
-                  RevenuId: revenu!.id,
+                  RevenuId: revenu.id,
                 },
               });
 
@@ -280,13 +270,13 @@ router.post(
                 });
               }
               if (revenu && !revenu.Costs.length) revenu.Costs = [];
-              revenu!.Costs.push(cost);
+              revenu.Costs.push(cost);
             } else {
               let credit = await prisma.credits.findFirst({
                 where: {
                   creditor: obj.creditor,
                   total: obj.total,
-                  RevenuId: revenu!.id,
+                  RevenuId: revenu.id,
                 },
               });
 
@@ -303,7 +293,7 @@ router.post(
                 });
               }
               if (revenu && !revenu.Credits.length) revenu.Credits = [];
-              revenu!.Credits.push(credit);
+              revenu.Credits.push(credit);
             }
 
             if (!revenus.find((r) => r.id === revenu?.id)) revenus.push(revenu);

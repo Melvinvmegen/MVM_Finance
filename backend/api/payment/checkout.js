@@ -1,9 +1,9 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import stripe from "../../util/stripe.js";
 
 const router = express.Router();
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", async (req, res, next) => {
   let session;
   try {
     session = await stripe.checkout.sessions.create({

@@ -1,3 +1,5 @@
+import { isColorSupported } from "colorette";
+
 const settings = {
   database: {
     dbConnectionUri:
@@ -6,17 +8,23 @@ const settings = {
     logging: process.env.DB_LOGGING || false,
     timezone: process.env.DB_TIMEZONE || "Europe/Paris",
   },
+  logger: {
+    colorize: !process.env.LOGGER_DISABLE_COLORS && isColorSupported,
+    json: !!process.env.LOGGER_JSON,
+    translateTime: process.env.LOGGER_TRANSLATE_TIME || "SYS:HH:MM:ss",
+    ignore: process.env.LOGGER_IGNORED_FIELDS || "reqId,http",
+    customColors: "warn:yellow,info:cyan,debug:gray,error:red,message:reset",
+    minimumLevel: process.env.LOGGER_MIN_LEVEL || "info",
+    errorProps: "error,err",
+  },
   jwt: {
     secret: process.env.JWT_SECRET || Buffer.from("Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=", "base64"),
-    algorithms: ["HS512"],
     expiresIn: process.env.JWT_EXPIRES_IN || 10 * 24 * 3600,
     refreshTokenExpiration: process.env.JWT_REFRESH_EXPIRATION || 86400,
   },
-  constants: {
-    web: {
-      port: process.env.PORT || 3000,
-      logFormat: "dev",
-    },
+  web: {
+    port: process.env.PORT || 3000,
+    host: process.env.HOST || "0.0.0.0",
   },
   email: {
     sendinblueApiKey:

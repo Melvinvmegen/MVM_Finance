@@ -1,6 +1,6 @@
-import { prisma } from "../util/prisma.js";
+import { prisma } from "./prisma.js";
 
-const updateCreateOrDestroyChildItems = async function (model: string, old_child_items: any[], new_child_items: any[]) {
+const updateCreateOrDestroyChildItems = async function (model, old_child_items, new_child_items) {
   if (!new_child_items) {
     for (let old of old_child_items) {
       // @ts-ignore

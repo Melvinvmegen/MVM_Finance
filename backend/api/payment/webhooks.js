@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import { prisma } from "../../util/prisma.js";
 import stripe from "../../util/stripe.js";
 import { AppError } from "../../util/AppError.js";
@@ -7,7 +7,7 @@ import axios from "axios";
 
 const router = express.Router();
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", async (req, res, next) => {
   let event;
 
   try {
@@ -69,29 +69,29 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
       }
       break;
     case "payment_intent.payment_failed":
-      console.log("Handling payment_intent.payment_failed event...", object);
-      const { id, PaymentId, ...paymentIntent } = await prisma.paymentIntents.update({
-        where: {
-          // @ts-ignore
-          stripeId: object.id,
-        },
-        data: {
-          status: "FAILED",
-        },
-      });
-
-      if (PaymentId) {
-        await prisma.payments.update({
+      try {
+        console.log("Handling payment_intent.payment_failed event...", object);
+        const { id, PaymentId, ...paymentIntent } = await prisma.paymentIntents.update({
           where: {
-            id: PaymentId,
+            // @ts-ignore
+            stripeId: object.id,
           },
           data: {
             status: "FAILED",
-            paymentTries: { increment: 1 },
           },
         });
-      }
-      try {
+
+        if (PaymentId) {
+          await prisma.payments.update({
+            where: {
+              id: PaymentId,
+            },
+            data: {
+              status: "FAILED",
+              paymentTries: { increment: 1 },
+            },
+          });
+        }
       } catch (error) {
         console.log("error", error);
         return next(new AppError(500, "Stripe webhook payment_intent.payment_failed failed"));
@@ -248,7 +248,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   res.sendStatus(200);
 });
 
-async function sendWebhook(object: { customerId: number; tokens?: string; subscriptionId?: number | null }) {
+async function sendWebhook(object) {
   // @ts-ignore
   await axios.post(settings.webhooks.contentUrl, object, {
     headers: {
