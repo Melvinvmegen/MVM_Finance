@@ -1,77 +1,102 @@
 import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
 import { AppError } from "../../util/AppError.js";
-import { prisma } from "../../util/prisma.js";
+import { prisma, Models } from "../../util/prisma.js";
 
-async function routes(app, options) {
-  app.get("/banks", async (request, reply) => {
-    const force = request.params.force === "true";
-    const result = await getOrSetCache(
-      "banks",
-      async () => {
-        const banks = await prisma.banks.findMany({
-          where: {
-            UserId: request?.auth?.userId,
-          },
-        });
+/**
+ * @param {API.ServerInstance} app
+ */
+export default async function (app) {
+  app.$get("/banks", getBanks);
+  app.$get("/banks/:id", getBank);
+  app.$post("/banks", createBank);
+  app.$put("/banks/:id", updateBank);
+}
 
-        return banks;
-      },
-      force
-    );
-
-    return result;
-  });
-
-  app.get("/banks/:id", async (request, reply) => {
-    const { id } = request.params;
-    const bank = await getOrSetCache(`bank_${id}`, async () => {
-      const bank = await prisma.banks.findFirst({
+/**
+ * @this {API.This}
+ * @param {{ force: string }} params
+ * @returns {Promise<Models.Banks[]>}
+ */
+async function getBanks(params) {
+  const force = params.force === "true";
+  const result = await getOrSetCache(
+    "banks",
+    async () => {
+      const banks = await prisma.banks.findMany({
         where: {
-          id: +id,
-          UserId: request?.auth?.userId,
+          UserId: this.request?.user?.id,
         },
       });
-      if (!bank) throw new AppError(404, "Bank not found!");
-      return bank;
-    });
 
-    return bank;
-  });
+      return banks;
+    },
+    force
+  );
 
-  app.post("/banks", async (request, reply) => {
-    const bank = await prisma.banks.create({
-      data: {
-        ...request.body,
-        UserId: request?.auth?.userId,
-      },
-    });
-    await invalidateCache("banks");
-    return bank;
-  });
-
-  app.put("/banks/:id", async (request, reply) => {
-    const { Invoices, Quotations, ...body } = request.body;
-    let bank = await prisma.banks.findFirst({
-      where: {
-        id: +body.id,
-        UserId: request?.auth?.userId,
-      },
-    });
-
-    if (!bank) throw new AppError(404, "Bank not found!");
-
-    bank = await prisma.banks.update({
-      where: {
-        id: +body.id,
-      },
-      data: {
-        ...body,
-        UserId: request?.auth?.userId,
-      },
-    });
-
-    await invalidateCache(`bank_${bank.id}`);
-    return bank;
-  });
+  return result;
 }
-export default routes;
+/**
+ * @this {API.This}
+ * @param {number} bankId
+ * @returns {Promise<Models.Banks>}
+ */
+async function getBank(bankId) {
+  const bank = await getOrSetCache(`bank_${bankId}`, async () => {
+    const bank = await prisma.banks.findFirst({
+      where: {
+        id: +bankId,
+        UserId: this.request?.user?.id,
+      },
+    });
+    if (!bank) throw new AppError(404, "Bank not found!");
+    return bank;
+  });
+
+  return bank;
+}
+/**
+ * @this {API.This}
+ * @param {Models.Prisma.BanksUncheckedCreateInput} body
+ * @returns {Promise<Models.Banks>}
+ */
+async function createBank(body) {
+  const bank = await prisma.banks.create({
+    data: {
+      ...body,
+      UserId: this.request?.user?.id,
+    },
+  });
+  await invalidateCache("banks");
+  return bank;
+}
+
+/**
+ * @this {API.This}
+ * @param {number} bankId
+ * @param {Models.Prisma.BanksUncheckedUpdateInput} body
+ * @returns
+ */
+
+async function updateBank(bankId, body) {
+  let bank = await prisma.banks.findFirst({
+    where: {
+      id: +bankId,
+      UserId: this.request?.user?.id,
+    },
+  });
+
+  if (!bank) throw new AppError(404, "Bank not found!");
+
+  bank = await prisma.banks.update({
+    where: {
+      id: +bankId,
+    },
+    data: {
+      ...body,
+      UserId: this.request?.user?.id,
+    },
+  });
+
+  await invalidateCache(`bank_${bank.id}`);
+  return bank;
+}

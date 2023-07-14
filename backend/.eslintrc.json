@@ -16,7 +16,7 @@
       "warn",
       {
         "ignoreRestSiblings": true,
-        "varsIgnorePattern": "Types|Models"
+        "varsIgnorePattern": "Types|Models|API"
       }
     ]
   }

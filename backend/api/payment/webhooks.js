@@ -5,7 +5,10 @@ import { AppError } from "../../util/AppError.js";
 import { settings } from "../../util/settings.js";
 import axios from "axios";
 
-async function routes(app, options) {
+/**
+ * @param {API.ServerInstance} app
+ */
+async function routes(app) {
   app.post("/webhooks", async (request, reply) => {
     let event;
 
@@ -19,7 +22,7 @@ async function routes(app, options) {
     } catch (err) {
       console.log(`⚠️  Webhook signature verification failed.` + err);
       // TODO: check this
-      return reply.sendStatus(400);
+      return reply.status(400).send();
     }
     const object = event?.data?.object;
     let customer;
@@ -103,7 +106,7 @@ async function routes(app, options) {
         break;
       case "invoice.paid":
         try {
-          if (!customer || !customer.stripeId) return res.sendStatus(404);
+          if (!customer || !customer.stripeId) return reply.status(404).send();
           console.log("Handling invoice.paid event...", object);
           const subscription = await prisma.subscriptions.findFirst({
             where: {
@@ -111,7 +114,7 @@ async function routes(app, options) {
             },
           });
 
-          if (!subscription) return res.sendStatus(404);
+          if (!subscription) return reply.status(404).send();
 
           const paymentIntent = await prisma.paymentIntents.findUnique({
             where: {
@@ -170,14 +173,14 @@ async function routes(app, options) {
         break;
       case "invoice.payment_failed":
         try {
-          if (!customer || !customer.stripeId) return res.sendStatus(404);
+          if (!customer || !customer.stripeId) return reply.status(404).send();
           console.log("Handling invoice.payment_failed event...", object);
           const subscription = await prisma.subscriptions.findUnique({
             where: {
               CustomerId: customer.id,
             },
           });
-          if (!subscription) return res.sendStatus(404);
+          if (!subscription) return reply.status(404).send();
           await prisma.subscriptions.update({
             where: {
               id: subscription.id,
@@ -236,7 +239,7 @@ async function routes(app, options) {
         break;
       case "invoice.finalized":
         try {
-          if (!customer || !customer.stripeId) return reply.sendStatus(404);
+          if (!customer || !customer.stripeId) return reply.status(404).send();
           console.log("Handling invoice.finalized event...", object);
           // TODO : create Invoices
         } catch (error) {
@@ -248,8 +251,7 @@ async function routes(app, options) {
         console.log("Unhandled event type", event?.type);
         throw new AppError(500, "Stripe webhook payment_intent.succeeded failed");
     }
-    // TODO: check this
-    reply.sendStatus(200);
+    reply.status(200).send();
   });
 }
 

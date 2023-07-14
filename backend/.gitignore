@@ -18,3 +18,4 @@
 .env
 yarn-error.log
 /dist
+dump*

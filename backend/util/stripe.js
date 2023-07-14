@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+export * as StripeTypes from "stripe";
 import { settings } from "./settings.js";
 
 const stripe = new Stripe(settings.stripe.apiKey, {

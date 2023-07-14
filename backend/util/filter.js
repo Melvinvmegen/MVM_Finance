@@ -1,4 +1,4 @@
-const setFilters = function (query) {
+export function setFilters(query) {
   const per_page = +query.perPage || 0;
   const page = +query.currentPage || 1;
   const offset = (page - 1) * per_page;
@@ -12,6 +12,4 @@ const setFilters = function (query) {
   });
 
   return { per_page, offset, options };
-};
-
-export { setFilters };
+}

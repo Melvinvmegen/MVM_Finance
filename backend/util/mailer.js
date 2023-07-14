@@ -6,7 +6,7 @@ import { AppError } from "./AppError.js";
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, settings.email.sendinblueApiKey);
 
-const sendInvoice = async function (invoice) {
+export const createInvoiceEmail = async function (invoice) {
   const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
   let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
   const id = invoice.id;
@@ -66,5 +66,3 @@ async function getMessage(invoice, invoiceName) {
     ],
   };
 }
-
-export { sendInvoice };

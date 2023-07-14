@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "disableSizeLimit": true,
+    "skipLibCheck": true,
+    "maxNodeModuleJsDepth": 0
+  }
+}

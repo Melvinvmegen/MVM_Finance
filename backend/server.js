@@ -1,8 +1,10 @@
 import { validateBelongsToBank, validateBelongsToUser, validateCustomerBelongsToUser } from "./util/rights.js";
 import { green, yellow, red, magenta, gray } from "colorette";
 import UnauthorizedError from "./util/unauthorizedError.js";
+import clientWrapper from "./apiClient/wrapper.js";
 import { settings } from "./util/settings.js";
 import basicAuth from "@fastify/basic-auth";
+import multipart from "@fastify/multipart";
 import { prisma } from "./util/prisma.js";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
@@ -14,64 +16,67 @@ import path from "path";
 
 // Init web server
 const basePaths = [path.dirname(import.meta.url), process.cwd()];
-const app = fastify({
-  disableRequestLogging: true,
-  trustProxy: true,
-  // @ts-ignore
-  genReqId: (req) => (req.headers["Sid"] ? req.headers["Sid"] + "-" + nanoid(4) : nanoid(10)),
-  logger: {
+const app = clientWrapper(
+  fastify({
+    disableRequestLogging: true,
+    trustProxy: true,
     // @ts-ignore
-    base: false,
-    // @ts-ignore
-    stream: settings.logger.json ? undefined : pretty(settings.logger),
-    level: settings.logger.minimumLevel,
-    customLevels: {
-      log: 35,
-    },
-    formatters: {
-      level: (label) => {
-        return { level: label === "log" ? "INFO" : label.toUpperCase() };
+    genReqId: (req) => (req.headers["Sid"] ? req.headers["Sid"] + "-" + nanoid(4) : nanoid(10)),
+    logger: {
+      // @ts-ignore
+      base: false,
+      // @ts-ignore
+      stream: settings.logger.json ? undefined : pretty(settings.logger),
+      level: settings.logger.minimumLevel,
+      customLevels: {
+        log: 35,
       },
-    },
-    timestamp: () => `,"timestamp":"${new Date(Date.now()).toISOString()}"`,
-    hooks: {
-      logMethod(_inputArgs, method) {
-        const inputArgs = _inputArgs.map((arg) => {
-          if (arg?.stack) {
-            return arg.stack.replaceAll(basePaths[0], ".").replaceAll(basePaths[1], ".");
-          }
-          return arg;
-        });
-        if (settings.logger.json) return method.apply(this, inputArgs);
-        // @ts-ignore
-        if (inputArgs[0]?.http) {
+      formatters: {
+        level: (label) => {
+          return { level: label === "log" ? "INFO" : label.toUpperCase() };
+        },
+      },
+      timestamp: () => `,"timestamp":"${new Date(Date.now()).toISOString()}"`,
+      hooks: {
+        logMethod(_inputArgs, method) {
+          const inputArgs = _inputArgs.map((arg) => {
+            if (arg?.stack) {
+              return arg.stack.replaceAll(basePaths[0], ".").replaceAll(basePaths[1], ".");
+            }
+            return arg;
+          });
+          if (settings.logger.json) return method.apply(this, inputArgs);
           // @ts-ignore
-          if (inputArgs[0].http.status) {
+          if (inputArgs[0]?.http) {
             // @ts-ignore
-            inputArgs[0] = `<- ${inputArgs[0]?.http.method} ${inputArgs[0]?.http.path} ${inputArgs[0]?.http.status}`;
-          } else {
-            // @ts-ignore
-            inputArgs[0] = `-> ${inputArgs[0]?.http.method} ${inputArgs[0]?.http.path}`;
+            if (inputArgs[0].http.status) {
+              // @ts-ignore
+              inputArgs[0] = `<- ${inputArgs[0]?.http.method} ${inputArgs[0]?.http.path} ${inputArgs[0]?.http.status}`;
+            } else {
+              // @ts-ignore
+              inputArgs[0] = `-> ${inputArgs[0]?.http.method} ${inputArgs[0]?.http.path}`;
+            }
           }
-        }
-        if (settings.logger.colorize) {
+          if (settings.logger.colorize) {
+            return method.apply(this, [
+              inputArgs
+                .map((a) => ({ number: magenta("%d"), string: "%s", undefined: gray("%s") }[typeof a] || gray("%o")))
+                .join(" "),
+              ...inputArgs,
+            ]);
+          }
           return method.apply(this, [
-            inputArgs
-              .map((a) => ({ number: magenta("%d"), string: "%s", undefined: gray("%s") }[typeof a] || gray("%o")))
-              .join(" "),
+            inputArgs.map((a) => ({ number: "%d", string: "%s", undefined: "%s" }[typeof a] || "%o")).join(" "),
             ...inputArgs,
           ]);
-        }
-        return method.apply(this, [
-          inputArgs.map((a) => ({ number: "%d", string: "%s", undefined: "%s" }[typeof a] || "%o")).join(" "),
-          ...inputArgs,
-        ]);
+        },
       },
     },
-  },
-});
+  })
+);
 
 // Handle options requests
+app.register(multipart);
 app.register(cors, {
   origin: /\.melvinvmegen\.com$/,
   allowedHeaders: "Content-Type, Authorization, Cookie, Content-Length, Sid, Reqid, X-Requested-With, X-Device",
