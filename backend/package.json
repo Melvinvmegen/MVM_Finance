@@ -30,7 +30,7 @@
     "@fastify/cors": "^8.3.0",
     "@fastify/jwt": "^7.2.0",
     "@fastify/multipart": "^7.6.1",
-    "@prisma/client": "4.16.1",
+    "@prisma/client": "5.0.0",
     "@sendinblue/client": "^3.2.2",
     "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
