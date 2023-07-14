@@ -1,0 +1,90 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
+
+#app {
+  font-family: Roboto, sans-serif !important;
+}
+
+#app [class*="text-"] {
+  font-family: Roboto, sans-serif !important;
+}
+
+.v-card-text {
+  font-size: 0.8rem !important;
+}
+
+#app {
+  height: 100vh;
+}
+
+ul.menu {
+  list-style-type: none;
+}
+
+a {
+  text-decoration: none;
+  color: #3545ee;
+  cursor: pointer;
+}
+
+a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+header a {
+  font-size: 0.9rem;
+}
+
+header .v-input input {
+  min-height: 0;
+  padding: 4px 12px;
+}
+
+footer a,
+footer span {
+  color: #ffffff;
+  font-size: 0.8rem;
+}
+
+.page-container {
+  min-height: calc(100vh - 62px - 48px - 16px - 20px + 8px);
+}
+
+@media (max-width: 599px) {
+  .page-container {
+    min-height: calc(100vh - 100px - 48px - 16px - 20px + 8px);
+  }
+}
+
+.v-card-title {
+  word-wrap: normal !important;
+}
+
+.v-card-actions .v-btn.v-btn--size-x-small {
+  padding: 0 8px;
+}
+.v-card-actions .v-btn.v-btn--size-small {
+  padding: 0 12px;
+}
+.v-card-actions .v-btn.v-btn--size-default {
+  padding: 0 16px;
+}
+.v-card-actions .v-btn.v-btn--size-large {
+  padding: 0 20px;
+}
+.v-card-actions .v-btn.v-btn--size-x-large {
+  padding: 0 24px;
+}
+
+.v-btn__content {
+  text-transform: initial;
+  font-weight: 500;
+}
+
+.v-btn {
+  text-decoration: none !important;
+}
+
+.v-list-item--density-compact.v-list-item--one-line {
+  min-height: 30px !important;
+}

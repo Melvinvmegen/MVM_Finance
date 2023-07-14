@@ -13,12 +13,21 @@
     "lib": ["esnext", "dom"],
     "types": ["node"],
     "useUnknownInCatchVariables": false,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "disableSizeLimit": true,
+    "maxNodeModuleJsDepth": 0
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "./node_modules/vuetify/dist/vuetify.d.ts",
+    "../backend/node_modules/.prisma/client/index.d.ts",
+    "../backend/types/api.d.ts"
+  ],
   "vueCompilerOptions": {
-    "plugins": [
-      "@volar/vue-language-plugin-pug"
-    ]
+    "plugins": ["@volar/vue-language-plugin-pug"]
   }
 }

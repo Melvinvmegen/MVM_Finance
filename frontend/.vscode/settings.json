@@ -1,0 +1,34 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "search.exclude": {
+    "**/dist": true
+  },
+  "files.exclude": {
+    "**/.project": true
+  },
+  "files.watcherExclude": {
+    "**/dist/**": true
+  },
+  "vue.autoInsert.dotValue": true,
+  "editor.suggest.insertMode": "replace",
+  "iconify.delimiters": [":"],
+  "iconify.inplace": false,
+  "javascript.suggest.names": true,
+  "editor.snippetSuggestions": "none",
+  "editor.suggest.localityBonus": true,
+  "editor.suggest.selectionMode": "always",
+  "html.autoCreateQuotes": false,
+  "editor.acceptSuggestionOnCommitCharacter": false,
+  "explorer.autoRevealExclude": {
+    "**/node_modules": false
+  },
+  "editor.tabSize": 2
+}

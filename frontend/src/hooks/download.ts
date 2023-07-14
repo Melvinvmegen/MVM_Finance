@@ -1,10 +1,9 @@
-import download from "downloadjs";
 import { useIndexStore } from "../store/indexStore";
 
-export default function useDownload(store : any) {
+export default function useDownload(store: any) {
   const indexStore = useIndexStore();
 
-  async function downloadPDF(item: { id: number, CustomerId: string }, itemName: string) {
+  async function downloadPDF(item: { id: number; CustomerId: string }, itemName: string) {
     indexStore.setLoading(true);
     const itemId = item.id;
     const customerId = item.CustomerId;
@@ -13,7 +12,8 @@ export default function useDownload(store : any) {
     if (itemId && customerId) {
       const response = await store[`get${itemNameUpperCase}PDF`](customerId, itemId);
       const content = response.headers["content-type"];
-      download(response.data, `${itemNameUpperCase}-${itemId}`, content);
+      // TODO implement custom download
+      // download(response.data, `${itemNameUpperCase}-${itemId}`, content);
     }
     indexStore.setLoading(false);
   }

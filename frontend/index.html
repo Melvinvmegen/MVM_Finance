@@ -1,17 +1,21 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
+  <head>
+    <style>
+      html {
+        opacity: 0;
+        transition: 300ms ease opacity;
+      }
+    </style>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MVM app</title>
-</head>
+    <title>MVM Finance</title>
+  </head>
 
-<body>
+  <body>
     <div id="app"></div>
     <div id="modals"></div>
     <script type="module" src="/src/main.ts"></script>
-</body>
-
+  </body>
 </html>

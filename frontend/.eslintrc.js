@@ -1,24 +1,19 @@
 module.exports = {
-  env: {
-    node: true,
-    // Allow defineProps && defineEmits to be injected on compile
-    'vue/setup-compiler-macros': true
-  },
   root: true,
   parser: "vue-eslint-parser",
-  parserOptions: { parser: "@typescript-eslint/parser" },
-  plugins: ["@typescript-eslint", "pug"],
-  extends: [
-    "eslint:recommended",
-    "plugin:vue/vue3-recommended",
-    "prettier",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:vue/base",
-  ],
+  plugins: ["pug"],
+  extends: ["plugin:vue/vue3-essential", "eslint:recommended", "@vue/eslint-config-prettier/skip-formatting"],
   rules: {
-    "@typescript-eslint/no-unused-vars": "off",
-    "@typescript-eslint/consistent-type-imports": "error",
-    'vue/script-setup-uses-vars': 'off',
-    'vue/require-default-prop': 'off',
+    "no-unused-vars": ["warn", { ignoreRestSiblings: true, varsIgnorePattern: "Types|Models" }],
+    "vue/no-unused-components": "warn",
+    "vue/multi-word-component-names": "off",
+    "no-undef": "off",
+    "vue/no-v-text-v-html-on-component": "off",
+    "vue/valid-v-slot": [
+      "error",
+      {
+        allowModifiers: true,
+      },
+    ],
   },
 };

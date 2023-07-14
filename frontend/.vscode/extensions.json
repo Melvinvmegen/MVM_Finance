@@ -1,3 +1,17 @@
 {
-  "recommendations": ["johnsoncodehk.volar"]
+  "recommendations": [
+    "Vue.volar",
+    "Vue.vscode-typescript-vue-plugin",
+    "formulahendry.auto-close-tag",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "Lokalise.i18n-ally",
+    "antfu.iconify",
+    "formulahendry.auto-rename-tag",
+    "naumovs.color-highlight",
+    "mikestead.dotenv",
+    "sibiraj-s.vscode-scss-formatter",
+    "redhat.vscode-yaml",
+    "yoavbls.pretty-ts-errors"
+  ]
 }
