@@ -1,5 +1,5 @@
 # BUILD
-FROM node:16.17.0-bullseye-slim as build
+FROM node:20.4-bullseye-slim as build
 WORKDIR /app
 COPY package*.json ./
 ENV NODE_ENV=production

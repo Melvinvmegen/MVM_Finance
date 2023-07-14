@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20.4-bullseye-slim
 WORKDIR /usr/src/app
 COPY package.json ./package.json
 COPY schema.prisma prisma/schema.prisma
