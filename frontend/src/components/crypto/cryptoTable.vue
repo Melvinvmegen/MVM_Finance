@@ -46,6 +46,7 @@ v-table.pt-3
             div(v-for='(transaction, index) in mutable_crypto.Transactions' :key="transaction.id || index")
               v-row(v-if="transaction?.markedForDestruction !== true")
                 v-col(cols="2")
+                  //- TODO: replace external datepicker with vuetify's
                   Datepicker(
                     name="buyingDate",
                     v-model="transaction.buyingDate",
@@ -80,16 +81,8 @@ v-table.pt-3
 </template>
 
 <script setup lang="ts">
-import { ref, provide } from "vue";
-import useFilter from "../../hooks/filter";
 import type Crypto from "../../types/Crypto";
 import type Transaction from "../../types/Transaction";
-import CryptoCard from "./cryptoCard.vue";
-import Datepicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css';
-import { useIndexStore } from "../../store/indexStore";
-import { useCryptoStore } from "../../store/cryptoStore";
-
 const indexStore = useIndexStore();
 const cryptoStore = useCryptoStore();
 const itemName = "Cryptos";
@@ -140,8 +133,8 @@ function returnTotalPricePurchased(crypto: Crypto) {
     Math.round(
       crypto.Transactions.reduce(
         (sum: number, transaction: Transaction) => sum + (transaction.price * transaction.quantity + transaction.fees),
-        0
-      ) * 100
+        0,
+      ) * 100,
     ) / 100
   );
 }
@@ -152,8 +145,8 @@ function returnTotalCurrentPrice(crypto: Crypto) {
     Math.round(
       crypto?.Transactions?.reduce(
         (sum: number, transaction: Transaction) => sum + crypto.price * transaction.quantity,
-        0
-      ) * 100
+        0,
+      ) * 100,
     ) / 100
   );
 }
@@ -182,7 +175,7 @@ function removeItem(item) {
   mutable_crypto.value.Transactions.splice(index, 1);
   mutable_crypto.value.total = mutable_crypto.value.Transactions?.reduce(
     (sum, transaction) => sum + transaction.total,
-    0
+    0,
   );
 }
 
@@ -222,6 +215,6 @@ async function checkoutCrypto(crypto): Promise<void> {
 }
 
 .v-table__wrapper {
-  overflow: unset
+  overflow: unset;
 }
 </style>

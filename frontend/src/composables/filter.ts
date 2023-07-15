@@ -14,7 +14,7 @@ interface Query {
   force?: boolean;
 }
 
-export default function useFilter(store: any, itemName: string, additionalFilters = {}) {
+export function useFilter(store: any, itemName: string, additionalFilters = {}) {
   const indexStore = useIndexStore();
   const query = reactive<Query>({
     currentPage: 1,
@@ -33,8 +33,9 @@ export default function useFilter(store: any, itemName: string, additionalFilter
   };
 
   watch(
-    () => query.currentPage, 
-    () => filterAll(itemName, true));
+    () => query.currentPage,
+    () => filterAll(itemName, true),
+  );
 
   async function filterAll(itemName: string, force = false, additionalFilters = {}) {
     indexStore.setLoading(true);
@@ -47,7 +48,7 @@ export default function useFilter(store: any, itemName: string, additionalFilter
       }
       query.force = force;
       await store[`get${itemName.charAt(0).toUpperCase() + itemName.slice(1)}`](query);
-      return Promise.resolve("Success")
+      return Promise.resolve("Success");
     } finally {
       indexStore.setLoading(false);
     }

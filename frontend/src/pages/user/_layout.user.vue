@@ -24,11 +24,6 @@ v-app
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
-import { computed } from "vue";
-import { useUserStore } from "../../store/userStore";
-import { useDisplay } from "vuetify";
-
 const display = useDisplay();
 const userStore = useUserStore();
 const router = useRouter();
@@ -37,8 +32,13 @@ const currentUser = computed(() => userStore.auth);
 const menuItems = [
   { title: "Dashboard", link: "dashboard", icon: "mdi-view-dashboard", active: true },
   { title: "Revenus", link: "revenus", icon: "mdi-currency-eur", active: currentUser?.value?.revenusModuleActive },
-  { title: "Customers", link: "customers", icon: "mdi-account-group-outline", active: currentUser?.value?.customersModuleActive },
-  { title: "Cryptos", link: "cryptos", icon: "mdi-currency-btc", active: currentUser?.value?.cryptosModuleActive},
+  {
+    title: "Customers",
+    link: "customers",
+    icon: "mdi-account-group-outline",
+    active: currentUser?.value?.customersModuleActive,
+  },
+  { title: "Cryptos", link: "cryptos", icon: "mdi-currency-btc", active: currentUser?.value?.cryptosModuleActive },
 ];
 
 function logOut() {

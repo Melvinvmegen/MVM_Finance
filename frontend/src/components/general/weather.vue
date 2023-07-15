@@ -29,9 +29,7 @@ v-card
 
 </template>
 <script setup lang="ts">
-import { reactive, ref, computed } from "vue";
 import axios from "axios";
-import { useIndexStore } from "../../store/indexStore.ts";
 
 interface Weather {
   value: {

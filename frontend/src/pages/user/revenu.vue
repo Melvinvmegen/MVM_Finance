@@ -39,6 +39,7 @@ v-container
             transition-group(name='slide-up')
               v-row(v-for='(credit, index) in credits' :key="credit.id || index")
                 v-col(cols="2")
+                    //- TODO: replace datepicker with vuetify's 
                     Datepicker(
                       name="createdAt",
                       v-model="credit.createdAt",
@@ -111,7 +112,7 @@ v-container
     v-col(cols='4')
       v-card
         v-card-text
-          total-field(
+          TotalField(
             :initial-total='revenu.total',
             :model='revenu'
           )
@@ -128,18 +129,9 @@ v-container
 </template>
 
 <script setup lang="ts">
-import { ref, computed, shallowRef, onUnmounted, watch } from "vue";
 import type Revenu from "../types/Revenu";
 import type Cost from "../types/Cost";
 import type Credit from "../types/Credit";
-import { useRouter } from "vue-router";
-import TotalField from "../../components/general/totalField.vue";
-import { useRoute } from "vue-router";
-import { useIndexStore } from "../../store/indexStore";
-import { useRevenuStore } from "../../store/revenuStore";
-import Pie from "../../components/general/pieChart.vue";
-import Datepicker from "@vuepic/vue-datepicker";
-import "@vuepic/vue-datepicker/dist/main.css";
 
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
@@ -320,13 +312,13 @@ const costsNames = computed(() => {
 const splitedWatchers = computed(() => {
   let watchers = revenu.value.watchers;
   if (!!watchers && typeof watchers === "object") {
-    return watchers = Object.entries(watchers).map((i) => i[1]);
+    return (watchers = Object.entries(watchers).map((i) => i[1]));
   } else if (!!watchers && typeof watchers === "string") {
     return watchers.split(",");
   } else {
     return [];
   }
-})
+});
 
 onUnmounted(() => {
   revenu.value = null;

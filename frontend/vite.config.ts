@@ -30,7 +30,7 @@ export default defineConfig({
     }),
     AutoImport({
       imports: ["vue", "vue-router"],
-      dirs: ["./src/stores"],
+      dirs: ["./src/stores", "./src/composables"],
       dts: "./types/composables.d.ts",
     }),
     eslintPlugin(),

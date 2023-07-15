@@ -43,8 +43,6 @@ v-row(justify="space-around" align="center" v-if='model.tva_collected')
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed } from "vue";
-
 const props = defineProps({
   model: {
     type: Object,

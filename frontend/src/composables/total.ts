@@ -1,6 +1,6 @@
 import { ref } from "vue";
 
-export default function useTotal() {
+export function useTotal() {
   const itemsTotal = ref(0);
   const totalTTC = ref(0);
   const tvaAmount = ref(0);

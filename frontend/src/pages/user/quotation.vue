@@ -72,24 +72,13 @@ v-container
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import type Quotation from "../types/Quotation";
 import type Customer from "../types/Customer";
 import type Revenu from "../types/Revenu";
-import { useRouter } from "vue-router";
-import useTotal from "../../hooks/total";
-import TotalField from "../../components/general/totalField.vue";
-import Datepicker from "@vuepic/vue-datepicker";
-import "@vuepic/vue-datepicker/dist/main.css";
-import { useRoute } from "vue-router";
-import { useIndexStore } from "../../store/indexStore";
-import { useCustomerStore } from "../../store/customerStore";
-import { useQuotationStore } from "../../store/quotationStore";
-import { useRevenuStore } from "../../store/revenuStore";
 
 const props = defineProps({
   id: [Number, String],
-})
+});
 const indexStore = useIndexStore();
 const customerStore = useCustomerStore();
 const quotationStore = useQuotationStore();
@@ -107,10 +96,10 @@ const quotation = ref<Quotation | any>({
   tvaAmount: 0,
   tvaApplicable: false,
   totalTTC: 0,
-})
-const customer = ref<Customer | any>({})
-const revenus = ref<Revenu | any>([])
-const customerId = route.query.customerId
+});
+const customer = ref<Customer | any>({});
+const revenus = ref<Revenu | any>([]);
+const customerId = route.query.customerId;
 const { itemsTotal, totalTTC, tvaAmount } = useTotal();
 const quotationItemTemplate = {
   createdAt: new Date(),
@@ -120,7 +109,7 @@ const quotationItemTemplate = {
   unit: 0,
   total: 0,
 };
-const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus({BankId: 1})];
+const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus({ BankId: 1 })];
 if (props.id) setupPromises.push(quotationStore.getQuotation(customerId, props.id));
 
 indexStore.setLoading(true);
@@ -130,10 +119,8 @@ Promise.all(setupPromises).then((data) => {
   revenus.value = data[1];
 
   if (data.length > 2) {
-    quotation.value = <Quotation>{...data[2]};
-    quotation.value.paymentDate = new Date(
-      quotation.value.paymentDate
-    );
+    quotation.value = <Quotation>{ ...data[2] };
+    quotation.value.paymentDate = new Date(quotation.value.paymentDate);
     quotationItemTemplate.QuotationId = quotation.value.id;
   } else {
     quotation.value.firstName = customer.value.firstName;
@@ -144,7 +131,7 @@ Promise.all(setupPromises).then((data) => {
     quotation.value.CustomerId = customer.value.id;
   }
   indexStore.setLoading(false);
-})
+});
 
 function updateTotal(item) {
   item.total = item.quantity * item.unit;
@@ -161,23 +148,21 @@ function addItem() {
 }
 
 function removeItem(item) {
-  const index = quotation.value.InvoiceItems.findIndex(
-    (quotationItem) => quotationItem.id === item.id
-  )
+  const index = quotation.value.InvoiceItems.findIndex((quotationItem) => quotationItem.id === item.id);
   quotation.value.InvoiceItems.splice(index, 1);
   quotation.value.InvoiceItems?.reduce((sum, quotation) => sum + quotation.total, 0);
-  updateTotal(item)
+  updateTotal(item);
 }
 
 async function handleSubmit(): Promise<void> {
-  indexStore.setLoading(true); 
+  indexStore.setLoading(true);
   const action = quotation.value.id ? "updateQuotation" : "createQuotation";
   if (!quotation.value.createdAt) quotation.value.createdAt = new Date();
   quotation.value.updatedAt = new Date();
   try {
     const res = await quotationStore[action](quotation.value);
     if (res && customerId) {
-      router.push({ path: `/customers/edit/${customerId}`});
+      router.push({ path: `/customers/edit/${customerId}` });
     }
   } finally {
     indexStore.setLoading(false);

@@ -36,15 +36,8 @@ v-row
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import cryptoTable from "../../components/crypto/cryptoTable.vue";
-import { useIndexStore } from "../../store/indexStore";
-import { useCryptoStore } from "../../store/cryptoStore";
-import useFilter from "../../hooks/filter";
 import type Transaction from "../../types/Transaction";
 import type Crypto from "../../types/Crypto";
-import CryptoCard from "../../components/crypto/cryptoCard.vue";
-import Pie from "../../components/general/pieChart.vue";
 
 const indexStore = useIndexStore();
 const cryptoStore = useCryptoStore();
@@ -64,7 +57,7 @@ const chartData = computed(() => {
   };
   for (let crypto of cryptoStore.cryptos.filter((c) => !c.sold)) {
     if (crypto.Transactions) {
-      const totals = crypto.Transactions.reduce((sum, transaction) => sum + transaction.total, 0)
+      const totals = crypto.Transactions.reduce((sum, transaction) => sum + transaction.total, 0);
       const value = (totals / +returnTotalInvestment.value) * 100;
       chartData.datasets[0].data.push(+value.toFixed(2));
     } else {
@@ -98,7 +91,7 @@ const returnTotalInvestmentProfit = computed(() => {
       else if (crypto.Transactions.length > 0) {
         const quantityPurchased = crypto.Transactions.reduce(
           (sum: number, transaction: Transaction) => sum + transaction.quantity,
-          0
+          0,
         );
         return crypto.price * quantityPurchased;
       }
@@ -111,7 +104,7 @@ const returnTotalInvestmentProfit = computed(() => {
 const returnTotalInvestment = computed(() => {
   const cryptos = items.value;
   const arr = cryptos.filter((c) => !c.sold).map((crypto) => returnTotalPricePurchased(crypto));
-  
+
   return (
     Math.round(arr.filter((t) => t).reduce((sum: number, cryptoTotal: number) => sum + +cryptoTotal, 0) * 100) / 100
   );
@@ -132,7 +125,7 @@ const returnInvestmentCurrentValue = computed(() => {
       if (crypto.Transactions.length > 0) {
         const quantityPurchased = crypto.Transactions.reduce(
           (sum: number, transaction: Transaction) => sum + transaction.quantity,
-          0
+          0,
         );
         return +crypto.price * +quantityPurchased;
       }
@@ -149,8 +142,8 @@ function returnTotalPricePurchased(crypto: Crypto) {
     Math.round(
       crypto.Transactions.reduce(
         (sum: number, transaction: Transaction) => sum + (transaction.price * transaction.quantity + transaction.fees),
-        0
-      ) * 100
+        0,
+      ) * 100,
     ) / 100
   );
 }
@@ -164,4 +157,3 @@ async function fetchPriceUpdate(): Promise<void> {
   }
 }
 </script>
-  

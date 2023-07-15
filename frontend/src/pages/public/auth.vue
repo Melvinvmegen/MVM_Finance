@@ -18,13 +18,6 @@ v-container(:class="display.mobile.value ? 'pt-0' : 'pa-0'")
 
 <script setup lang="ts">
 import AuthService from "../../services/authService";
-import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
-import { useDisplay } from "vuetify";
-import SignInForm from "../../components/auth/signInForm.vue";
-import SignUpForm from "../../components/auth/signUpForm.vue";
-import { useIndexStore } from "../../store/indexStore";
-import { useUserStore } from "../../store/userStore";
 
 const indexStore = useIndexStore();
 const userStore = useUserStore();

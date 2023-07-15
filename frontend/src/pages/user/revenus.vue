@@ -63,14 +63,6 @@ v-row
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import revenuTable from "../../components/revenu/revenuTable.vue";
-import { useIndexStore } from "../../store/indexStore";
-import { useRevenuStore } from "../../store/revenuStore";
-import { useBankStore } from "../../store/bankStore";
-import Bar from "../../components/general/barChart.vue";
-import Pie from "../../components/general/pieChart.vue";
-
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
 const bankStore = useBankStore();
@@ -80,7 +72,17 @@ if (!bankStore.banks.length) {
 }
 
 const costPieChartData = computed(() => {
-  const costCategories = ["GENERAL", "TAX", "INTERESTS", "TRIP", "HEALTH", "SERVICES", "HOUSING", "INVESTMENT", "TODEFINE"];
+  const costCategories = [
+    "GENERAL",
+    "TAX",
+    "INTERESTS",
+    "TRIP",
+    "HEALTH",
+    "SERVICES",
+    "HOUSING",
+    "INVESTMENT",
+    "TODEFINE",
+  ];
   const costs = revenuStore.revenus.flatMap((revenu) => revenu.Costs);
   const groupedModel = costs.reduce((acc, item) => {
     if (!acc[item.category]) {
@@ -281,5 +283,5 @@ function returnRevenuAverage() {
 
 const returnRecurrentCost = computed(() => {
   return revenuStore.revenus[1]?.Costs?.filter((c) => c.recurrent).reduce((sum, cost) => sum + cost.total, 0) || 0;
-})
+});
 </script>

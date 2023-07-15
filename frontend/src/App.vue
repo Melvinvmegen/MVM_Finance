@@ -18,8 +18,6 @@ v-app
 </template>
 
 <script setup lang="ts">
-import { useIndexStore } from "./store/indexStore";
-
 const indexStore = useIndexStore();
 </script>
 
@@ -43,6 +41,7 @@ const indexStore = useIndexStore();
   transition: all 0.5s ease-in;
 }
 
-a { text-decoration: none; }
+a {
+  text-decoration: none;
+}
 </style>
-

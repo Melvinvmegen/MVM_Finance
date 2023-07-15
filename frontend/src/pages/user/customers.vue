@@ -33,11 +33,6 @@ v-row
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import customerTable from "../../components/customer/customerTable";
-import Pie from "../../components/general/pieChart.vue";
-import { useCustomerStore } from "../../store/customerStore";
-
 const customerStore = useCustomerStore();
 
 const chartData = computed(() => {
@@ -85,7 +80,7 @@ function returnTotals(paid, field: string) {
   for (let customer of customerStore.customers) {
     total += customer.Invoices.filter((invoice) => invoice.paid === paid).reduce(
       (sum, invoice) => sum + invoice[field],
-      0
+      0,
     );
   }
   return +total.toFixed(2);

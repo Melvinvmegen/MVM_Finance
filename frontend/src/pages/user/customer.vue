@@ -12,13 +12,7 @@ v-col(cols="12" lg="11")
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeMount } from "vue";
 import type Customer from "../../types/Customer";
-import customerForm from "../../components/customer/customerForm.vue";
-import InvoiceTable from "../../components/invoice/invoiceTable.vue";
-import QuotationTable from "../../components/quotation/quotationTable.vue";
-import { useCustomerStore } from "../../store/customerStore";
-import { useIndexStore } from "../../store/indexStore";
 
 const props = defineProps({
   id: {

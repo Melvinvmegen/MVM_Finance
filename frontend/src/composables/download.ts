@@ -1,6 +1,6 @@
 import { useIndexStore } from "../store/indexStore";
 
-export default function useDownload(store: any) {
+export function useDownload(store: any) {
   const indexStore = useIndexStore();
 
   async function downloadPDF(item: { id: number; CustomerId: string }, itemName: string) {

@@ -86,15 +86,7 @@ div
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeMount } from "vue";
 import type Revenu from "../../types/Revenu";
-import weather from "../../components/general/weather.vue";
-import { useRevenuStore } from "../../store/revenuStore";
-import { useIndexStore } from "../../store/indexStore";
-import { useBankStore } from "../../store/bankStore";
-import useFilter from "../../hooks/filter";
-import bar from "../../components/general/barChart.vue";
-import LineChart from "../../components/general/lineChart.vue";
 
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();

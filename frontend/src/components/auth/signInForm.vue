@@ -16,13 +16,10 @@ v-form(@submit.prevent="handleSubmit" key="signIn")
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
-import { useIndexStore } from "../../store/indexStore";
-
 const indexStore = useIndexStore();
 const user = reactive({
   email: "",
-  password: ""
+  password: "",
 });
 const emit = defineEmits(["submit"]);
 

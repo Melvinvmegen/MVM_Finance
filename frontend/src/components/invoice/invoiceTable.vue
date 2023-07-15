@@ -63,15 +63,7 @@ v-card(elevation="3")
 </template>
 
 <script setup lang="ts">
-import useFilter from "../../hooks/filter";
-import useDelete from "../../hooks/delete";
-import useDownload from "../../hooks/download";
 import type Invoice from "../../types/Invoice";
-import PaymentForm from "../general/paymentForm.vue";
-import { useRouter } from "vue-router";
-import { ref } from "vue";
-import { useInvoiceStore } from "../../store/invoiceStore";
-import { useIndexStore } from "../../store/indexStore";
 
 const props = defineProps({
   customerId: {
@@ -103,8 +95,8 @@ async function sendEmail(invoice: Invoice) {
 }
 
 function resetAll() {
-  searchFrom.value.reset()
-  filterAll(itemName, true)
+  searchFrom.value.reset();
+  filterAll(itemName, true);
 }
 
 function revenuDate(revenu: Revenu) {
@@ -117,7 +109,7 @@ function pushToShow(event, invoice: Invoice) {
   if (invoice.id && event.target.nodeName === "TD") {
     router.push({
       path: `/invoices/edit/${invoice.id}`,
-      query: { customerId: props.customerId }  
+      query: { customerId: props.customerId },
     });
   }
 }

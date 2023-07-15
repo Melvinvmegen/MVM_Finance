@@ -70,16 +70,8 @@ v-card(elevation="3")
 </template>
 
 <script setup lang="ts">
-import useFilter from "../../hooks/filter";
-import useDelete from "../../hooks/delete";
-import useDownload from "../../hooks/download";
-import PaymentForm from "../general/paymentForm.vue";
 import type Quotation from "../types/Quotation";
 import type Revenu from "../types/Revenu";
-import { useRouter } from "vue-router";
-import { ref } from "vue";
-import { useIndexStore } from "../../store/indexStore";
-import { useQuotationStore } from "../../store/quotationStore";
 
 const props = defineProps({
   customerId: {
@@ -101,7 +93,7 @@ query.total = undefined;
 const lowerCaseItemName = "quotation";
 const itemName = "Quotations";
 const router = useRouter();
-const searchFrom = ref(null)
+const searchFrom = ref(null);
 const selectedQuotation = ref(null);
 
 filterAll(itemName);
@@ -122,15 +114,15 @@ function pushToShow(event, quotation: Quotation) {
 }
 
 function resetAll() {
-  searchFrom.value.reset()
-  filterAll(itemName, true)
+  searchFrom.value.reset();
+  filterAll(itemName, true);
 }
 
 function convertToInvoice(quotation: Quotation, confirmString: string) {
   indexStore.setLoading(true);
   const result = confirm(confirmString);
   if (result) {
-    quotationStore.convertToInvoice(quotation)
+    quotationStore.convertToInvoice(quotation);
   }
   indexStore.setLoading(false);
 }

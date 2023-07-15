@@ -36,12 +36,7 @@ v-card
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import type { PropType } from "vue";
 import type Customer from "../types/Customer";
-import { useIndexStore } from "../../store/indexStore";
-import { useCustomerStore } from "../../store/customerStore";
-import { useRouter } from "vue-router";
 
 const props = defineProps({
   initialCustomer: {

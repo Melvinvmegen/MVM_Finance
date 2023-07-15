@@ -1,8 +1,15 @@
 module.exports = {
   root: true,
   parser: "vue-eslint-parser",
+  parserOptions: { parser: "@typescript-eslint/parser" },
   plugins: ["pug"],
-  extends: ["plugin:vue/vue3-essential", "eslint:recommended", "@vue/eslint-config-prettier/skip-formatting"],
+  extends: [
+    "plugin:vue/vue3-essential",
+    "plugin:vue-pug/vue3-recommended",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "@vue/eslint-config-prettier/skip-formatting",
+  ],
   rules: {
     "no-unused-vars": ["warn", { ignoreRestSiblings: true, varsIgnorePattern: "Types|Models" }],
     "vue/no-unused-components": "warn",

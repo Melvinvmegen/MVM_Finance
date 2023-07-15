@@ -26,17 +26,8 @@ v-card(width="800")
 </template>
 
 <script setup lang="ts">
-import { reactive, watch } from "vue";
-import Datepicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css';
 import type Invoice from "../types/Invoice";
 import type Quotation from "../types/Quotation";
-import type { PropType } from "vue";
-import useFilter from "../../hooks/filter";
-import { useIndexStore } from "../../store/indexStore";
-import { useInvoiceStore } from "../../store/invoiceStore";
-import { useRevenuStore } from "../../store/revenuStore";
-import { useQuotationStore } from "../../store/quotationStore";
 
 const props = defineProps({
   model: {
@@ -48,7 +39,7 @@ const props = defineProps({
 const mutableModel = reactive<Invoice | Quotation>(props.model);
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close"]);
 const { compute, filterAll } = useFilter(revenuStore, "revenus");
 const { items } = compute;
 filterAll("Revenus");
@@ -75,8 +66,11 @@ async function handleSubmit(): Promise<void> {
   }
 }
 
-watch(() => mutableModel.RevenuId, (revenuId) => {
-  const revenu = items.value.find((item) => item.id === revenuId);
-  mutableModel.paymentDate = new Date(revenu.createdAt);
-})
+watch(
+  () => mutableModel.RevenuId,
+  (revenuId) => {
+    const revenu = items.value.find((item) => item.id === revenuId);
+    mutableModel.paymentDate = new Date(revenu.createdAt);
+  },
+);
 </script>

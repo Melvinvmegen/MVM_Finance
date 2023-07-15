@@ -53,12 +53,7 @@ v-pagination(v-model="query.currentPage" :total-visible='query.perPage' :length=
 </template>
 
 <script setup lang="ts">
-import useFilter from "../../hooks/filter";
-import useDelete from "../../hooks/delete";
 import type Customer from "../../types/Customer";
-import { useRouter } from "vue-router";
-import { ref } from 'vue'
-import { useCustomerStore } from "../../store/customerStore";
 
 const customerStore = useCustomerStore();
 const { compute, filterAll, query } = useFilter(customerStore, "customers");
@@ -72,13 +67,19 @@ filterAll(itemName);
 
 function returnUnpaidInvoiceTotal(customer: Customer) {
   if (customer.Invoices) {
-    return customer.Invoices.filter((invoice) => !invoice.paid).reduce((sum, invoice) => sum + (invoice.totalTTC || invoice.total), 0);
+    return customer.Invoices.filter((invoice) => !invoice.paid).reduce(
+      (sum, invoice) => sum + (invoice.totalTTC || invoice.total),
+      0,
+    );
   }
 }
 
 function returnPaidInvoiceTotal(customer: Customer) {
   if (customer.Invoices) {
-    return customer.Invoices.filter((invoice) => invoice.paid).reduce((sum, invoice) => sum + (invoice.totalTTC || invoice.total), 0);
+    return customer.Invoices.filter((invoice) => invoice.paid).reduce(
+      (sum, invoice) => sum + (invoice.totalTTC || invoice.total),
+      0,
+    );
   }
 }
 
@@ -89,11 +90,11 @@ function returnTvaAmount(customer: Customer) {
 }
 
 function resetAll() {
-  searchFrom?.value?.reset()
-  filterAll(itemName, true)
+  searchFrom?.value?.reset();
+  filterAll(itemName, true);
 }
 
 function pushToShow(customer: Customer) {
-  if (customer.id) router.push({ path: `/customers/edit/${customer.id}`});
+  if (customer.id) router.push({ path: `/customers/edit/${customer.id}` });
 }
 </script>

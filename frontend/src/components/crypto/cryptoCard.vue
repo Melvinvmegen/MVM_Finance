@@ -19,7 +19,7 @@ v-card(width="100%" :disabled="sold")
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
+defineProps({
   sold: Boolean,
-})
+});
 </script>

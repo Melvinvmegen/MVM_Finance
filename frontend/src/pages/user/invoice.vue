@@ -73,20 +73,9 @@ v-container
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import type Invoice from "../types/Invoice";
 import type Customer from "../types/Customer";
 import type Revenu from "../types/Revenu";
-import { useRouter } from "vue-router";
-import useTotal from "../../hooks/total";
-import TotalField from "../../components/general/totalField.vue";
-import Datepicker from "@vuepic/vue-datepicker";
-import "@vuepic/vue-datepicker/dist/main.css";
-import { useRoute } from "vue-router";
-import { useIndexStore } from "../../store/indexStore";
-import { useCustomerStore } from "../../store/customerStore";
-import { useInvoiceStore } from "../../store/invoiceStore";
-import { useRevenuStore } from "../../store/revenuStore";
 
 const props = defineProps({
   id: [Number, String],
@@ -119,7 +108,7 @@ const invoiceItemTemplate = {
   unit: 0,
   total: 0,
 };
-const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus({BankId: 1})];
+const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus({ BankId: 1 })];
 if (props.id) setupPromises.push(invoiceStore.getInvoice(customerId, props.id));
 
 indexStore.setLoading(true);

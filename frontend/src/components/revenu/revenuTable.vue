@@ -46,13 +46,7 @@ v-pagination(v-model="query.currentPage" :total-visible='query.perPage' :length=
 </template>
 
 <script setup lang="ts">
-import useFilter from "../../hooks/filter";
 import type Revenu from "../../types/Revenu";
-import { useRouter } from "vue-router";
-import { ref, onUnmounted, onBeforeMount } from "vue";
-import { useIndexStore } from "../../store/indexStore";
-import { useRevenuStore } from "../../store/revenuStore";
-import { useBankStore } from "../../store/bankStore";
 
 const bankStore = useBankStore();
 const indexStore = useIndexStore();
