@@ -39,16 +39,7 @@ v-container
             transition-group(name='slide-up')
               v-row(v-for='(credit, index) in credits' :key="credit.id || index")
                 v-col(cols="2")
-                    //- TODO: replace datepicker with vuetify's 
-                    Datepicker(
-                      name="createdAt",
-                      v-model="credit.createdAt",
-                      format="dd/MM/yyyy"
-                      dark
-                      position="center"
-                      :month-change-on-scroll="false"
-                      auto-apply
-                    )
+                  DateInput(:value="credit.createdAt")
                 v-col(cols="3")
                   v-text-field(label='creditor' density="compact" v-model="credit.creditor" type='text' variant="outlined")
                 v-col(cols="2")
@@ -78,15 +69,7 @@ v-container
                 v-col(cols="1")
                   v-checkbox(v-model="cost.recurrent" color="secondary")
                 v-col(cols="2")
-                  Datepicker(
-                    name="createdAt",
-                    v-model="cost.createdAt",
-                    format="dd/MM/yyyy"
-                    dark
-                    position="center"
-                    :month-change-on-scroll="false"
-                    auto-apply
-                  )
+                  DateInput(:value="cost.createdAt")
                 v-col(cols="3")
                   v-text-field(label='Référence' density="compact" v-model="cost.name" type='text' variant="outlined")
                 v-col(cols="2")
@@ -118,9 +101,9 @@ v-container
           )
         v-card-text
           v-card-title Revenus : {{ revenu.total }} €
-          Pie(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
+          PieChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
           v-card-title Costs : {{ revenu.expense }} €
-          Pie(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
+          PieChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
           hr.mx-2.my-4
           v-card-title Watchers :
           v-row(align="center" class="ml-1 mt-1" v-for='watcher in splitedWatchers' closable-chips :key="watcher")

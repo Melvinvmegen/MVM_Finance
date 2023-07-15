@@ -6,15 +6,15 @@ div
         v-card-title
           v-col.text-uppercase(cols="11") Costs ({{ revenuDate(revenu) }})
         v-card-text
-          bar(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
+          BarChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
     v-col(cols="12" md="4")
       v-card(elevation="3")
         v-card-title
           v-col.text-uppercase(cols="11") Revenus ({{ revenuDate(revenu) }})
         v-card-text
-          bar(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
+          BarChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
     v-col(cols="12" md="4")
-      weather
+      Weather
 
   v-row  
     v-col(cols="12" md="8")

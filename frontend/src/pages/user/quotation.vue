@@ -16,15 +16,7 @@ v-container
               v-col(cols="2")
                 v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="quotation.RevenuId" label='Revenu' density="compact" )
               v-col(cols="2")
-                Datepicker(
-                  name="paymentDate",
-                  v-model="quotation.paymentDate",
-                  format="dd/MM/yyyy"
-                  dark
-                  position="center"
-                  :month-change-on-scroll="false"
-                  auto-apply
-                )
+                DateInput(:value="quotation.paymentDate")
               v-col(cols="2")
                 v-switch(name='cautionPaid' label='Payé' v-model="quotation.cautionPaid" color="secondary" variant="outlined")
               v-col(cols="2")
@@ -62,7 +54,7 @@ v-container
               v-col.d-flex.justify-center(cols="12" lg="8")
                 v-btn.bg-secondary.text-white(type="submit") {{ quotation?.id ? "Editer un devis" : "Créer un devis" }}
     v-col(cols='3')
-      total-field(
+      TotalField(
         :initial-total='itemsTotal || quotation.total',
         :initial-tva-applicable='quotation.tvaApplicable',
         :initial-tva-amount='tvaAmount || quotation.tvaAmount'

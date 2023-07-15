@@ -53,12 +53,12 @@ v-row
             v-row(justify="space-around" align="center")
               v-card-subtitle Répartition des coûts :
             br
-            Pie(v-if="costPieChartData" :chart-data='costPieChartData' :chart-options='pieChartOptions')
+            PieChart(v-if="costPieChartData" :chart-data='costPieChartData' :chart-options='pieChartOptions')
             hr.mx-2.my-10
             v-row(justify="space-around" align="center")
               v-card-subtitle Répartition des revenus :
             br
-            Pie(v-if="creditPieChartData" :chart-data='creditPieChartData' :chart-options='pieChartOptions')
+            PieChart(v-if="creditPieChartData" :chart-data='creditPieChartData' :chart-options='pieChartOptions')
 
 </template>
 

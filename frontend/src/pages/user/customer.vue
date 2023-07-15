@@ -3,12 +3,12 @@ v-col(cols="12" lg="11")
   v-row(justify="center")
     v-col(cols="12" md="9")
       template(v-if='initialCustomer.id')
-        invoice-table(:customer-id='initialCustomer.id')
+        InvoiceTable(:customer-id='initialCustomer.id')
         .mt-4
-        quotation-table(:customer-id='initialCustomer.id')
+        QuotationTable(:customer-id='initialCustomer.id')
     v-col(cols="12" md="3")
       Suspense
-        customer-form(v-if="props.id && initialCustomer.id || !props.id" :initial-customer='initialCustomer')
+        CustomerForm(v-if="props.id && initialCustomer.id || !props.id" :initial-customer='initialCustomer')
 </template>
 
 <script setup lang="ts">

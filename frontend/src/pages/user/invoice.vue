@@ -16,15 +16,7 @@ v-container
               v-col(cols="2")
                 v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="invoice.RevenuId" label='Revenu' density="compact" )
               v-col(cols="2")
-                Datepicker(
-                  name="paymentDate",
-                  v-model="invoice.paymentDate",
-                  format="dd/MM/yyyy"
-                  dark
-                  position="center"
-                  :month-change-on-scroll="false"
-                  auto-apply
-                )
+                DateInput(:value="invoice.paymentDate")
                 v-icon mdi-calendar
               v-col(cols="2")
                 v-switch(name='paid' label='Payé' v-model="invoice.paid" color="secondary" variant="outlined")
@@ -63,7 +55,7 @@ v-container
               v-col.d-flex.justify-center(cols="12" lg="8")
                 v-btn.bg-secondary.text-white(type="submit") {{ invoice?.id ? "Editer une facture" : "Créer une facture" }}
     v-col(cols='3')
-      total-field(
+      TotalField(
         :initial-total='itemsTotal || invoice.total',
         :initial-tva-applicable='invoice.tvaApplicable',
         :initial-tva-amount='tvaAmount || invoice.tvaAmount'

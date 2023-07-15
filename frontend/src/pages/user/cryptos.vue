@@ -7,7 +7,7 @@ v-row
           v-col.text-uppercase(cols="11") Cryptos
 
       v-card-text
-        crypto-table
+        CryptoTable
     .mt-4
   v-col(cols="12" md="4")
     v-card(elevation="3")
@@ -31,7 +31,7 @@ v-row
           hr.mx-2.my-4
           v-card-text
             v-card-title Répartition des cryptos
-            pie(v-if="chartData" :chart-data='chartData' :chart-options='chartOptions')
+            PieChart(v-if="chartData" :chart-data='chartData' :chart-options='chartOptions')
 
 </template>
 

@@ -11,7 +11,7 @@ v-row
               v-btn(icon="mdi-plus" color="primary")
 
       v-card-text
-        customer-table
+        CustomerTable
     .mt-4
   v-col(cols="12" md="4")
     v-card(position="absolute" class="v-col v-col-3")
@@ -28,7 +28,7 @@ v-row
       hr.mx-2.my-4
       v-card-text
         v-card-title Répartition du chiffre d'affaires par client 
-        pie(v-if="chartData" :chart-data='chartData' :chart-options='chartOptions')
+        PieChart(v-if="chartData" :chart-data='chartData' :chart-options='chartOptions')
 
 </template>
 
