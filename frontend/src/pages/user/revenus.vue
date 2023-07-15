@@ -177,7 +177,7 @@ const costChartData = computed(() => {
     datasets: [
       {
         label: "",
-        data: [],
+        data: [] as string[],
         backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4"],
       },
     ],
@@ -199,14 +199,14 @@ const creditChartData = computed(() => {
     datasets: [
       {
         label: "",
-        data: [],
+        data: [] as string[],
         backgroundColor: ["#FD7F20", "#FC2E20", "#FDB750", "#010100"],
       },
     ],
   };
   chartData.datasets[0].data.push;
   for (let revenu of reversed_revenus) {
-    chartData.datasets[0].data.push(revenu.total);
+    chartData.datasets[0].data.push(`${revenu.total}`);
   }
   return chartData;
 });
@@ -215,7 +215,7 @@ const chartOptions = {
 };
 
 function triggerUpload() {
-  document.getElementById("csv").click();
+  document.getElementById("csv")?.click();
 }
 
 async function uploadFile(event) {
@@ -232,7 +232,7 @@ async function uploadFile(event) {
 
 function returnRevenuTotal() {
   if (revenuStore.revenus) {
-    const totals = revenuStore.revenus.reduce((sum: number, revenu: Revenu) => sum + revenu.total, 0);
+    const totals = revenuStore.revenus.reduce((sum: number, revenu) => sum + revenu.total, 0);
     return Math.round(totals);
   } else {
     return 0;
@@ -272,12 +272,12 @@ function returnTaxAmount() {
 }
 
 function returnExpenseAverage() {
-  const total_expense = revenuStore.revenus.reduce((sum: number, revenu: Revenu) => sum - revenu.expense, 0);
+  const total_expense = revenuStore.revenus.reduce((sum: number, revenu) => sum - revenu.expense, 0);
   return Math.round(total_expense / revenuStore.revenus.length);
 }
 
 function returnRevenuAverage() {
-  const total_revenu = revenuStore.revenus.reduce((sum: number, revenu: Revenu) => sum + revenu.total, 0);
+  const total_revenu = revenuStore.revenus.reduce((sum: number, revenu) => sum + revenu.total, 0);
   return Math.round(total_revenu / revenuStore.revenus.length);
 }
 

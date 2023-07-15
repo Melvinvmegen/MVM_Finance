@@ -41,7 +41,7 @@ const chartData = computed(() => {
     datasets: [
       {
         label: "",
-        data: [],
+        data: [] as string[],
         backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20", "#FC2E20", "#FDB750"],
       },
     ],
@@ -55,7 +55,7 @@ const chartData = computed(() => {
       ).toFixed(2);
       chartData.datasets[0].data.push(invoices_percentage_of_total);
     } else {
-      chartData.datasets[0].data.push(0);
+      chartData.datasets[0].data.push("0");
     }
   }
   return chartData;
@@ -75,7 +75,7 @@ const chartOptions = {
   },
 };
 
-function returnTotals(paid, field: string) {
+function returnTotals(paid: boolean, field: string) {
   let total = 0;
   for (let customer of customerStore.customers) {
     total += customer.Invoices.filter((invoice) => invoice.paid === paid).reduce(

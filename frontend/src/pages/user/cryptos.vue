@@ -36,8 +36,8 @@ v-row
 </template>
 
 <script setup lang="ts">
-import type Transaction from "../../types/Transaction";
-import type Crypto from "../../types/Crypto";
+import type { CryptoCurrencies, Transactions } from "../../../types/models";
+type CryptoCurrencyWithTransactions = CryptoCurrencies & { Transactions: Transactions[] };
 
 const indexStore = useIndexStore();
 const cryptoStore = useCryptoStore();
@@ -50,7 +50,7 @@ const chartData = computed(() => {
     datasets: [
       {
         label: "",
-        data: [],
+        data: [] as string[],
         backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20", "#FC2E20", "#FDB750"],
       },
     ],
@@ -59,9 +59,9 @@ const chartData = computed(() => {
     if (crypto.Transactions) {
       const totals = crypto.Transactions.reduce((sum, transaction) => sum + transaction.total, 0);
       const value = (totals / +returnTotalInvestment.value) * 100;
-      chartData.datasets[0].data.push(+value.toFixed(2));
+      chartData.datasets[0].data.push(value.toFixed(2));
     } else {
-      chartData.datasets[0].data.push(0);
+      chartData.datasets[0].data.push("0");
     }
   }
   return chartData;
@@ -90,7 +90,7 @@ const returnTotalInvestmentProfit = computed(() => {
       if (crypto.profit) return crypto.profit;
       else if (crypto.Transactions.length > 0) {
         const quantityPurchased = crypto.Transactions.reduce(
-          (sum: number, transaction: Transaction) => sum + transaction.quantity,
+          (sum: number, transaction: Transactions) => sum + transaction.quantity,
           0,
         );
         return crypto.price * quantityPurchased;
@@ -124,7 +124,7 @@ const returnInvestmentCurrentValue = computed(() => {
     .map((crypto) => {
       if (crypto.Transactions.length > 0) {
         const quantityPurchased = crypto.Transactions.reduce(
-          (sum: number, transaction: Transaction) => sum + transaction.quantity,
+          (sum: number, transaction: Transactions) => sum + transaction.quantity,
           0,
         );
         return +crypto.price * +quantityPurchased;
@@ -136,12 +136,12 @@ const returnInvestmentCurrentValue = computed(() => {
   );
 });
 
-function returnTotalPricePurchased(crypto: Crypto) {
+function returnTotalPricePurchased(crypto: CryptoCurrencyWithTransactions) {
   if (crypto?.Transactions?.length < 1) return;
   return (
     Math.round(
       crypto.Transactions.reduce(
-        (sum: number, transaction: Transaction) => sum + (transaction.price * transaction.quantity + transaction.fees),
+        (sum: number, transaction: Transactions) => sum + (transaction.price * transaction.quantity + transaction.fees),
         0,
       ) * 100,
     ) / 100

@@ -12,7 +12,7 @@ v-col(cols="12" lg="11")
 </template>
 
 <script setup lang="ts">
-import type Customer from "../../types/Customer";
+import type { Customers } from "../../../types/models";
 
 const props = defineProps({
   id: {
@@ -22,7 +22,7 @@ const props = defineProps({
 });
 const customerStore = useCustomerStore();
 const indexStore = useIndexStore();
-const initialCustomer = ref<Customer | any>({});
+const initialCustomer = ref<Customers | any>({});
 
 onBeforeMount(async () => {
   if (props.id) {

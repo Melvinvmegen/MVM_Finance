@@ -26,17 +26,18 @@ v-card(width="800")
 </template>
 
 <script setup lang="ts">
-import type Invoice from "../types/Invoice";
-import type Quotation from "../types/Quotation";
+import type { Quotations, Invoices, Revenus } from "../../../types/models";
+type InvoiceWithRevenu = Invoices & { Revenus: Revenus | undefined };
+type QuotationsWithRevenu = Quotations & { Revenus: Revenus | undefined };
 
 const props = defineProps({
   model: {
-    type: Object as PropType<Invoice> | PropType<Quotation>,
+    type: Object as PropType<InvoiceWithRevenu> | PropType<QuotationsWithRevenu>,
     required: true,
   },
 });
 
-const mutableModel = reactive<Invoice | Quotation>(props.model);
+const mutableModel = reactive<InvoiceWithRevenu | QuotationsWithRevenu>(props.model);
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
 const emit = defineEmits(["close"]);

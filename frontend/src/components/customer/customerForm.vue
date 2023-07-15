@@ -36,18 +36,19 @@ v-card
 </template>
 
 <script setup lang="ts">
-import type Customer from "../types/Customer";
+import type { Customers } from "../../../types/models";
 
 const props = defineProps({
   initialCustomer: {
-    type: Object as PropType<Customer>,
+    type: Object as PropType<Customers>,
     required: true,
   },
 });
 const router = useRouter();
 const customerStore = useCustomerStore();
 const indexStore = useIndexStore();
-let mutableCustomer = ref<Customer>({
+let mutableCustomer = ref<Customers>({
+  id: 1,
   firstName: "",
   lastName: "",
   email: "",
@@ -56,6 +57,10 @@ let mutableCustomer = ref<Customer>({
   address: "",
   city: "",
   siret: "",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  stripeId: null,
+  UserId: null,
 });
 
 if (Object.entries(props.initialCustomer).length) {

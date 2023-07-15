@@ -1,5 +1,3 @@
-import { ref } from "vue";
-
 export function useTotal() {
   const itemsTotal = ref(0);
   const totalTTC = ref(0);

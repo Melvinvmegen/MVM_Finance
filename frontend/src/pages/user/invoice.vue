@@ -73,9 +73,7 @@ v-container
 </template>
 
 <script setup lang="ts">
-import type Invoice from "../types/Invoice";
-import type Customer from "../types/Customer";
-import type Revenu from "../types/Revenu";
+import type { Customers, Invoices, Revenus } from "../../../types/models";
 
 const props = defineProps({
   id: [Number, String],
@@ -86,7 +84,7 @@ const invoiceStore = useInvoiceStore();
 const revenuStore = useRevenuStore();
 const route = useRoute();
 const router = useRouter();
-const invoice = ref<Invoice | any>({
+const invoice = ref<Invoices | any>({
   firstName: "",
   lastName: "",
   company: "",
@@ -98,8 +96,8 @@ const invoice = ref<Invoice | any>({
   tvaApplicable: false,
   totalTTC: 0,
 });
-const customer = ref<Customer | any>({});
-const revenus = ref<Revenu | any>([]);
+const customer = ref<Customers | any>({});
+const revenus = ref<Revenus | any>([]);
 const customerId = route.query.customerId;
 const { itemsTotal, totalTTC, tvaAmount } = useTotal();
 const invoiceItemTemplate = {
@@ -107,6 +105,7 @@ const invoiceItemTemplate = {
   name: "",
   unit: 0,
   total: 0,
+  InvoiceId: null,
 };
 const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus({ BankId: 1 })];
 if (props.id) setupPromises.push(invoiceStore.getInvoice(customerId, props.id));
@@ -118,7 +117,7 @@ Promise.all(setupPromises).then((data) => {
   revenus.value = data[1];
 
   if (data.length > 2) {
-    invoice.value = <Invoice>{ ...data[2] };
+    invoice.value = <Invoices>{ ...data[2] };
     invoice.value.paymentDate = new Date(invoice.value.paymentDate);
     invoiceItemTemplate.InvoiceId = invoice.value.id;
   } else {

@@ -129,17 +129,16 @@ v-container
 </template>
 
 <script setup lang="ts">
-import type Revenu from "../types/Revenu";
-import type Cost from "../types/Cost";
-import type Credit from "../types/Credit";
+import type { Revenus, Costs, Credits, Invoices } from "../../../types/models";
+type RevenuWithCostsCredits = Revenus & { Costs: Costs[]; Credits: Credits[]; Invoices: Invoices[] };
 
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
 const route = useRoute();
 const router = useRouter();
-const revenu = shallowRef<Revenu | null>({});
-const costs = ref<Cost[] | null>(null);
-const credits = ref<Credit[] | null>(null);
+const revenu = ref<RevenuWithCostsCredits | null>(null);
+const costs = ref<Costs[]>([]);
+const credits = ref<Credits[]>([]);
 const costCategories = [
   "GENERAL",
   "TAX",
@@ -153,10 +152,11 @@ const costCategories = [
 ];
 const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER"];
 const creditItemTemplate = {
+  id: 0,
   total: 0,
-  creditor: "",
+  creditor: "SALARY",
   reason: "",
-  RevenuId: null,
+  RevenuId: 0,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -168,23 +168,26 @@ const chartOptions = {
 };
 
 const costItemTemplate = {
+  id: 0,
   total: 0,
   name: "",
-  category: "",
+  category: "GENERAL",
   tvaAmount: 0,
-  RevenuId: null,
+  RevenuId: 0,
   createdAt: new Date(),
   updatedAt: new Date(),
+  recurrent: false,
 };
 
 indexStore.setLoading(true);
 revenuStore.getRevenu(route.query.bankId, route.params.id).then((data) => {
   revenu.value = data;
+  if (!revenu.value) return;
   revenu.value.watchers = data?.watchers?.split(",");
   costs.value = data.Costs;
   credits.value = data.Credits;
-  creditItemTemplate.RevenuId = revenu.value.id;
-  costItemTemplate.RevenuId = revenu.value.id;
+  creditItemTemplate.RevenuId = revenu.value?.id;
+  costItemTemplate.RevenuId = revenu.value?.id;
   groupModelByCategory(costs, "costs", costCategories);
   groupModelByCategory(credits, "credits", creditCategories);
 
@@ -212,6 +215,7 @@ function removeItem(item, itemName) {
 }
 
 function updateTotal() {
+  if (!revenu.value) return;
   const tvaCollected = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.tvaAmount, 0);
   const tvaDispatched = costs.value.reduce((sum, cost) => sum + Number(cost.tvaAmount), 0);
   const totalInvoices = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.total, 0);
@@ -243,6 +247,7 @@ async function handleSubmit() {
 }
 
 const revenuMonth = computed(() => {
+  if (!revenu.value) return;
   const date = new Date(revenu.value.createdAt);
   return date.toLocaleDateString("fr-FR", {
     month: "long",
@@ -310,7 +315,8 @@ const costsNames = computed(() => {
 });
 
 const splitedWatchers = computed(() => {
-  let watchers = revenu.value.watchers;
+  if (!revenu.value) return;
+  let watchers = revenu.value.watchers || [];
   if (!!watchers && typeof watchers === "object") {
     return (watchers = Object.entries(watchers).map((i) => i[1]));
   } else if (!!watchers && typeof watchers === "string") {
@@ -318,11 +324,5 @@ const splitedWatchers = computed(() => {
   } else {
     return [];
   }
-});
-
-onUnmounted(() => {
-  revenu.value = null;
-  costs.value = null;
-  credits.value = null;
 });
 </script>

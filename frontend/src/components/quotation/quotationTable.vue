@@ -70,8 +70,7 @@ v-card(elevation="3")
 </template>
 
 <script setup lang="ts">
-import type Quotation from "../types/Quotation";
-import type Revenu from "../types/Revenu";
+import type { Revenus, Quotations } from "../../../types/models";
 
 const props = defineProps({
   customerId: {
@@ -98,13 +97,13 @@ const selectedQuotation = ref(null);
 
 filterAll(itemName);
 
-function revenuDate(revenu: Revenu) {
+function revenuDate(revenu: Revenus) {
   if (!revenu) return;
   const date = new Date(revenu.createdAt);
   return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 }
 
-function pushToShow(event, quotation: Quotation) {
+function pushToShow(event, quotation: Quotations) {
   if (quotation.id && event.target.nodeName === "TD") {
     router.push({
       path: `/quotations/edit/${quotation.id}`,
@@ -118,7 +117,7 @@ function resetAll() {
   filterAll(itemName, true);
 }
 
-function convertToInvoice(quotation: Quotation, confirmString: string) {
+function convertToInvoice(quotation: Quotations, confirmString: string) {
   indexStore.setLoading(true);
   const result = confirm(confirmString);
   if (result) {

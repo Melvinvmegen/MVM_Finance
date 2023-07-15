@@ -1,20 +1,23 @@
 import { defineStore } from "pinia";
 import quotationService from "../services/quotationService";
-import type Quotation from "../types/quotation";
+import type { Quotations } from "../../types/models";
 import { useIndexStore } from "./indexStore";
 import { useInvoiceStore } from "./invoiceStore";
 const indexStore = useIndexStore();
-const invoiceStore = useInvoiceStore()
+const invoiceStore = useInvoiceStore();
 
 export const useQuotationStore = defineStore("quotationStore", {
   state: () => ({
-    quotations: [] as Quotation[],
+    quotations: [] as Quotations[],
     count: 0,
   }),
   actions: {
     async getQuotations(query: any) {
-      const { data } : { data: { rows: Quotation[], count: string } } = await quotationService.getQuotations(query.CustomerId, query);
-      this.quotations = [ ...data.rows ];
+      const { data }: { data: { rows: Quotations[]; count: string } } = await quotationService.getQuotations(
+        query.CustomerId,
+        query,
+      );
+      this.quotations = [...data.rows];
       this.count = +data.count;
       return this.quotations;
     },
@@ -26,7 +29,7 @@ export const useQuotationStore = defineStore("quotationStore", {
       const res = await quotationService.getQuotationPDF(customerId, quotationId);
       return res;
     },
-    async createQuotation(quotationData: Quotation) {
+    async createQuotation(quotationData: Quotations) {
       try {
         const res = await quotationService.createQuotation(quotationData);
         this.addQuotation(res.data);
@@ -35,9 +38,9 @@ export const useQuotationStore = defineStore("quotationStore", {
         if (error) indexStore.setError(error);
       }
     },
-    async convertToInvoice(quotationData: Quotation) {
+    async convertToInvoice(quotationData: Quotations) {
       try {
-        const res = await quotationService.convertToInvoice(quotationData.CustomerId, quotationData.id);
+        const res = await quotationService.convertToInvoice(quotationData.CustomerId, "" + quotationData.id);
         this.updateStore(res.data);
         invoiceStore.addInvoice(res.data);
         return res.data;
@@ -45,9 +48,9 @@ export const useQuotationStore = defineStore("quotationStore", {
         if (error) indexStore.setError(error);
       }
     },
-    async updateQuotation(quotationData: Quotation) {
+    async updateQuotation(quotationData: Quotations) {
       try {
-        const res = await quotationService.updateQuotation(quotationData)
+        const res = await quotationService.updateQuotation(quotationData);
         this.updateStore(res.data);
         return res.data;
       } catch (error) {
@@ -56,29 +59,21 @@ export const useQuotationStore = defineStore("quotationStore", {
     },
     async deleteQuotation(customerId: string, quotationId: string) {
       try {
-        await quotationService.destroyQuotation(customerId, quotationId)
-        const quotationIndex = this.quotations.findIndex(
-          (item) => item.id === quotationId
-        );
+        await quotationService.destroyQuotation(customerId, quotationId);
+        const quotationIndex = this.quotations.findIndex((item) => "" + item.id === quotationId);
         if (quotationIndex >= 0) this.quotations.splice(quotationIndex, 1);
       } catch (error) {
         if (error) indexStore.setError(error);
       }
     },
     updateStore(quotation) {
-      const quotationIndex = this.quotations.findIndex(
-        (item) => item.id === quotation.id
-      );
+      const quotationIndex = this.quotations.findIndex((item) => item.id === quotation.id);
       if (quotationIndex !== -1) {
-        this.quotations.splice(
-          quotationIndex,
-          1,
-          quotation
-        );
+        this.quotations.splice(quotationIndex, 1, quotation);
       }
     },
     addQuotation(quotation) {
       this.quotations.unshift(quotation);
-    }
-  }
+    },
+  },
 });

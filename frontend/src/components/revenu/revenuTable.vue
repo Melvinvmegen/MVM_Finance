@@ -46,7 +46,12 @@ v-pagination(v-model="query.currentPage" :total-visible='query.perPage' :length=
 </template>
 
 <script setup lang="ts">
-import type Revenu from "../../types/Revenu";
+import type { Revenus, Invoices, Costs, Transactions } from "../../../types/models";
+type RevenuWithCostsInvoicesTransactions = Revenus & {
+  Invoices: Invoices[];
+  Costs: Costs[];
+  Transactions: Transactions[];
+};
 
 const bankStore = useBankStore();
 const indexStore = useIndexStore();
@@ -69,17 +74,17 @@ onBeforeMount(async () => {
   }
 });
 
-function pushToShow(event, revenu: Revenu) {
+function pushToShow(event, revenu: RevenuWithCostsInvoicesTransactions) {
   if (event.target.nodeName !== "TD") return;
   router.push(`/revenus/edit/${revenu.id}?bankId=${revenu.BankId}`);
 }
 
-function revenuDate(revenu: Revenu) {
+function revenuDate(revenu: RevenuWithCostsInvoicesTransactions) {
   const date = new Date(revenu.createdAt);
   return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 }
 
-function returnRevenuNet(revenu: Revenu) {
+function returnRevenuNet(revenu: RevenuWithCostsInvoicesTransactions) {
   if (revenu.taxPercentage) {
     return Math.round(revenu.pro / (1 + revenu.taxPercentage / 100));
   } else {
@@ -87,7 +92,7 @@ function returnRevenuNet(revenu: Revenu) {
   }
 }
 
-function returnInvestmentTotal(revenu: Revenu) {
+function returnInvestmentTotal(revenu: RevenuWithCostsInvoicesTransactions) {
   if (revenu.Transactions) {
     const total = revenu.Transactions.reduce((sum, investment) => sum + investment.total, 0);
     return total.toFixed(2);
@@ -96,7 +101,7 @@ function returnInvestmentTotal(revenu: Revenu) {
   }
 }
 
-function returnTVABalance(revenu: Revenu) {
+function returnTVABalance(revenu: RevenuWithCostsInvoicesTransactions) {
   const tvaDispatched = revenu.Costs?.reduce((sum, cost) => sum + cost.tvaAmount, 0);
   const tvaCollected = revenu.Invoices?.reduce((sum, invoice) => sum + invoice.tvaAmount, 0);
 
@@ -106,8 +111,4 @@ function returnTVABalance(revenu: Revenu) {
     return 0;
   }
 }
-
-onUnmounted(() => {
-  items.value = null;
-});
 </script>

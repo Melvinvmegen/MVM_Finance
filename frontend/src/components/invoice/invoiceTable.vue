@@ -63,7 +63,7 @@ v-card(elevation="3")
 </template>
 
 <script setup lang="ts">
-import type Invoice from "../../types/Invoice";
+import type { Revenus, Invoices } from "../../../types/models";
 
 const props = defineProps({
   customerId: {
@@ -87,7 +87,7 @@ const searchFrom = ref(null);
 const selectedInvoice = ref(null);
 filterAll(itemName);
 
-async function sendEmail(invoice: Invoice) {
+async function sendEmail(invoice: Invoices) {
   indexStore.setLoading(true);
   await invoiceStore.sendEmailInvoice(invoice);
   indexStore.setLoading(false);
@@ -99,13 +99,13 @@ function resetAll() {
   filterAll(itemName, true);
 }
 
-function revenuDate(revenu: Revenu) {
+function revenuDate(revenu: Revenus) {
   if (!revenu) return;
   const date = new Date(revenu.createdAt);
   return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 }
 
-function pushToShow(event, invoice: Invoice) {
+function pushToShow(event, invoice: Invoices) {
   if (invoice.id && event.target.nodeName === "TD") {
     router.push({
       path: `/invoices/edit/${invoice.id}`,

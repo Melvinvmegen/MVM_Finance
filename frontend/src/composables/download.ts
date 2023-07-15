@@ -1,5 +1,3 @@
-import { useIndexStore } from "../store/indexStore";
-
 export function useDownload(store: any) {
   const indexStore = useIndexStore();
 

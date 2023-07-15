@@ -1,9 +1,7 @@
-import { useIndexStore } from "../store/indexStore";
-import { computed, watch, reactive } from "vue";
-
 interface Query {
   currentPage: number;
   perPage: number;
+  id?: number;
   month?: number;
   filter?: string;
   total?: number;

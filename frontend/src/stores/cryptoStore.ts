@@ -1,12 +1,12 @@
 import { defineStore } from "pinia";
 import cryptoService from "../services/cryptoService";
-import type Crypto from "../types/crypto";
-import { useIndexStore } from "./indexStore"
-const indexStore = useIndexStore()
+import type { CryptoCurrencies } from "../../types/models";
+import { useIndexStore } from "./indexStore";
+const indexStore = useIndexStore();
 
 export const useCryptoStore = defineStore("cryptoStore", {
   state: () => ({
-    cryptos: [] as Crypto[],
+    cryptos: [] as CryptoCurrencies[],
   }),
   actions: {
     async getCryptos() {
@@ -14,16 +14,16 @@ export const useCryptoStore = defineStore("cryptoStore", {
       this.setCryptos(data);
       return this.cryptos;
     },
-    async createCrypto(cryptoData: Crypto) {
+    async createCrypto(cryptoData: CryptoCurrencies) {
       try {
         const res = await cryptoService.createCrypto(cryptoData);
-        this.cryptos.unshift(cryptoData); 
+        this.cryptos.unshift(cryptoData);
         return res.data.crypto;
       } catch (error) {
         if (error) indexStore.setError(error);
       }
     },
-    async updateCrypto(cryptoData: Crypto) {
+    async updateCrypto(cryptoData: CryptoCurrencies) {
       try {
         await cryptoService.updateCrypto(cryptoData);
         this.updateStore(cryptoData);
@@ -41,7 +41,7 @@ export const useCryptoStore = defineStore("cryptoStore", {
         if (error) indexStore.setError(error);
       }
     },
-    async swapCrypto(cryptoData: Crypto) {
+    async swapCrypto(cryptoData: CryptoCurrencies) {
       try {
         await cryptoService.swapCrypto(cryptoData);
         this.updateStore(cryptoData);
@@ -49,20 +49,14 @@ export const useCryptoStore = defineStore("cryptoStore", {
         if (error) indexStore.setError(error);
       }
     },
-    setCryptos(cryptos : Crypto[]) {
-      this.cryptos = [ ...cryptos ];
+    setCryptos(cryptos: CryptoCurrencies[]) {
+      this.cryptos = [...cryptos];
     },
     updateStore(cryptoData) {
-      const cryptoIndex = this.cryptos.findIndex(
-        (item) => item.id === cryptoData.id
-      );
+      const cryptoIndex = this.cryptos.findIndex((item) => item.id === cryptoData.id);
       if (cryptoIndex !== -1) {
-        this.cryptos.splice(
-          cryptoIndex,
-          1,
-          cryptoData
-        );
+        this.cryptos.splice(cryptoIndex, 1, cryptoData);
       }
-    }
-  }
+    },
+  },
 });

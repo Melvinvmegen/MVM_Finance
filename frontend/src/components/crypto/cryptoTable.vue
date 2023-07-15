@@ -81,14 +81,14 @@ v-table.pt-3
 </template>
 
 <script setup lang="ts">
-import type Crypto from "../../types/Crypto";
-import type Transaction from "../../types/Transaction";
+import type { CryptoCurrencies, Transactions } from "../../../types/models";
+type CryptoCurrencyWithTransactions = CryptoCurrencies & { Transactions: Transactions[] };
 const indexStore = useIndexStore();
 const cryptoStore = useCryptoStore();
 const itemName = "Cryptos";
 const show_modal = ref(false);
-const mutable_crypto = ref({} as Crypto);
-const swapping_crypto = ref({} as Crypto);
+const mutable_crypto = ref({} as CryptoCurrencyWithTransactions);
+const swapping_crypto = ref({} as CryptoCurrencyWithTransactions);
 const { compute, filterAll } = useFilter(cryptoStore, "cryptos");
 const { items } = compute;
 const parentModelId = ref(0);
@@ -110,7 +110,7 @@ const transactionItemTemplate = {
   RevenuId: null,
 };
 
-function cryptoBuyingDate(crypto: Crypto) {
+function cryptoBuyingDate(crypto: CryptoCurrencyWithTransactions) {
   if (crypto?.Transactions?.length < 1) return;
   const date = new Date(crypto.Transactions.slice(-1)[0].buyingDate);
   return date.toLocaleDateString("fr-FR", {
@@ -120,38 +120,35 @@ function cryptoBuyingDate(crypto: Crypto) {
   });
 }
 
-function returnCryptoPercentageGain(crypto: Crypto) {
+function returnCryptoPercentageGain(crypto: CryptoCurrencyWithTransactions) {
   const final_price = crypto.profit ? Math.round(crypto.profit * 100) / 100 : returnTotalCurrentPrice(crypto);
   const initial_price = returnTotalPricePurchased(crypto);
 
-  return Math.round(((final_price - initial_price) / initial_price) * 100);
+  return Math.round((((final_price || 0) - (initial_price || 0)) / (initial_price || 0)) * 100);
 }
 
-function returnTotalPricePurchased(crypto: Crypto) {
+function returnTotalPricePurchased(crypto: CryptoCurrencyWithTransactions) {
   if (!crypto?.Transactions?.length) return;
   return (
     Math.round(
       crypto.Transactions.reduce(
-        (sum: number, transaction: Transaction) => sum + (transaction.price * transaction.quantity + transaction.fees),
+        (sum: number, transaction) => sum + (transaction.price * transaction.quantity + transaction.fees),
         0,
       ) * 100,
     ) / 100
   );
 }
 
-function returnTotalCurrentPrice(crypto: Crypto) {
+function returnTotalCurrentPrice(crypto: CryptoCurrencyWithTransactions) {
   if (!crypto?.Transactions?.length) return;
   return (
     Math.round(
-      crypto?.Transactions?.reduce(
-        (sum: number, transaction: Transaction) => sum + crypto.price * transaction.quantity,
-        0,
-      ) * 100,
+      crypto?.Transactions?.reduce((sum: number, transaction) => sum + crypto.price * transaction.quantity, 0) * 100,
     ) / 100
   );
 }
 
-function openModal(crypto = {} as Crypto | any, id = 0) {
+function openModal(crypto = {} as CryptoCurrencies | any, id = 0) {
   cryptoDestroyId.value = id;
   show_modal.value = true;
   mutable_crypto.value = {};

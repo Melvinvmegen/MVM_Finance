@@ -72,9 +72,7 @@ v-container
 </template>
 
 <script setup lang="ts">
-import type Quotation from "../types/Quotation";
-import type Customer from "../types/Customer";
-import type Revenu from "../types/Revenu";
+import type { Customers, Quotations, Revenus } from "../../../types/models";
 
 const props = defineProps({
   id: [Number, String],
@@ -85,7 +83,7 @@ const quotationStore = useQuotationStore();
 const revenuStore = useRevenuStore();
 const route = useRoute();
 const router = useRouter();
-const quotation = ref<Quotation | any>({
+const quotation = ref<Quotations | any>({
   firstName: "",
   lastName: "",
   company: "",
@@ -97,8 +95,8 @@ const quotation = ref<Quotation | any>({
   tvaApplicable: false,
   totalTTC: 0,
 });
-const customer = ref<Customer | any>({});
-const revenus = ref<Revenu | any>([]);
+const customer = ref<Customers | any>({});
+const revenus = ref<Revenus | any>([]);
 const customerId = route.query.customerId;
 const { itemsTotal, totalTTC, tvaAmount } = useTotal();
 const quotationItemTemplate = {
@@ -108,6 +106,7 @@ const quotationItemTemplate = {
   name: "",
   unit: 0,
   total: 0,
+  QuotationId: null,
 };
 const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus({ BankId: 1 })];
 if (props.id) setupPromises.push(quotationStore.getQuotation(customerId, props.id));
@@ -119,7 +118,7 @@ Promise.all(setupPromises).then((data) => {
   revenus.value = data[1];
 
   if (data.length > 2) {
-    quotation.value = <Quotation>{ ...data[2] };
+    quotation.value = <Quotations>{ ...data[2] };
     quotation.value.paymentDate = new Date(quotation.value.paymentDate);
     quotationItemTemplate.QuotationId = quotation.value.id;
   } else {

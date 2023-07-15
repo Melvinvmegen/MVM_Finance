@@ -86,7 +86,7 @@ div
 </template>
 
 <script setup lang="ts">
-import type Revenu from "../../types/Revenu";
+import type { Revenus, Costs } from "../../../types/models";
 
 const indexStore = useIndexStore();
 const revenuStore = useRevenuStore();
@@ -95,6 +95,7 @@ const { compute, filterAll } = useFilter(revenuStore, "revenus");
 const { items } = compute;
 const show_modal = ref(false);
 let mutable_bank = ref({
+  id: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   name: "",
@@ -104,7 +105,7 @@ let costChartData = ref(null);
 let creditChartData = ref(null);
 let lineChartData = ref(null);
 const dates: string[] = [];
-let revenu = ref(null);
+let revenu: Ref<(Revenus & { Costs: Costs }) | unknown> = ref(null);
 
 onBeforeMount(async () => {
   await bankStore.getBanks();
@@ -148,7 +149,7 @@ function getCostChartData(revenuData) {
     datasets: [
       {
         label: "",
-        data: [],
+        data: [] as string[],
         backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4"],
       },
     ],
@@ -159,7 +160,7 @@ function getCostChartData(revenuData) {
       if (groupedCosts[group]) {
         chartData.datasets[0].data.push(groupedCosts[group].reduce((sum, cost) => sum + cost.total, 0).toFixed(2));
       } else {
-        chartData.datasets[0].data.push(0);
+        chartData.datasets[0].data.push("0");
       }
     }
   }
@@ -184,7 +185,7 @@ function getCreditChartData(revenuData) {
     datasets: [
       {
         label: "",
-        data: [],
+        data: [] as string[],
         backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4"],
       },
     ],
@@ -195,7 +196,7 @@ function getCreditChartData(revenuData) {
       if (groupedCredits[group]) {
         chartData.datasets[0].data.push(groupedCredits[group].reduce((sum, cost) => sum + cost.total, 0).toFixed(2));
       } else {
-        chartData.datasets[0].data.push(0);
+        chartData.datasets[0].data.push("0");
       }
     }
   }
@@ -237,7 +238,7 @@ function getLineChartData(revenuData) {
       {
         label: "Costs",
         backgroundColor: "#75E6DA",
-        data: [],
+        data: [] as string[],
         fill: false,
         borderColor: "#75E6DA",
       },
@@ -249,9 +250,9 @@ function getLineChartData(revenuData) {
     for (let group of dates) {
       if (groupedCredits[group]) {
         creditTotal += +groupedCredits[group].reduce((sum, cost) => sum + cost.total, 0).toFixed(2);
-        chartData.datasets[0].data.push(creditTotal);
+        chartData.datasets[0].data.push(`${creditTotal}`);
       } else {
-        chartData.datasets[0].data.push(creditTotal);
+        chartData.datasets[0].data.push(`${creditTotal}`);
       }
     }
   }
@@ -261,9 +262,9 @@ function getLineChartData(revenuData) {
     for (let group of dates) {
       if (groupedCosts[group]) {
         costTotal += Math.abs(+groupedCosts[group].reduce((sum, cost) => sum + cost.total, 0).toFixed(2));
-        chartData.datasets[1].data.push(costTotal);
+        chartData.datasets[1].data.push(`${costTotal}`);
       } else {
-        chartData.datasets[1].data.push(costTotal);
+        chartData.datasets[1].data.push(`${costTotal}`);
       }
     }
   }
@@ -275,7 +276,7 @@ const chartOptions = {
   responsive: true,
 };
 
-function revenuDate(revenu: Revenu) {
+function revenuDate(revenu: Revenus) {
   const date = new Date(revenu?.createdAt);
   return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 }

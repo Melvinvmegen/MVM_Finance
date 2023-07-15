@@ -53,8 +53,8 @@ v-pagination(v-model="query.currentPage" :total-visible='query.perPage' :length=
 </template>
 
 <script setup lang="ts">
-import type Customer from "../../types/Customer";
-
+import type { Customers, Invoices } from "../../../types/models";
+type CustomerWithInvoices = Customers & { Invoices: Invoices[] };
 const customerStore = useCustomerStore();
 const { compute, filterAll, query } = useFilter(customerStore, "customers");
 const { pages, items } = compute;
@@ -65,7 +65,7 @@ const searchFrom = ref(null);
 
 filterAll(itemName);
 
-function returnUnpaidInvoiceTotal(customer: Customer) {
+function returnUnpaidInvoiceTotal(customer: CustomerWithInvoices) {
   if (customer.Invoices) {
     return customer.Invoices.filter((invoice) => !invoice.paid).reduce(
       (sum, invoice) => sum + (invoice.totalTTC || invoice.total),
@@ -74,7 +74,7 @@ function returnUnpaidInvoiceTotal(customer: Customer) {
   }
 }
 
-function returnPaidInvoiceTotal(customer: Customer) {
+function returnPaidInvoiceTotal(customer: CustomerWithInvoices) {
   if (customer.Invoices) {
     return customer.Invoices.filter((invoice) => invoice.paid).reduce(
       (sum, invoice) => sum + (invoice.totalTTC || invoice.total),
@@ -83,7 +83,7 @@ function returnPaidInvoiceTotal(customer: Customer) {
   }
 }
 
-function returnTvaAmount(customer: Customer) {
+function returnTvaAmount(customer: CustomerWithInvoices) {
   if (customer.Invoices) {
     return customer.Invoices.filter((invoice) => invoice.paid).reduce((sum, invoice) => sum + invoice.tvaAmount, 0);
   }
@@ -94,7 +94,7 @@ function resetAll() {
   filterAll(itemName, true);
 }
 
-function pushToShow(customer: Customer) {
+function pushToShow(customer: Customers) {
   if (customer.id) router.push({ path: `/customers/edit/${customer.id}` });
 }
 </script>
