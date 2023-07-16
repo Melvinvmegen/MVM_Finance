@@ -17,7 +17,7 @@ v-container(:class="display.mobile.value ? 'pt-0' : 'pa-0'")
 </template>
 
 <script setup lang="ts">
-import AuthService from "../../services/authService";
+import { signUp, signIn } from "../../utils/generated/api-public";
 
 const indexStore = useIndexStore();
 const userStore = useUserStore();
@@ -33,8 +33,8 @@ if (loggedIn.value) {
 async function handleSubmit(user: any): Promise<void> {
   indexStore.setLoading(true);
   try {
-    if (!isSignIn.value) await AuthService.signUp(user);
-    const auth = await AuthService.signIn(user);
+    if (!isSignIn.value) await signUp(user);
+    const auth = await signIn(user);
     await userStore.signIn(auth);
     window.location.href = `${window.location.origin}/dashboard`;
   } finally {

@@ -17,7 +17,7 @@ export default async function (app) {
  * @this {API.This}
  * @returns {Promise<Models.CryptoCurrencies>}
  */
-async function getCryptos() {
+export async function getCryptos() {
   const cryptos = await getOrSetCache(`cryptos`, async () => {
     const data = await prisma.cryptoCurrencies.findMany({
       where: {
@@ -39,7 +39,7 @@ async function getCryptos() {
  * @param {Models.Prisma.CryptoCurrenciesUncheckedCreateInput & { Transactions: Models.Prisma.TransactionsCreateInput[] }} body
  * @returns {Promise<Models.CryptoCurrencies & { Transactions: Models.Transactions[] }>}
  */
-async function createCrypto(body) {
+export async function createCrypto(body) {
   const { Transactions, ...cryptoBody } = body;
   // @ts-ignore
   // TODO: replace this with ofetch
@@ -119,7 +119,7 @@ async function createCrypto(body) {
  * @param {number} cryptoId
  * @param {Models.Prisma.CryptoCurrenciesUncheckedUpdateInput & { Transactions: Models.Prisma.TransactionsUpdateInput[]}} body
  */
-async function updateCrypto(cryptoId, body) {
+export async function updateCrypto(cryptoId, body) {
   const { Transactions, ...crypto_body } = body;
 
   let crypto = await prisma.cryptoCurrencies.findFirst({
@@ -211,7 +211,7 @@ async function updateCrypto(cryptoId, body) {
  * @this {API.This}
  * @returns {Promise<Models.CryptoCurrencies[]>}
  */
-async function refreshCryptos() {
+export async function refreshCryptos() {
   let requestOptions = {
     method: "GET",
     url: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",

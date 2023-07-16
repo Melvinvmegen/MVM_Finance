@@ -19,7 +19,7 @@ export default async function (app) {
  * @param {{ per_page: number, offset: number, force: string, options: any }} params
  * @returns {Promise<{count: number, rows: Models.Customers[]}>}
  */
-async function getCustomers(params) {
+export async function getCustomers(params) {
   const { per_page, offset, options } = setFilters(params);
   const force = params.force === "true";
   options.UserId = this.request?.user?.id;
@@ -50,7 +50,7 @@ async function getCustomers(params) {
  * @param {number} customerId
  * @returns {Promise<Models.Customers>}
  */
-async function getCustomer(customerId) {
+export async function getCustomer(customerId) {
   const customer = await getOrSetCache(`customer_${customerId}`, async () => {
     const customer = await prisma.customers.findFirst({
       where: {
@@ -71,7 +71,7 @@ async function getCustomer(customerId) {
  * @param {Models.Prisma.CustomersUncheckedCreateInput} body
  * @returns {Promise<Models.Customers & { Invoices: Models.Invoices[] }>}
  */
-async function createCustomer(body) {
+export async function createCustomer(body) {
   const customer = await prisma.customers.create({
     data: {
       ...body,
@@ -91,7 +91,7 @@ async function createCustomer(body) {
  * @param {Models.Prisma.CustomersUncheckedUpdateInput} body
  * @returns {Promise<Models.Customers>}
  */
-async function updateCustomer(customerId, body) {
+export async function updateCustomer(customerId, body) {
   const { Invoices, Quotations, ...customerBody } = body;
 
   let customer = await prisma.customers.findFirst({
@@ -122,7 +122,7 @@ async function updateCustomer(customerId, body) {
  * @param {string} customerId
  * @returns {Promise<Models.Customers>}
  */
-async function deleteCustomer(customerId) {
+export async function deleteCustomer(customerId) {
   await prisma.customers.delete({
     where: {
       id: +customerId,

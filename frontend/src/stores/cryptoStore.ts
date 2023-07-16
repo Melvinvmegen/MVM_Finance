@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import cryptoService from "../services/cryptoService";
+import { getCryptos, createCrypto, updateCrypto, refreshCryptos } from "../utils/generated/api-user";
 import type { CryptoCurrencies } from "../../types/models";
 import { useIndexStore } from "./indexStore";
 const indexStore = useIndexStore();
@@ -10,13 +10,13 @@ export const useCryptoStore = defineStore("cryptoStore", {
   }),
   actions: {
     async getCryptos() {
-      const { data } = await cryptoService.getCryptos();
+      const { data } = await getCryptos();
       this.setCryptos(data);
       return this.cryptos;
     },
     async createCrypto(cryptoData: CryptoCurrencies) {
       try {
-        const res = await cryptoService.createCrypto(cryptoData);
+        const res = await createCrypto(cryptoData);
         this.cryptos.unshift(cryptoData);
         return res.data.crypto;
       } catch (error) {
@@ -25,7 +25,7 @@ export const useCryptoStore = defineStore("cryptoStore", {
     },
     async updateCrypto(cryptoData: CryptoCurrencies) {
       try {
-        await cryptoService.updateCrypto(cryptoData);
+        await updateCrypto(cryptoData.id, cryptoData);
         this.updateStore(cryptoData);
         return cryptoData;
       } catch (error) {
@@ -33,7 +33,7 @@ export const useCryptoStore = defineStore("cryptoStore", {
       }
     },
     async updateCryptos() {
-      const { data } = await cryptoService.updateCryptos();
+      const { data } = await refreshCryptos();
 
       try {
         this.setCryptos(data.updateCryptos);
@@ -43,7 +43,8 @@ export const useCryptoStore = defineStore("cryptoStore", {
     },
     async swapCrypto(cryptoData: CryptoCurrencies) {
       try {
-        await cryptoService.swapCrypto(cryptoData);
+        // TODO: reimplement this
+        // await swapCrypto(cryptoData);
         this.updateStore(cryptoData);
       } catch (error) {
         if (error) indexStore.setError(error);

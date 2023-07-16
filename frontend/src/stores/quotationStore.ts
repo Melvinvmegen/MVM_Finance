@@ -1,5 +1,14 @@
 import { defineStore } from "pinia";
-import quotationService from "../services/quotationService";
+import {
+  getQuotations,
+  getQuotation,
+  sendQuotation,
+  createQuotation,
+  deleteQuotation,
+  updateQuotation,
+  convertQuotationToInvoice,
+  downloadQuotation,
+} from "../utils/generated/api-user";
 import type { Quotations } from "../../types/models";
 import { useIndexStore } from "./indexStore";
 import { useInvoiceStore } from "./invoiceStore";
@@ -13,25 +22,26 @@ export const useQuotationStore = defineStore("quotationStore", {
   }),
   actions: {
     async getQuotations(query: any) {
-      const { data }: { data: { rows: Quotations[]; count: string } } = await quotationService.getQuotations(
-        query.CustomerId,
-        query,
-      );
+      const { data }: { data: { rows: Quotations[]; count: string } } = await getQuotations(query.CustomerId, query);
       this.quotations = [...data.rows];
       this.count = +data.count;
       return this.quotations;
     },
     async getQuotation(customerId: string, quotationId: string) {
-      const res = await quotationService.getQuotation(customerId, quotationId);
+      const res = await getQuotation(customerId, quotationId);
       return res.data;
     },
     async getQuotationPDF(customerId: string, quotationId: string) {
-      const res = await quotationService.getQuotationPDF(customerId, quotationId);
+      const res = await downloadQuotation(customerId, quotationId);
+      return res;
+    },
+    async sendEmailQuotation(customerId: string, quotationId: string) {
+      const res = await sendQuotation(customerId, quotationId);
       return res;
     },
     async createQuotation(quotationData: Quotations) {
       try {
-        const res = await quotationService.createQuotation(quotationData);
+        const res = await createQuotation(quotationData.CustomerId, quotationData);
         this.addQuotation(res.data);
         return res.data;
       } catch (error) {
@@ -40,7 +50,7 @@ export const useQuotationStore = defineStore("quotationStore", {
     },
     async convertToInvoice(quotationData: Quotations) {
       try {
-        const res = await quotationService.convertToInvoice(quotationData.CustomerId, "" + quotationData.id);
+        const res = await convertQuotationToInvoice(quotationData.CustomerId, "" + quotationData.id);
         this.updateStore(res.data);
         invoiceStore.addInvoice(res.data);
         return res.data;
@@ -50,7 +60,7 @@ export const useQuotationStore = defineStore("quotationStore", {
     },
     async updateQuotation(quotationData: Quotations) {
       try {
-        const res = await quotationService.updateQuotation(quotationData);
+        const res = await updateQuotation(quotationData.CustomerId, quotationData.id, quotationData);
         this.updateStore(res.data);
         return res.data;
       } catch (error) {
@@ -59,7 +69,7 @@ export const useQuotationStore = defineStore("quotationStore", {
     },
     async deleteQuotation(customerId: string, quotationId: string) {
       try {
-        await quotationService.destroyQuotation(customerId, quotationId);
+        await deleteQuotation(customerId, quotationId);
         const quotationIndex = this.quotations.findIndex((item) => "" + item.id === quotationId);
         if (quotationIndex >= 0) this.quotations.splice(quotationIndex, 1);
       } catch (error) {

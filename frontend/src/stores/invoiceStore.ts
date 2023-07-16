@@ -1,5 +1,13 @@
 import { defineStore } from "pinia";
-import invoiceService from "../services/invoiceService";
+import {
+  getInvoices,
+  getInvoice,
+  downloadInvoice,
+  sendInvoice,
+  createInvoice,
+  updateInvoice,
+  deleteInvoice,
+} from "../utils/generated/api-user";
 import type { Invoices } from "../../types/models";
 import { useIndexStore } from "./indexStore";
 const indexStore = useIndexStore();
@@ -11,38 +19,35 @@ export const useInvoiceStore = defineStore("invoiceStore", {
   }),
   actions: {
     async getInvoices(query: any) {
-      const { data }: { data: { rows: Invoices[]; count: string } } = await invoiceService.getInvoices(
-        query.CustomerId,
-        query,
-      );
+      const { data }: { data: { rows: Invoices[]; count: string } } = await getInvoices(query.CustomerId, query);
       this.invoices = [...data.rows];
       this.count = +data.count;
       return this.invoices;
     },
     async getInvoice(customerId: string, invoiceId: string) {
-      const res = await invoiceService.getInvoice(customerId, invoiceId);
+      const res = await getInvoice(customerId, invoiceId);
       return res.data;
     },
     async getInvoicePDF(customerId: string, invoiceId: string) {
-      const res = await invoiceService.getInvoicePDF(customerId, invoiceId);
+      const res = await downloadInvoice(customerId, invoiceId);
       return res;
     },
-    async sendEmailInvoice(invoice: Invoices) {
-      const res = await invoiceService.sendEmailInvoice(invoice);
+    async sendEmailInvoice(customerId: string, invoiceId: Invoices) {
+      const res = await sendInvoice(customerId, invoiceId);
       return res;
     },
-    async createInvoice(invoiceData: Invoices) {
+    async createInvoice(customerId: string, invoiceData: Invoices) {
       try {
-        const res = await invoiceService.createInvoice(invoiceData);
+        const res = await createInvoice(customerId, invoiceData);
         this.addInvoice(res.data);
         return res.data;
       } catch (error) {
         if (error) indexStore.setError(error);
       }
     },
-    async updateInvoice(invoiceData: Invoices) {
+    async updateInvoice(customerId: string, invoiceData: Invoices) {
       try {
-        const res = await invoiceService.updateInvoice(invoiceData);
+        const res = await updateInvoice(customerId, invoiceData.id, invoiceData);
         const invoiceIndex = this.invoices.findIndex((item) => item.id === invoiceData.id);
         if (invoiceIndex !== -1) {
           this.invoices.splice(invoiceIndex, 1, res.data);
@@ -54,14 +59,14 @@ export const useInvoiceStore = defineStore("invoiceStore", {
     },
     async deleteInvoice(customerId: string, invoiceId: string) {
       try {
-        await invoiceService.destroyInvoice(customerId, invoiceId);
+        await deleteInvoice(customerId, invoiceId);
         const invoiceIndex = this.invoices.findIndex((item) => "" + item.id === invoiceId);
         if (invoiceIndex >= 0) this.invoices.splice(invoiceIndex, 1);
       } catch (error) {
         if (error) indexStore.setError(error);
       }
     },
-    addInvoice(invoice: Invoice) {
+    addInvoice(invoice: Invoices) {
       this.invoices.unshift(invoice);
     },
   },

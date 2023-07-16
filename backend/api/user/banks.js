@@ -17,7 +17,7 @@ export default async function (app) {
  * @param {{ force: string }} params
  * @returns {Promise<Models.Banks[]>}
  */
-async function getBanks(params) {
+export async function getBanks(params) {
   const force = params.force === "true";
   const result = await getOrSetCache(
     "banks",
@@ -40,7 +40,7 @@ async function getBanks(params) {
  * @param {number} bankId
  * @returns {Promise<Models.Banks>}
  */
-async function getBank(bankId) {
+export async function getBank(bankId) {
   const bank = await getOrSetCache(`bank_${bankId}`, async () => {
     const bank = await prisma.banks.findFirst({
       where: {
@@ -59,7 +59,7 @@ async function getBank(bankId) {
  * @param {Models.Prisma.BanksUncheckedCreateInput} body
  * @returns {Promise<Models.Banks>}
  */
-async function createBank(body) {
+export async function createBank(body) {
   const bank = await prisma.banks.create({
     data: {
       ...body,
@@ -77,7 +77,7 @@ async function createBank(body) {
  * @returns
  */
 
-async function updateBank(bankId, body) {
+export async function updateBank(bankId, body) {
   let bank = await prisma.banks.findFirst({
     where: {
       id: +bankId,

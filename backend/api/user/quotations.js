@@ -25,7 +25,7 @@ export default async function (app) {
  * @param {{ per_page: number, offset: number, force: string, options: any }} params
  * @returns {Promise<{ count: number, rows:Models.Quotations[] & { Revenus: Models.Revenus} }>}
  */
-async function getQuotations(params) {
+export async function getQuotations(params) {
   const { CustomerId } = params.options;
   const { per_page, offset, options } = setFilters(params);
   const force = params.force === "true";
@@ -70,7 +70,7 @@ async function getQuotations(params) {
  * @param {number} quotationId
  * @returns {Promise<Models.Quotations[] & { InvoiceItems: Models.InvoiceItems}>}
  */
-async function getQuotation(quotationId) {
+export async function getQuotation(quotationId) {
   const quotation = await getOrSetCache(`quotation_${quotationId}`, async () => {
     const data = await prisma.quotations.findUnique({
       where: {
@@ -93,7 +93,7 @@ async function getQuotation(quotationId) {
  * @param { number } quotationId
  * @returns {Promise<API.DownloadReturns>}
  */
-async function downloadQuotation(quotationId) {
+export async function downloadQuotation(quotationId) {
   const quotation = await getOrSetCache(`quotation_${quotationId}`, async () => {
     const data = await prisma.quotations.findUnique({
       where: {
@@ -120,7 +120,7 @@ async function downloadQuotation(quotationId) {
  * @param {Models.Prisma.QuotationsCreateInput & { InvoiceItems: Models.Prisma.InvoiceItemsCreateInput }} body
  * @returns {Promise<Models.Quotations & {InvoiceItems: Models.InvoiceItems[]}>}
  */
-async function createQuotation(body) {
+export async function createQuotation(body) {
   const { InvoiceItems, ...quotationBody } = body;
 
   const quotation = await prisma.quotations.create({
@@ -145,7 +145,7 @@ async function createQuotation(body) {
  * @param {Models.Prisma.QuotationsUpdateInput & {InvoiceItems: Models.Prisma.InvoiceItemsUpdateInput}} body
  * @returns {Promise<Models.Quotations & {Revenus: Models.Revenus}>}
  */
-async function updateQuotation(quotationId, body) {
+export async function updateQuotation(quotationId, body) {
   const { InvoiceItems, ...quotationBody } = body;
 
   const quotation = await prisma.quotations.update({
@@ -177,7 +177,7 @@ async function updateQuotation(quotationId, body) {
  * @param {number} quotationId
  * @returns {Promise<Models.Invoices & {InvoiceItems: Models.InvoiceItems[]}>}
  */
-async function convertQuotationToInvoice(quotationId) {
+export async function convertQuotationToInvoice(quotationId) {
   const quotation = await prisma.quotations.findUnique({
     select: {
       id: true,
@@ -243,7 +243,7 @@ async function convertQuotationToInvoice(quotationId) {
  * @this {API.This}
  * @param {number} quotationId
  */
-async function sendQuotation(quotationId) {
+export async function sendQuotation(quotationId) {
   const quotation = await prisma.quotations.findFirstOrThrow({
     where: { id: +quotationId },
     include: {
@@ -260,7 +260,7 @@ async function sendQuotation(quotationId) {
  * @this {API.This}
  * @param {number} quotationId
  */
-async function deleteQuotation(quotationId) {
+export async function deleteQuotation(quotationId) {
   const quotation = await prisma.quotations.delete({
     where: { id: +quotationId },
     select: {

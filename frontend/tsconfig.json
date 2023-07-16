@@ -21,6 +21,7 @@
   "include": [
     "./types/*.d.ts",
     "src/**/*.ts",
+    "src/**/*.js",
     "src/**/*.vue",
     "./node_modules/vuetify/dist/vuetify.d.ts",
     "../backend/node_modules/.prisma/client/index.d.ts",

@@ -8,7 +8,7 @@ import { prisma, Models } from "../../util/prisma.js";
  */
 export default async function (app) {
   app.$post("/signup", signUp);
-  app.$post("/login", login);
+  app.$post("/signin", signIn);
   app.$post("/refresh-token", refreshToken);
 }
 
@@ -17,7 +17,7 @@ export default async function (app) {
  * @param {{ email: string, password: string }} body
  * @returns {Promise<Models.Users>}
  */
-async function signUp(body) {
+export async function signUp(body) {
   const { email, password } = body;
   let user = await prisma.users.findUnique({
     where: { email: email },
@@ -39,7 +39,7 @@ async function signUp(body) {
  * @param {{ email: string, password: string }} body
  * @returns {Promise<{message: string, userId: number, refresh_token: string, token: string, cryptosModuleActive: boolean, customersModuleActive: boolean, revenusModuleActive: boolean}>}
  */
-async function login(body) {
+export async function signIn(body) {
   const user = await prisma.users.findUnique({
     where: { email: body.email },
   });
@@ -78,7 +78,7 @@ async function login(body) {
  * @param {{ refreshToken: Models.RefreshTokens }} body
  * @returns {Promise<{refreshToken: string, token: string }>}
  */
-async function refreshToken(body) {
+export async function refreshToken(body) {
   const { refreshToken } = body;
 
   if (!refreshToken) throw new AppError(403, "Refresh Token is required!");

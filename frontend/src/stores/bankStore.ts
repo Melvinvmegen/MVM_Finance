@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import bankService from "../services/bankService";
+import { getBank, getBanks, createBank, updateBank } from "../utils/generated/api-user";
 import type { Banks } from "../../types/models";
 
 import { useIndexStore } from "./indexStore";
@@ -12,16 +12,16 @@ export const useBankStore = defineStore("bankStore", {
   }),
   actions: {
     async getBanks() {
-      const { data } = await bankService.getBanks();
+      const { data } = await getBanks();
       return (this.banks = data);
     },
     async getBank(bankId: string) {
-      const res = await bankService.getBank(bankId);
+      const res = await getBank(bankId);
       return res.data;
     },
     async createBank(bankData: Banks) {
       try {
-        const res = await bankService.createBank(bankData);
+        const res = await createBank(bankData);
         this.banks.unshift(bankData);
         return res.data.bank;
       } catch (error) {
@@ -30,7 +30,7 @@ export const useBankStore = defineStore("bankStore", {
     },
     async updateBank(bankData: Banks) {
       try {
-        await bankService.updateBank(bankData);
+        await updateBank(bankData.id, bankData);
         const bankIndex = this.banks.findIndex((item) => item.id === bankData.id);
         if (bankIndex !== -1) {
           this.banks.splice(bankIndex, 1, bankData);

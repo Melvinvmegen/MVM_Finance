@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
-import AuthService from "../services/authService";
-import TokenService from "../services/tokenService";
+import { signUp, refreshToken } from "../utils/generated/api-public";
+import TokenService from "../utils/tokenService";
 import type { Users } from "../../types/models";
 import api from "../services/api";
 import { useIndexStore } from "./indexStore";
@@ -59,7 +59,7 @@ export const useUserStore = defineStore("userStore", {
 
     signUp(user: Users) {
       const indexStore = useIndexStore();
-      return AuthService.signUp(user).then(
+      return signUp(user).then(
         (response) => {
           this.auth = user;
           return Promise.resolve(response.data);
@@ -72,7 +72,7 @@ export const useUserStore = defineStore("userStore", {
     },
     async refreshToken() {
       if (!this.auth) return;
-      const data = await AuthService.refreshtoken(TokenService.getLocalRefreshToken());
+      const data = await refreshToken(TokenService.getLocalRefreshToken());
       const { token } = data;
       this.auth = { ...this.auth, token };
       TokenService.updateLocalToken(token);

@@ -1,8 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import axios, { AxiosInstance } from "axios";
-import TokenService from "./tokenService";
-import { useIndexStore } from "../store/indexStore"
-import { useUserStore } from "../store/userStore"
+import TokenService from "../utils/tokenService";
+import { useIndexStore } from "../stores/indexStore";
+import { useUserStore } from "../stores/userStore";
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_APP_API_URL || "http://localhost:8080/api",
@@ -22,7 +22,7 @@ apiClient.interceptors.request.use(
 
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 apiClient.interceptors.response.use(
@@ -32,7 +32,7 @@ apiClient.interceptors.response.use(
     const indexStore = useIndexStore();
     const userStore = useUserStore();
     if (!error.response) {
-      indexStore.setError("Le serveur n'est pas accessible. Réessayez dans quelques secondes.")
+      indexStore.setError("Le serveur n'est pas accessible. Réessayez dans quelques secondes.");
       return performRetry(error, null);
     }
     const status = error.response.status;
@@ -41,12 +41,12 @@ apiClient.interceptors.response.use(
     switch (status) {
       case 401:
         console.log("401 Unauthorized", errorData);
-        indexStore.setError("Il semblerait que vos authorisations ne vous authorise pas à accéder à cette ressource.")
+        indexStore.setError("Il semblerait que vos authorisations ne vous authorise pas à accéder à cette ressource.");
         if (originalConfig.url !== "/users/login" && error.response) {
           if (error.response.status === 401 && !originalConfig._retry) {
             originalConfig._retry = true;
             try {
-              userStore.refreshToken()
+              userStore.refreshToken();
               return apiClient(originalConfig);
             } catch (error) {
               userStore.logout();
@@ -60,35 +60,29 @@ apiClient.interceptors.response.use(
         break;
       case 404:
         console.log("404 Not found", errorData);
-        indexStore.setError(errorData.message)
+        indexStore.setError(errorData.message);
         break;
       case 400:
         console.log("400 Bad request", errorData);
-        indexStore.setError(errorData.message)
+        indexStore.setError(errorData.message);
         break;
       default:
         console.log("Unexpected error", status, errorData);
-        indexStore.setError("Oups, nous avons rencontré une erreur inattendue")
+        indexStore.setError("Oups, nous avons rencontré une erreur inattendue");
     }
     return performRetry(error, errorData);
-  }
+  },
 );
 
 function performRetry(err, rejectData) {
   const rejectDataToReturn = rejectData || err;
   const status = err.response?.status;
-  const httpStatusesToFailFast = [
-    400,
-    401,
-    404,
-    500
-  ];
+  const httpStatusesToFailFast = [400, 401, 404, 500];
 
   if (status && httpStatusesToFailFast.some((value) => value === status)) return Promise.reject(rejectDataToReturn);
 
   const config = err.config || {};
   config.__retryCount = config.__retryCount || 5;
-  console.log(config.__retryCount)
   if (config.__retryCount >= config.retry) return Promise.reject(rejectDataToReturn);
 
   config.__retryCount += 1;

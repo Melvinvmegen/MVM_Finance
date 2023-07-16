@@ -1,5 +1,3 @@
-import type User from "../types/user";
-
 class TokenService {
   getLocalRefreshToken() {
     const user: any = this.getUser();

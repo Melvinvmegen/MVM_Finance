@@ -21,7 +21,7 @@ export default async function (app) {
  * @param {{ per_page: number, offset: number, force: string, options: any }} params
  * @returns {Promise<{ count: number, rows:Models.Revenus[] & { Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions, Banks: Models.Banks} }>}
  */
-async function getRevenus(params) {
+export async function getRevenus(params) {
   const { per_page, offset, options } = setFilters(params);
   const force = params.force === "true";
   options.Banks = {
@@ -63,7 +63,7 @@ async function getRevenus(params) {
  * @param {number} revenuId
  * @returns {Promise<Models.Revenus[] & { Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions, Banks: Models.Banks}>}
  */
-async function getRevenu(revenuId) {
+export async function getRevenu(revenuId) {
   const revenu = await getOrSetCache(`revenu_${revenuId}`, async () => {
     const revenu_fetched = await prisma.revenus.findUnique({
       where: {
@@ -103,7 +103,7 @@ let cost_category_cache = {};
  * @param {string} bankId
  * @param {API.UploadData} upload
  */
-async function createRevenu(bankId, upload) {
+export async function createRevenu(bankId, upload) {
   if (!upload.mimetype.includes("csv")) throw new AppError(400, "Please upload a CSV file!");
   let revenu;
   const costs = [];
@@ -295,7 +295,7 @@ async function createRevenu(bankId, upload) {
  * @param {Models.Prisma.RevenusUpdateInput} body
  * @returns {Promise<Models.Revenus & {Credits: Models.Credits[], Costs: Models.Costs[], Banks: Models.Banks}>}
  */
-async function updateRevenu(revenuId, body) {
+export async function updateRevenu(revenuId, body) {
   const { Credits, Costs, Quotations, Transactions, Invoices, Banks, ...revenuBody } = body;
   let revenu = await prisma.revenus.findUnique({
     where: {

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import customerService from "../services/customerService";
+import { getCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer } from "../utils/generated/api-user";
 import type { Customers } from "../../types/models";
 import { useIndexStore } from "./indexStore";
 const indexStore = useIndexStore();
@@ -12,18 +12,18 @@ export const useCustomerStore = defineStore("customerStore", {
   actions: {
     async getCustomers(query: any) {
       this.customers = [];
-      const { data }: { data: { rows: Customers[]; count: string } } = await customerService.getCustomers(query);
+      const { data }: { data: { rows: Customers[]; count: string } } = await getCustomers(query);
       this.customers = [...data.rows];
       this.count = +data.count;
       return this.customers;
     },
     async getCustomer(customerId: string) {
-      const res = await customerService.getCustomer(customerId);
+      const res = await getCustomer(customerId);
       return res.data;
     },
     async createCustomer(customerData: Customers) {
       try {
-        const res = await customerService.createCustomer(customerData);
+        const res = await createCustomer(customerData);
         this.customers.unshift(res.data);
         return res.data;
       } catch (error) {
@@ -32,7 +32,7 @@ export const useCustomerStore = defineStore("customerStore", {
     },
     async updateCustomer(customerData: Customers) {
       try {
-        await customerService.updateCustomer(customerData);
+        await updateCustomer(customerData.id, customerData);
         const customerIndex = this.customers.findIndex((item) => item.id === customerData.id);
         if (customerIndex !== -1) {
           this.customers.splice(customerIndex, 1, customerData);
@@ -43,7 +43,7 @@ export const useCustomerStore = defineStore("customerStore", {
     },
     async deleteCustomer(customerId: string) {
       try {
-        await customerService.destroyCustomer(customerId);
+        await deleteCustomer(customerId);
         const customerIndex = this.customers.findIndex((item) => "" + item.id === customerId);
         if (customerIndex >= 0) this.customers.splice(customerIndex, 1);
       } catch (error) {

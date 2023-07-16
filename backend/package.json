@@ -9,12 +9,14 @@
   "private": true,
   "scripts": {
     "test": "test",
-    "start": "yarn run prisma_generate && concurrently npm:serve npm:prisma_deploy",
+    "start": "yarn run prisma_generate && concurrently npm:serve npm:prisma_deploy npm:apiclient_watch",
     "serve": "nodemon -r dotenv/config server.js --quiet --colors",
     "prisma_generate": "node ./scripts/generatePrismaClient.js",
     "prisma_deploy": "echo Applying migrations ... && prisma migrate deploy >> ./node_modules/.prisma/logs.txt",
     "prisma_migrate": "prisma migrate dev",
     "prisma_watch": "prisma generate --watch",
+    "apiclient_generate": "node ./scripts/generateApiClient.js",
+    "apiclient_watch": "chokidar \"./api/**/*.js\" --silent --initial  -c \"node ./scripts/generateApiClient.js\"",
     "redis": "redis-server --port 6360",
     "build": "npx tsc",
     "lint": "eslint . --ignore-path .gitignore",
@@ -57,6 +59,7 @@
     "prettier": "^2.8.8",
     "prisma": "^4.16.1",
     "typescript": "^4.8.4",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "chokidar-cli": "^3.0.0"
   }
 }
