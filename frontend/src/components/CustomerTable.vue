@@ -2,16 +2,16 @@
 v-form(@submit.prevent ref="searchFrom")
   v-row
     v-col(cols="12" sm="3" md="2")
-      v-text-field(variant="outlined" density="compact" hide-details label='Nom' name='by_name' v-model='query.lastName' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details label='Nom' name='by_name' v-model='query.lastName' @blur='filterAll(itemName, true)')
 
     v-col(cols="12" sm="3" md="2")
-      v-text-field(variant="outlined" density="compact" hide-details label='Email' name='by_email' v-model='query.email' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details label='Email' name='by_email' v-model='query.email' @blur='filterAll(itemName, true)')
 
     v-col(cols="12" sm="3" md="2")
-      v-text-field(variant="outlined" density="compact" hide-details label='Ville' name='by_city' v-model='query.city' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details label='Ville' name='by_city' v-model='query.city' @blur='filterAll(itemName, true)')
 
     v-col.mr-2(cols="12" sm="3" md="2")
-      v-text-field(variant="outlined" hide-details density="compact" label='Téléphone' name='by_phone' v-model='query.phone' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details  label='Téléphone' name='by_phone' v-model='query.phone' @blur='filterAll(itemName, true)')
 
     v-row(align="center")
       v-btn.bg-secondary Rechercher

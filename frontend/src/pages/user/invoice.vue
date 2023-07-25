@@ -14,14 +14,14 @@ v-container
             v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
             v-row(dense)
               v-col(cols="2")
-                v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="invoice.RevenuId" label='Revenu' density="compact" )
+                v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="invoice.RevenuId" label='Revenu'  )
               v-col(cols="2")
                 DateInput(:value="invoice.paymentDate")
                 v-icon mdi-calendar
               v-col(cols="2")
-                v-switch(name='paid' label='Payé' v-model="invoice.paid" color="secondary" variant="outlined")
+                v-switch(name='paid' label='Payé' v-model="invoice.paid" color="secondary" )
               v-col(cols="2")
-                v-switch(name='tvaApplicable' label='TVA applicable' v-model="invoice.tvaApplicable" @change="updateTotal(invoice)" color="secondary" variant="outlined")
+                v-switch(name='tvaApplicable' label='TVA applicable' v-model="invoice.tvaApplicable" @change="updateTotal(invoice)" color="secondary" )
             v-row
               v-col(cols="3") Référence
               v-col(cols="2") Prix unitaire
@@ -33,13 +33,13 @@ v-container
               div(v-for='(item, index) in invoice.InvoiceItems' :key="item.id || index")
                 v-row(v-if="item?.markedForDestruction !== true")
                   v-col(cols="3")
-                    v-text-field(label='Référence' density="compact" v-model="item.name" type='text' variant="outlined")
+                    v-text-field(label='Référence' v-model="item.name" :rules="[$v.required()]")
                   v-col(cols="3")
-                    v-text-field(label='Prix unitaire' density="compact" v-model.number="item.unit" @change="updateTotal(item)" type='number' variant="outlined")
+                    v-text-field(label='Prix unitaire' v-model.number="item.unit" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
                   v-col(cols="3")
-                    v-text-field(label='Quantité' density="compact" v-model.number="item.quantity" @change="updateTotal(item)" type='number' variant="outlined")
+                    v-text-field(label='Quantité' v-model.number="item.quantity" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
                   v-col(cols="2")
-                    v-text-field(label='Total' density="compact" v-model="item.total" :disabled='true' type='number' variant="outlined")
+                    v-text-field(label='Total' v-model="item.total" :disabled='true')
                   v-col(cols="1")
                     v-btn(color="error" href='#' @click.prevent='removeItem(item)')
                       v-icon mdi-delete

@@ -8,31 +8,31 @@ v-container
             .d-flex
               span {{ "Editer vos revenus de " + revenuMonth }}
               v-spacer 
-              v-btn(icon="mdi-arrow-left" color="white" variant="outlined" @click='router.go(-1)')
+              v-btn(icon="mdi-arrow-left" color="white"  @click='router.go(-1)')
 
           v-card-text
             v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
             v-row(dense)
               v-col(cols="2")
-                v-text-field(name='taxPercentage' label='% Taxe' density="compact" v-model="revenu.taxPercentage" type='number' variant="outlined")
+                v-text-field(name='taxPercentage' label='% Taxe'  v-model="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
 
             div(v-if='revenu?.Invoices?.length')
               v-card-title Factures : 
               transition-group(name='slide-up')
                 v-row(v-for='invoice in revenu.Invoices' :key="invoice.id")
                   v-col(cols="3")
-                    v-text-field(label='name' density="compact" :model-value="invoice.company || invoice.lastName" disabled variant="outlined")
+                    v-text-field(label='name' :model-value="invoice.company || invoice.lastName" disabled)
                   v-col(cols="2")
-                    v-text-field(label='Total' density="compact" :model-value="invoice.total" disabled variant="outlined")
+                    v-text-field(label='Total' :model-value="invoice.total" disabled)
 
             div(v-if='revenu.Quotations?.length')
               v-card-title Devis :
               transition-group(name='slide-up')
                 v-row(v-for='quotation in revenu.Quotations' :key="quotation.id")
                   v-col(cols="3")
-                    v-text-field(label='name' density="compact" v-model="quotation.company" type='text' variant="outlined")
+                    v-text-field(label='name' v-model="quotation.company" :rules="[$v.required()]")
                   v-col(cols="2")
-                    v-text-field(label='Total' density="compact" v-model="quotation.total" :disabled='true' type='number' variant="outlined")
+                    v-text-field(label='Total' v-model="quotation.total" :disabled='true'  )
 
             hr.my-8
             v-card-title Credits :
@@ -41,11 +41,11 @@ v-container
                 v-col(cols="2")
                   DateInput(:value="credit.createdAt")
                 v-col(cols="3")
-                  v-text-field(label='creditor' density="compact" v-model="credit.creditor" type='text' variant="outlined")
+                  v-text-field(label='creditor' v-model="credit.creditor" :rules="[$v.required()]")
                 v-col(cols="2")
-                  v-select(label='Category' density="compact" v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal(credit)" variant="outlined")
+                  v-select(label='Category' v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal(credit)" )
                 v-col(cols="2")
-                  v-text-field(label='Total' density="compact" v-model.number="credit.total" @change="updateTotal(credit)" type='number' variant="outlined")
+                  v-text-field(label='Total' v-model.number="credit.total" @change="updateTotal(credit)" :rules="[$v.required(), $v.number()]")
                 v-col(cols="1")
                   v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
                     v-icon mdi-delete
@@ -71,13 +71,13 @@ v-container
                 v-col(cols="2")
                   DateInput(:value="cost.createdAt")
                 v-col(cols="3")
-                  v-text-field(label='Référence' density="compact" v-model="cost.name" type='text' variant="outlined")
+                  v-text-field(label='Référence' v-model="cost.name" :rules="[$v.required()]")
                 v-col(cols="2")
-                  v-select(label='Category' density="compact" v-model="cost.category" :items="costCategories" variant="outlined")
+                  v-select(label='Category' v-model="cost.category" :items="costCategories")
                 v-col(cols="1")
-                  v-text-field(label='TVA' density="compact" v-model.number="cost.tvaAmount" @change="updateTotal(cost)" type='number' variant="outlined")
+                  v-text-field(label='TVA' v-model.number="cost.tvaAmount" @change="updateTotal(cost)" :rules="[$v.required(), $v.number()]")
                 v-col(cols="2")
-                  v-text-field(label='Total' density="compact" v-model.number="cost.total" @change="updateTotal(cost)" type='number' variant="outlined")
+                  v-text-field(label='Total' v-model.number="cost.total" @change="updateTotal(cost)" :rules="[$v.required(), $v.number()]")
                 v-col(cols="1")
                   v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
                     v-icon mdi-delete

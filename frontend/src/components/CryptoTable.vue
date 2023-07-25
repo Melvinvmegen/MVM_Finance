@@ -36,34 +36,25 @@ v-table.pt-3
           v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
           v-row(dense)
             v-col(cols="12")
-              v-text-field.form-control(name='name' label='Name' density="compact" type='text' v-model='mutable_crypto.name')
+              v-text-field(name='name' label='Name' v-model='mutable_crypto.name' :rules="[$v.required()]")
             v-col(cols="12")
-              v-text-field.form-control(name='price' label='Price' density="compact" type='number' v-model.number='mutable_crypto.price')
+              v-text-field(name='price' label='Price' v-model.number='mutable_crypto.price' :rules="[$v.required(), $v.number()]")
             v-col(cols="12")
-              v-text-field.form-control(name='profit' label="Bénéfice" density="compact" type='number' v-model.number='mutable_crypto.profit')
+              v-text-field(name='profit' label="Bénéfice" v-model.number='mutable_crypto.profit' :rules="[$v.number()]")
             v-col(cols="12")
           transition-group(name='slide-up')
             div(v-for='(transaction, index) in mutable_crypto.Transactions' :key="transaction.id || index")
               v-row(v-if="transaction?.markedForDestruction !== true")
                 v-col(cols="2")
-                  //- TODO: replace external datepicker with vuetify's
-                  Datepicker(
-                    name="buyingDate",
-                    v-model="transaction.buyingDate",
-                    format="dd/MM/yyyy"
-                    dark
-                    position="center"
-                    :month-change-on-scroll="false"
-                    auto-apply
-                  )
+                  DateInput(:value="transaction.buyingDate")
                 v-col(cols="2")
-                  v-text-field(label='Exchange' density="compact" v-model="transaction.exchange" variant="outlined")
+                  v-text-field(label='Exchange' v-model="transaction.exchange" :rules="[$v.required()]")
                 v-col(cols="2")
-                  v-text-field(label='Prix' density="compact" v-model.number="transaction.price" type='number' @change="updateTotal(transaction)" variant="outlined")
+                  v-text-field(label='Prix' v-model.number="transaction.price"  @change="updateTotal(transaction)" :rules="[$v.required(), $v.number()]")
                 v-col(cols="2")
-                  v-text-field(label='Quantity' density="compact" v-model.number="transaction.quantity" type='number' @change="updateTotal(transaction)" variant="outlined")
+                  v-text-field(label='Quantity' v-model.number="transaction.quantity"  @change="updateTotal(transaction)" :rules="[$v.required(), $v.number()]")
                 v-col(cols="2")
-                  v-text-field(label='Frais' density="compact" v-model.number="transaction.fees" @change="updateTotal(transaction)" type='number' variant="outlined")
+                  v-text-field(label='Frais' v-model.number="transaction.fees" @change="updateTotal(transaction)"  :rules="[$v.required(), $v.number()]")
 
                 v-col(cols="1")
                   v-btn(color="error" href='#' @click.prevent='removeItem(transaction)')
@@ -81,7 +72,6 @@ v-table.pt-3
 </template>
 
 <script setup lang="ts">
-import type { CryptoCurrencies, Transactions } from "../../../types/models";
 type CryptoCurrencyWithTransactions = CryptoCurrencies & { Transactions: Transactions[] };
 const indexStore = useIndexStore();
 const cryptoStore = useCryptoStore();

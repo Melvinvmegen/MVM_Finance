@@ -9,12 +9,7 @@
       min-width="290px"
     >
       <template v-slot:activator="{ props }">
-        <v-text-field
-          v-bind="props"
-          :modelValue="dateFormatted"
-          variant="outlined"
-          append-inner-icon="mdi-calendar"
-        ></v-text-field>
+        <v-text-field v-bind="props" :modelValue="dateFormatted" append-inner-icon="mdi-calendar"></v-text-field>
       </template>
       <v-date-picker :modelValue="getDate" @update:modelValue="updateDate"></v-date-picker>
     </v-menu>

@@ -6,28 +6,28 @@ v-card
       v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='firstName' label='Prénom' density="compact" v-model="mutableCustomer.firstName" type='text' variant="outlined")
+          v-text-field(name='firstName' label='Prénom' v-model="mutableCustomer.firstName" :rules="[$v.required()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='lastName' label='Nom' density="compact" v-model="mutableCustomer.lastName" type='text' variant="outlined")
+          v-text-field(name='lastName' label='Nom' v-model="mutableCustomer.lastName" :rules="[$v.required()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='email' label='Email' density="compact" v-model="mutableCustomer.email" type='text' variant="outlined")
+          v-text-field(name='email' label='Email' v-model="mutableCustomer.email" :rules="[$v.required(), $v.isEmail()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='phone' label='Téléphone' density="compact" v-model="mutableCustomer.phone" type='text' variant="outlined")
+          v-text-field(name='phone' label='Téléphone' v-model="mutableCustomer.phone")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='company' label='Entreprise' density="compact" v-model="mutableCustomer.company" type='text' variant="outlined")
+          v-text-field(name='company' label='Entreprise' v-model="mutableCustomer.company" :rules="[$v.required()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='address' label='Adresse' density="compact" v-model="mutableCustomer.address" type='text' variant="outlined")
+          v-text-field(name='address' label='Adresse' v-model="mutableCustomer.address")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='city' label='Ville' density="compact" v-model="mutableCustomer.city" type='text' variant="outlined")
+          v-text-field(name='city' label='Ville' v-model="mutableCustomer.city")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='siret' label='Siret' density="compact" v-model="mutableCustomer.siret" type='text' variant="outlined")
+          v-text-field(name='siret' label='Siret' v-model="mutableCustomer.siret")
 
     v-card-actions
       v-row(dense justify="center")
@@ -36,8 +36,6 @@ v-card
 </template>
 
 <script setup lang="ts">
-import type { Customers } from "../../../types/models";
-
 const props = defineProps({
   initialCustomer: {
     type: Object as PropType<Customers>,

@@ -74,9 +74,9 @@ div
           v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
           v-row(dense justify="center")
             v-col(cols="10")
-              v-text-field.form-control(name='name' label='Name' density="compact" type='text' v-model='mutable_bank.name')
+              v-text-field(name='name' label='Name' v-model='mutable_bank.name' :rules="[$v.required()]")
             v-col(cols="10")
-              v-text-field.form-control(name='amount' label='Amount' density="compact" type='number' v-model.number='mutable_bank.amount')
+              v-text-field(name='amount' label='Amount' v-model.number='mutable_bank.amount' :rules="[$v.required(), $v.number()]")
 
         v-card-actions.mb-2
           v-row(dense justify="center")

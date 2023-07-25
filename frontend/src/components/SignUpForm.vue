@@ -1,22 +1,22 @@
 <template lang="pug">
 v-form(@submit.prevent="handleSubmit" key="signUp")
   v-card-text
-    v-alert(color="danger" variant="outlined" v-if='indexStore.error') {{ indexStore.error }}
+    v-alert(color="danger"  v-if='indexStore.error') {{ indexStore.error }}
     v-row(dense justify="center")
       v-col(cols="12" md="8")
-        v-text-field#firstname(name='firstname' label='firstname' density="comfortable" v-model="user.firstname" type='text' variant="outlined")
+        v-text-field(name='firstname' label='firstname' v-model="user.firstname" :rules="[$v.required()]"  )
     v-row(dense justify="center")
       v-col(cols="12" md="8")
-        v-text-field#lastname(name='lastname' label='lastname' density="comfortable" v-model="user.lastname" type='text' variant="outlined")
+        v-text-field(name='lastname' label='lastname' v-model="user.lastname"  :rules="[$v.required()]")
     v-row(dense justify="center")
       v-col(cols="12" md="8")
-        v-text-field#email(name='email' label='email' density="comfortable" v-model="user.email" type='text' variant="outlined")
+        v-text-field(name='email' label='email' v-model="user.email"  :rules="[$v.required(), $v.isEmail()]")
     v-row(dense justify="center")
       v-col(cols="12" md="8")
-        v-text-field#password(name='password' label='password' density="comfortable" v-model="user.password" type='password' variant="outlined")
+        v-text-field(name='password' label='password' v-model="user.password" type='password' :rules="[$v.required()]")
     v-row(dense justify="center")
       v-col(cols="12" md="8")
-        v-text-field#confirmPassword(name='confirmPassword' label='confirmPassword' density="comfortable" v-model="user.confirmPassword" type='password' variant="outlined")
+        v-text-field(name='confirmPassword' label='confirmPassword' v-model="user.confirmPassword" type='password' :rules="[$v.required(), $v.passwordMatch(user.password)]")
   v-card-actions
     v-row(dense justify="center")
       v-col.d-flex.justify-center(cols="12" md="8")

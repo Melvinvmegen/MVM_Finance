@@ -16,7 +16,7 @@ v-card(elevation="3")
     v-form(@submit.prevent ref="searchFrom")
       v-row
         v-col.mr-2(cols="12" sm="3" md="2")
-          v-text-field(variant="outlined" hide-details density="compact" label='Total' name='by_total' v-model='query.total' @blur='filterAll(itemName, true)')
+          v-text-field( hide-details label='Total' name='by_total' v-model='query.total' @blur='filterAll(itemName, true)')
 
         v-row(align="center")
           v-btn.bg-secondary Rechercher

@@ -2,7 +2,7 @@
 v-form(@submit.prevent ref="searchFrom")
   v-row
     v-col(cols="12" sm="3" md="2")
-      v-select(:items="revenuStore.revenus" variant="outlined" clearable item-title="createdAt" item-value="id" name='revenuId' v-model="query.id" label='Revenu' density="compact" @blur='filterAll(itemName, true)')
+      v-select(:items="revenuStore.revenus"  clearable item-title="createdAt" item-value="id" name='revenuId' v-model="query.id" label='Revenu'  @blur='filterAll(itemName, true)')
 
     v-col(cols="12" sm="3" md="2")
       v-btn.bg-secondary Rechercher

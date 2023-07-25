@@ -3,6 +3,7 @@ import { createApp } from "vue";
 import { createRouter } from "./router";
 import { createPinia } from "./plugins/pinia";
 import { createVuetify } from "./plugins/vuetify";
+import { createValidator } from "./plugins/validator";
 import App from "./App.vue";
 
 function createVueApp() {
@@ -13,6 +14,8 @@ function createVueApp() {
   app.use(router);
   const vuetify = createVuetify();
   app.use(vuetify);
+  const validator = createValidator();
+  app.use(validator);
 
   return {
     app,

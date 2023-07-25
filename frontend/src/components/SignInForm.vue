@@ -1,13 +1,13 @@
 <template lang="pug">
 v-form(@submit.prevent="handleSubmit" key="signIn")
-  v-alert(type="error" prominent variant="outlined" class='mb-4' v-if='indexStore.error') {{ indexStore.error }}
+  v-alert(type="error" prominent  class='mb-4' v-if='indexStore.error') {{ indexStore.error }}
   v-card-text
     v-row(dense justify="center")
       v-col(cols="12" md="8")
-        v-text-field#email(name='email' label='email' density="comfortable" v-model="user.email" type='text' variant="outlined")
+        v-text-field(name='email' label='email' v-model="user.email" :rules="[$v.required(), $v.isEmail()]")
     v-row(dense justify="center")
       v-col(cols="12" md="8")
-        v-text-field#password(name='password' label='password' density="comfortable" v-model="user.password" type='password' variant="outlined")
+        v-text-field(name='password' label='password' v-model="user.password" type='password' :rules="[$v.required()]")
   v-card-actions
     v-row(dense justify="center")
       v-col.d-flex.justify-center(cols="12" md="8")

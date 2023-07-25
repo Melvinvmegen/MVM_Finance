@@ -6,7 +6,7 @@ v-card(width="800")
       v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
       v-row.my-2(justify="center")
         v-col(cols="12" sm="6")
-          v-select(:items="items" item-title="createdAt" item-value="id" name='revenuId' v-model="mutableModel.RevenuId" label='Revenu' density="compact" )
+          v-select(:items="items" item-title="createdAt" item-value="id" name='revenuId' v-model="mutableModel.RevenuId" label='Revenu'  )
       v-row.my-2(justify="center")
         v-col(cols="12" sm="6")
           label Date de paiement
