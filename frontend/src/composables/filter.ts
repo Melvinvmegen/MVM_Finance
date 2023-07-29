@@ -12,8 +12,8 @@ interface Query {
   force?: boolean;
 }
 
-export function useFilter(store: any, itemName: string, additionalFilters = {}) {
-  const indexStore = useIndexStore();
+export function useFilter(items: any, callbackFn: (query: Query) => void, additionalFilters = {}) {
+  const loadingStore = useLoadingStore();
   const query = reactive<Query>({
     currentPage: 1,
     perPage: 12,
@@ -26,17 +26,17 @@ export function useFilter(store: any, itemName: string, additionalFilters = {}) 
   }
 
   const compute = {
-    items: computed(() => store[itemName]),
-    pages: computed(() => Math.ceil(store.count / query.perPage)),
+    items: computed(() => items),
+    pages: computed(() => Math.ceil(items.length / query.perPage)),
   };
 
   watch(
     () => query.currentPage,
-    () => filterAll(itemName, true),
+    () => filterAll(true),
   );
 
-  async function filterAll(itemName: string, force = false, additionalFilters = {}) {
-    indexStore.setLoading(true);
+  async function filterAll(force = false, additionalFilters = {}) {
+    loadingStore.setLoading(true);
     try {
       if (compute.items.value?.length > 0 && !force && !("CustomerId" in query)) return;
       if (additionalFilters) {
@@ -45,10 +45,10 @@ export function useFilter(store: any, itemName: string, additionalFilters = {}) 
         }
       }
       query.force = force;
-      await store[`get${itemName.charAt(0).toUpperCase() + itemName.slice(1)}`](query);
+      await callbackFn(query);
       return Promise.resolve("Success");
     } finally {
-      indexStore.setLoading(false);
+      loadingStore.setLoading(false);
     }
   }
 

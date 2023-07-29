@@ -33,11 +33,16 @@ v-row
 </template>
 
 <script setup lang="ts">
-const customerStore = useCustomerStore();
+import { getCustomers, deleteCustomer } from "../../utils/generated/api-user";
+
+const customers = ref([]);
+onBeforeMount(async () => {
+  customers.value = await getCustomers();
+});
 
 const chartData = computed(() => {
   const chartData = {
-    labels: customerStore.customers.map((customer) => customer.company),
+    labels: customers.value.map((customer) => customer.company),
     datasets: [
       {
         label: "",
@@ -47,7 +52,7 @@ const chartData = computed(() => {
     ],
   };
   const total = returnTotals(true, "totalTTC");
-  for (let customer of customerStore.customers) {
+  for (let customer of customers.value) {
     if (customer.Invoices) {
       const invoices_percentage_of_total = (
         (customer.Invoices.reduce((sum, invoice) => sum + invoice.totalTTC, 0) / total) *
@@ -77,7 +82,7 @@ const chartOptions = {
 
 function returnTotals(paid: boolean, field: string) {
   let total = 0;
-  for (let customer of customerStore.customers) {
+  for (let customer of customers.value) {
     total += customer.Invoices.filter((invoice) => invoice.paid === paid).reduce(
       (sum, invoice) => sum + invoice[field],
       0,

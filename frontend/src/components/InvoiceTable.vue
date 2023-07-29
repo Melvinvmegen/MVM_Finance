@@ -16,7 +16,7 @@ v-card(elevation="3")
     v-form(@submit.prevent ref="searchFrom")
       v-row
         v-col.mr-2(cols="12" sm="3" md="2")
-          v-text-field(hide-details :label='$t("invoice.searchByTotal")' name='by_total' v-model='query.total' @blur='filterAll(itemName, true)')
+          v-text-field(hide-details :label='$t("invoice.searchByTotal")' name='by_total' v-model='query.total' @blur='filterAll(true)')
 
         v-row(align="center")
           v-btn.bg-secondary {{ $t("invoices.search") }}
@@ -48,7 +48,7 @@ v-card(elevation="3")
             td
               v-row
                 v-btn(variant="text" icon="mdi-cash" @click.stop="selectedInvoice = invoice" v-if='!invoice.paid' )
-                v-btn(variant="text" icon="mdi-receipt" @click.stop="downloadPDF(invoice, 'invoice')")
+                v-btn(variant="text" icon="mdi-receipt" @click.stop="downloadInvoice(invoice, 'invoice')")
                 v-btn(variant="text" icon="mdi-email" @click.stop="sendEmail(invoice)")
                 v-btn(
                   variant="text" 
@@ -63,6 +63,7 @@ v-card(elevation="3")
 </template>
 
 <script setup lang="ts">
+import { getInvoices, deleteInvoice, downloadInvoice, sendInvoice } from "../utils/generated/api-user";
 import type { Revenus, Invoices } from "../../types/models";
 
 const props = defineProps({
@@ -71,32 +72,27 @@ const props = defineProps({
     required: true,
   },
 });
-const invoiceStore = useInvoiceStore();
-const indexStore = useIndexStore();
-const { compute, filterAll, query } = useFilter(invoiceStore, "invoices", {
-  CustomerId: props.customerId,
-});
+const loadingStore = useLoadingStore();
+const { compute, filterAll, query } = useFilter([], () => getInvoices({ CustomerId: props.customerId }));
 const { pages, items } = compute;
-const { deleteItem } = useDelete(invoiceStore);
-const { downloadPDF } = useDownload(invoiceStore);
+const { deleteItem } = useDelete(() => deleteInvoice);
 query.name = undefined;
 query.total = undefined;
-const itemName = "Invoices";
 const router = useRouter();
 const searchFrom = ref(null);
 const selectedInvoice = ref(null);
-filterAll(itemName);
+filterAll();
 
 async function sendEmail(invoice: Invoices) {
-  indexStore.setLoading(true);
-  await invoiceStore.sendEmailInvoice(invoice);
-  indexStore.setLoading(false);
+  loadingStore.setLoading(true);
+  await sendInvoice(invoice.id, invoice);
+  loadingStore.setLoading(false);
   return;
 }
 
 function resetAll() {
   searchFrom.value.reset();
-  filterAll(itemName, true);
+  filterAll(true);
 }
 
 function revenuDate(revenu: Revenus) {

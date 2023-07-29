@@ -1,6 +1,5 @@
 <template lang="pug">
 v-form(@submit.prevent="handleSubmit" key="signIn")
-  v-alert(type="error" prominent  class='mb-4' v-if='indexStore.error') {{ indexStore.error }}
   v-card-text
     v-row(dense justify="center")
       v-col(cols="12" md="8")
@@ -16,7 +15,6 @@ v-form(@submit.prevent="handleSubmit" key="signIn")
 </template>
 
 <script setup lang="ts">
-const indexStore = useIndexStore();
 const user = reactive({
   email: "",
   password: "",

@@ -12,30 +12,26 @@ v-col(cols="12" lg="11")
 </template>
 
 <script setup lang="ts">
+import { getCustomer } from "../../utils/generated/api-user";
 import type { Customers } from "../../../types/models";
 
+const router = useRouter();
 const props = defineProps({
   id: {
     type: [Number, String],
     required: true,
   },
 });
-const customerStore = useCustomerStore();
-const indexStore = useIndexStore();
+const loadingStore = useLoadingStore();
 const initialCustomer = ref<Customers | any>({});
 
 onBeforeMount(async () => {
   if (props.id) {
-    indexStore.setLoading(true);
-    const customer = customerStore.customers.find((customer) => customer.id == props.id);
-    if (customer) {
-      initialCustomer.value = customer;
-      indexStore.setLoading(false);
-    } else {
-      const res = await customerStore.getCustomer(props.id);
-      initialCustomer.value = res;
-      indexStore.setLoading(false);
-    }
+    loadingStore.setLoading(true);
+    initialCustomer.value = await getCustomer(props.id);
+    loadingStore.setLoading(false);
+  } else {
+    router.push("/customers");
   }
 });
 </script>

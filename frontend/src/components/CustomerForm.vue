@@ -3,7 +3,6 @@ v-card
   v-form(@submit.prevent="handleSubmit")
     v-card-title {{ props.initialCustomer?.id ? $t("customers.editCustomer") : $t("customers.createCustomer") }}
     v-card-text
-      v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
       v-row(dense justify="center")
         v-col(cols="12")
           v-text-field(name='firstName' :label='$t("customers.firstname")' v-model="mutableCustomer.firstName" :rules="[$v.required()]")
@@ -37,6 +36,7 @@ v-card
 
 <script setup lang="ts">
 import type { Customers } from "../../types/models";
+import { createCustomer, updateCustomer } from "../utils/generated/api-user";
 const props = defineProps({
   initialCustomer: {
     type: Object as PropType<Customers>,
@@ -44,8 +44,7 @@ const props = defineProps({
   },
 });
 const router = useRouter();
-const customerStore = useCustomerStore();
-const indexStore = useIndexStore();
+const loadingStore = useLoadingStore();
 let mutableCustomer = ref<Customers>({
   id: 1,
   firstName: "",
@@ -67,17 +66,16 @@ if (Object.entries(props.initialCustomer).length) {
 }
 
 async function handleSubmit(): Promise<void> {
-  indexStore.setLoading(true);
-  const action = props.initialCustomer?.id ? "updateCustomer" : "createCustomer";
-  if (!mutableCustomer.value.createdAt) mutableCustomer.value.createdAt = new Date();
-  mutableCustomer.value.updatedAt = new Date();
+  loadingStore.setLoading(true);
   try {
-    const res = await customerStore[action](mutableCustomer.value);
-    if (res && !mutableCustomer.value.id) {
-      router.push(`/customers`);
+    if (props.initialCustomer?.id) {
+      updateCustomer(mutableCustomer.value);
+    } else {
+      createCustomer(mutableCustomer.value);
     }
+    router.push(`/customers`);
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 </script>

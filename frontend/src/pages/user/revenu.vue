@@ -11,7 +11,6 @@ v-container
               v-btn(icon="mdi-arrow-left" color="white"  @click='router.go(-1)')
 
           v-card-text
-            v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
             v-row(dense)
               v-col(cols="2")
                 v-text-field(name='taxPercentage' :label='$t("revenu.tax")'  v-model="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
@@ -113,10 +112,10 @@ v-container
 
 <script setup lang="ts">
 import type { Revenus, Costs, Credits, Invoices } from "../../../types/models";
+import { getRevenu, updateRevenu } from "../../utils/generated/api-user";
 type RevenuWithCostsCredits = Revenus & { Costs: Costs[]; Credits: Credits[]; Invoices: Invoices[] };
 
-const indexStore = useIndexStore();
-const revenuStore = useRevenuStore();
+const loadingStore = useLoadingStore();
 const route = useRoute();
 const router = useRouter();
 const revenu = ref<RevenuWithCostsCredits | null>(null);
@@ -162,8 +161,8 @@ const costItemTemplate = {
   recurrent: false,
 };
 
-indexStore.setLoading(true);
-revenuStore.getRevenu(route.query.bankId, route.params.id).then((data) => {
+loadingStore.setLoading(true);
+getRevenu(route.query.bankId, route.params.id).then((data) => {
   revenu.value = data;
   if (!revenu.value) return;
   revenu.value.watchers = data?.watchers?.split(",");
@@ -174,7 +173,7 @@ revenuStore.getRevenu(route.query.bankId, route.params.id).then((data) => {
   groupModelByCategory(costs, "costs", costCategories);
   groupModelByCategory(credits, "credits", creditCategories);
 
-  indexStore.setLoading(false);
+  loadingStore.setLoading(false);
 });
 
 function addItem(itemName) {
@@ -217,15 +216,15 @@ function updateTotal() {
 }
 
 async function handleSubmit() {
-  indexStore.setLoading(true);
+  loadingStore.setLoading(true);
 
   try {
-    const res = await revenuStore.updateRevenu(revenu.value);
+    const res = await updateRevenu(revenu.value);
     if (res && res.id) {
       router.push(`/revenus`);
     }
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 

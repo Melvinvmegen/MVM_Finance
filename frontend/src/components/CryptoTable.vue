@@ -33,7 +33,6 @@ v-table.pt-3
       v-form(@submit.prevent="handleSubmit")
         v-card-title {{ mutable_crypto?.id ? $t("cryptos.editToken") : $t("cryptos.createToken") }}
         v-card-text
-          v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
           v-row(dense)
             v-col(cols="12")
               v-text-field(name='name' :label='$t("cryptos.name")' v-model='mutable_crypto.name' :rules="[$v.required()]")
@@ -73,22 +72,21 @@ v-table.pt-3
 
 <script setup lang="ts">
 import type { CryptoCurrencies, Transactions } from "../../types/models";
+import { getCryptos, createCrypto, updateCrypto } from "../utils/generated/api-user";
 
 type CryptoCurrencyWithTransactions = CryptoCurrencies & { Transactions: Transactions[] };
-const indexStore = useIndexStore();
-const cryptoStore = useCryptoStore();
-const itemName = "Cryptos";
+const loadingStore = useLoadingStore();
 const show_modal = ref(false);
 const mutable_crypto = ref({} as CryptoCurrencyWithTransactions);
 const swapping_crypto = ref({} as CryptoCurrencyWithTransactions);
-const { compute, filterAll } = useFilter(cryptoStore, "cryptos");
+const { compute, filterAll } = useFilter([], () => getCryptos);
 const { items } = compute;
 const parentModelId = ref(0);
 const cryptoDestroyId = ref(0);
 provide("parentModelName", "Crypto");
 provide("parentModelId", parentModelId);
 
-filterAll(itemName);
+filterAll();
 const transactionItemTemplate = {
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -169,29 +167,31 @@ function removeItem(item) {
 }
 
 async function handleSubmit(): Promise<void> {
-  indexStore.setLoading(true);
-  let action = mutable_crypto.value.id ? "updateCrypto" : "createCrypto";
+  loadingStore.setLoading(true);
   mutable_crypto.value.category = "Crypto";
-  delete mutable_crypto.value.total;
   try {
-    await cryptoStore[action](mutable_crypto.value);
+    if (mutable_crypto.value.id) {
+      updateCrypto(mutable_crypto.value);
+    } else {
+      createCrypto(mutable_crypto.value);
+    }
     if (swapping_crypto.value.id) {
       swapping_crypto.value.sold = true;
-      await cryptoStore.updateCrypto(swapping_crypto.value);
+      await updateCrypto(swapping_crypto.value);
     }
     show_modal.value = false;
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 
 async function checkoutCrypto(crypto): Promise<void> {
-  indexStore.setLoading(true);
+  loadingStore.setLoading(true);
   crypto.sold = true;
   try {
-    await cryptoStore.updateCrypto(crypto);
+    await updateCrypto(crypto);
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 </script>

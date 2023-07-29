@@ -3,7 +3,6 @@ v-card(width="800")
   v-form(@submit.prevent="handleSubmit" class="my-8")
     v-card-title.text-center {{ "paid" in mutableModel ? $t("invoice.editInvoice") : $t("quotation.editQuotation") }}
     v-card-text
-      v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
       v-row.my-2(justify="center")
         v-col(cols="12" sm="6")
           v-select(:items="items" item-title="createdAt" item-value="id" name='revenuId' v-model="mutableModel.RevenuId" :label='$t("invoice.revenu")'  )
@@ -26,6 +25,7 @@ v-card(width="800")
 </template>
 
 <script setup lang="ts">
+import { getRevenus, updateInvoice, updateQuotation } from "../utils/generated/api-user";
 import type { Quotations, Invoices, Revenus } from "../../types/models";
 type InvoiceWithRevenu = Invoices & { Revenus: Revenus | undefined };
 type QuotationsWithRevenu = Quotations & { Revenus: Revenus | undefined };
@@ -38,32 +38,29 @@ const props = defineProps({
 });
 
 const mutableModel = reactive<InvoiceWithRevenu | QuotationsWithRevenu>(props.model);
-const indexStore = useIndexStore();
-const revenuStore = useRevenuStore();
+const loadingStore = useLoadingStore();
 const emit = defineEmits(["close"]);
-const { compute, filterAll } = useFilter(revenuStore, "revenus");
+const { compute, filterAll } = useFilter([], () => getRevenus());
 const { items } = compute;
-filterAll("Revenus");
+filterAll();
 mutableModel.paymentDate = props.model.paymentDate ? new Date(props.model.paymentDate) : new Date();
 
 async function handleSubmit(): Promise<void> {
-  let action: string;
-  let store: any;
-  delete mutableModel.Revenus;
-  if ("paid" in mutableModel) {
-    mutableModel.paid = true;
-    action = "updateInvoice";
-    store = useInvoiceStore();
-  } else {
-    mutableModel.cautionPaid = true;
-    action = "updateQuotation";
-    store = useQuotationStore();
-  }
   try {
-    await store[action](mutableModel);
+    if ("paid" in mutableModel) {
+      await updateInvoice(mutableModel.id, {
+        ...mutableModel,
+        paid: true,
+      });
+    } else {
+      await updateQuotation(mutableModel.id, {
+        ...mutableModel,
+        cautionPaid: true,
+      });
+    }
     emit("close");
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 

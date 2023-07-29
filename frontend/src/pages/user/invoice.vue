@@ -11,7 +11,6 @@ v-container
               span {{ invoice?.id ? $t("invoice.editInvoice") : $t("invoice.createInvoice") }}
           
           v-card-text
-            v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
             v-row(dense)
               v-col(cols="2")
                 v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="invoice.RevenuId" :label='$t("invoice.revenu")'  )
@@ -65,15 +64,13 @@ v-container
 </template>
 
 <script setup lang="ts">
+import { getCustomer, getInvoice, createInvoice, updateInvoice, getRevenus } from "../../utils/generated/api-user";
 import type { Customers, Invoices, Revenus } from "../../../types/models";
 
 const props = defineProps({
   id: [Number, String],
 });
-const indexStore = useIndexStore();
-const customerStore = useCustomerStore();
-const invoiceStore = useInvoiceStore();
-const revenuStore = useRevenuStore();
+const loadingStore = useLoadingStore();
 const route = useRoute();
 const router = useRouter();
 const invoice = ref<Invoices | any>({
@@ -99,10 +96,10 @@ const invoiceItemTemplate = {
   total: 0,
   InvoiceId: null,
 };
-const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus({ BankId: 1 })];
-if (props.id) setupPromises.push(invoiceStore.getInvoice(customerId, props.id));
+const setupPromises = [getCustomer(customerId), getRevenus({ BankId: 1 })];
+if (props.id) setupPromises.push(getInvoice(customerId, props.id));
 
-indexStore.setLoading(true);
+loadingStore.setLoading(true);
 
 Promise.all(setupPromises).then((data) => {
   customer.value = data[0];
@@ -120,7 +117,7 @@ Promise.all(setupPromises).then((data) => {
     invoice.value.city = customer.value.city;
     invoice.value.CustomerId = customer.value.id;
   }
-  indexStore.setLoading(false);
+  loadingStore.setLoading(false);
 });
 
 function updateTotal(item) {
@@ -145,15 +142,16 @@ function removeItem(item) {
 }
 
 async function handleSubmit(): Promise<void> {
-  indexStore.setLoading(true);
-  const action = invoice.value.id ? "updateInvoice" : "createInvoice";
+  loadingStore.setLoading(true);
   try {
-    const res = await invoiceStore[action](invoice.value);
-    if (res && customerId) {
-      router.push({ path: `/customers/edit/${customerId}` });
+    if (invoice.value.id) {
+      updateInvoice(invoice.value);
+    } else {
+      createInvoice(invoice.value);
     }
+    router.push({ path: `/customers/edit/${customerId}` });
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 </script>

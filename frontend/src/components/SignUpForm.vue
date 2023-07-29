@@ -1,7 +1,6 @@
 <template lang="pug">
 v-form(@submit.prevent="handleSubmit" key="signUp")
   v-card-text
-    v-alert(color="danger"  v-if='indexStore.error') {{ indexStore.error }}
     v-row(dense justify="center")
       v-col(cols="12" md="8")
         v-text-field(name='firstname' :label='$t("auth.signUp.firstname")' v-model="user.firstname" :rules="[$v.required()]"  )
@@ -24,7 +23,6 @@ v-form(@submit.prevent="handleSubmit" key="signUp")
 </template>
 
 <script setup lang="ts">
-const indexStore = useIndexStore();
 const user = reactive({
   firstname: "",
   lastname: "",

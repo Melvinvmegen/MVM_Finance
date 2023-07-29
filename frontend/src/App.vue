@@ -1,9 +1,19 @@
 <template lang="pug">
 v-app
-  v-snackbar.mt-5(v-for='(message, index) in indexStore.error' :key='index' :color="message.type || 'info'" value='message.message' top='' :timeout='message.timeout || 7000')
-    | {{ message.message }}
-  v-overlay.align-center.justify-center(:model-value='indexStore.loading' opacity='0.7')
-    v-progress-circular(indeterminate color='secondary' size='64')
+  v-snackbar.mt-5(v-for="(message, index) in messageStore.messages"
+    :key="index"
+    :color="message.type || 'info'"
+    location="top"
+    :model-value="true"
+    :timeout="message.timeout || 7000"
+    class="mt-14")
+    | {{ message.key ? $t(message.key, [...(message.params || [])]) : message.message }}
+  v-overlay.align-center.justify-center(
+    :model-value="loadingStore.loading"
+    opacity="0.8"
+    z-index="1010"
+    class="d-flex justify-center align-center")
+    v-progress-circular(indeterminate color="primary" size="48" class="mb-16")
     
   router-view(v-slot="{ Component }")
     transition(name='slide-fade' mode='out-in')
@@ -18,7 +28,8 @@ v-app
 </template>
 
 <script setup lang="ts">
-const indexStore = useIndexStore();
+const loadingStore = useLoadingStore();
+const messageStore = useMessageStore();
 </script>
 
 <style>

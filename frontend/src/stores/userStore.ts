@@ -2,8 +2,6 @@ import { defineStore } from "pinia";
 import { signUp, refreshToken } from "../utils/generated/api-public";
 import TokenService from "../utils/tokenService";
 import type { Users } from "../../types/models";
-import api from "../services/api";
-import { useIndexStore } from "./indexStore";
 
 export const useUserStore = defineStore("userStore", {
   state: () => ({
@@ -58,14 +56,14 @@ export const useUserStore = defineStore("userStore", {
     },
 
     signUp(user: Users) {
-      const indexStore = useIndexStore();
+      const messageStore = useMessageStore();
       return signUp(user).then(
         (response) => {
           this.auth = user;
           return Promise.resolve(response.data);
         },
         (error) => {
-          if (error) indexStore.setError(error);
+          if (error) messageStore.error(error);
           return Promise.reject(error);
         },
       );

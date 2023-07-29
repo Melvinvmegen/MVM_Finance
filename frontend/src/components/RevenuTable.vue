@@ -2,13 +2,13 @@
 v-form(@submit.prevent ref="searchFrom")
   v-row
     v-col(cols="12" sm="3" md="2")
-      v-select(:items="revenuStore.revenus"  clearable item-title="createdAt" item-value="id" name='revenuId' v-model="query.id" :label='$t("revenu.search")'  @blur='filterAll(itemName, true)')
+      v-select(:items="items"  clearable item-title="createdAt" item-value="id" name='revenuId' v-model="query.id" :label='$t("revenu.search")'  @blur='filterAll(true)')
 
     v-col(cols="12" sm="3" md="2")
       v-btn.bg-secondary {{ $t("revenus.search") }}
 
 v-col(cols="12")
-  v-table(v-if="!indexStore.loading")
+  v-table(v-if="!loadingStore.loading")
     thead
       tr
         th.text-left
@@ -46,32 +46,28 @@ v-pagination(v-model="query.currentPage" :total-visible='query.perPage' :length=
 </template>
 
 <script setup lang="ts">
-import type { Revenus, Invoices, Costs, Transactions } from "../../types/models";
+import type { Revenus, Invoices, Costs, Transactions, Banks } from "../../types/models";
+import { getBanks, getRevenus } from "../utils/generated/api-user";
 type RevenuWithCostsInvoicesTransactions = Revenus & {
   Invoices: Invoices[];
   Costs: Costs[];
   Transactions: Transactions[];
 };
 
-const bankStore = useBankStore();
-const indexStore = useIndexStore();
-const revenuStore = useRevenuStore();
-const { compute, filterAll, query } = useFilter(revenuStore, "revenus");
+let banks: Banks[] = reactive([]);
+const loadingStore = useLoadingStore();
+const { compute, filterAll, query } = useFilter([], () => getRevenus());
 query.id = undefined;
 
-const itemName = "Revenus";
 const router = useRouter();
 const { items, pages } = compute;
 const searchFrom = ref(null);
 
 onBeforeMount(async () => {
-  if (!bankStore.$state.banks.length) await bankStore.getBanks();
-  if (!revenuStore.revenus.length) {
-    await filterAll("Revenus", true, {
-      BankId: bankStore.$state.banks[0]?.id,
-    });
-    revenuStore.revenus.value = items.value;
-  }
+  banks = await getBanks();
+  await filterAll(true, {
+    BankId: banks[0]?.id,
+  });
 });
 
 function pushToShow(event, revenu: RevenuWithCostsInvoicesTransactions) {

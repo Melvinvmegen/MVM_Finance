@@ -11,7 +11,6 @@ v-container
               span {{ quotation?.id ? $t("quotation.editQuotation") : $t("quotation.createQuotation") }}
           
           v-card-text
-            v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
             v-row(dense)
               v-col(cols="2")
                 v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="quotation.RevenuId" :label='$t("quotation.revenu")')
@@ -63,15 +62,19 @@ v-container
 </template>
 
 <script setup lang="ts">
+import {
+  getCustomer,
+  getQuotation,
+  createQuotation,
+  updateQuotation,
+  getRevenus,
+} from "../../utils/generated/api-user";
 import type { Customers, Quotations, Revenus } from "../../../types/models";
 
 const props = defineProps({
   id: [Number, String],
 });
-const indexStore = useIndexStore();
-const customerStore = useCustomerStore();
-const quotationStore = useQuotationStore();
-const revenuStore = useRevenuStore();
+const loadingStore = useLoadingStore();
 const route = useRoute();
 const router = useRouter();
 const quotation = ref<Quotations | any>({
@@ -99,10 +102,10 @@ const quotationItemTemplate = {
   total: 0,
   QuotationId: null,
 };
-const setupPromises = [customerStore.getCustomer(customerId), revenuStore.getRevenus({ BankId: 1 })];
-if (props.id) setupPromises.push(quotationStore.getQuotation(customerId, props.id));
+const setupPromises = [getCustomer(customerId), getRevenus({ BankId: 1 })];
+if (props.id) setupPromises.push(getQuotation(customerId, props.id));
 
-indexStore.setLoading(true);
+loadingStore.setLoading(true);
 
 Promise.all(setupPromises).then((data) => {
   customer.value = data[0];
@@ -120,7 +123,7 @@ Promise.all(setupPromises).then((data) => {
     quotation.value.city = customer.value.city;
     quotation.value.CustomerId = customer.value.id;
   }
-  indexStore.setLoading(false);
+  loadingStore.setLoading(false);
 });
 
 function updateTotal(item) {
@@ -145,17 +148,16 @@ function removeItem(item) {
 }
 
 async function handleSubmit(): Promise<void> {
-  indexStore.setLoading(true);
-  const action = quotation.value.id ? "updateQuotation" : "createQuotation";
-  if (!quotation.value.createdAt) quotation.value.createdAt = new Date();
-  quotation.value.updatedAt = new Date();
+  loadingStore.setLoading(true);
   try {
-    const res = await quotationStore[action](quotation.value);
-    if (res && customerId) {
-      router.push({ path: `/customers/edit/${customerId}` });
+    if (quotation.value.id) {
+      updateQuotation(quotation.value);
+    } else {
+      createQuotation(quotation.value);
     }
+    router.push({ path: `/customers/edit/${customerId}` });
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 </script>

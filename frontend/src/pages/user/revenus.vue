@@ -63,13 +63,15 @@ v-row
 </template>
 
 <script setup lang="ts">
-const indexStore = useIndexStore();
-const revenuStore = useRevenuStore();
-const bankStore = useBankStore();
+import { getBanks, getRevenus, createRevenu } from "../../utils/generated/api-user";
+const loadingStore = useLoadingStore();
+const banks = ref([]);
+const revenus = ref([]);
 
-if (!bankStore.banks.length) {
-  bankStore.getBanks();
-}
+onMounted(async () => {
+  banks.value = await getBanks();
+  revenus.value = await getRevenus();
+});
 
 const costPieChartData = computed(() => {
   const costCategories = [
@@ -83,7 +85,7 @@ const costPieChartData = computed(() => {
     "INVESTMENT",
     "TODEFINE",
   ];
-  const costs = revenuStore.revenus.flatMap((revenu) => revenu.Costs);
+  const costs = revenus.value.flatMap((revenu) => revenu.Costs);
   const groupedModel = costs.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = {
@@ -119,7 +121,7 @@ const costPieChartData = computed(() => {
 
 const creditPieChartData = computed(() => {
   const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER"];
-  const credits = revenuStore.revenus.flatMap((revenu) => revenu.Credits);
+  const credits = revenus.value.flatMap((revenu) => revenu.Credits);
   const groupedModel = credits.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = {
@@ -168,7 +170,7 @@ const pieChartOptions = {
 };
 
 const costChartData = computed(() => {
-  const reversed_revenus = revenuStore.revenus.slice().reverse();
+  const reversed_revenus = revenus.value.slice().reverse();
   const chartData = {
     labels: reversed_revenus.map((revenu) => {
       const date = new Date(revenu.createdAt);
@@ -190,7 +192,7 @@ const costChartData = computed(() => {
 });
 
 const creditChartData = computed(() => {
-  const reversed_revenus = revenuStore.revenus.slice().reverse();
+  const reversed_revenus = revenus.value.slice().reverse();
   const chartData = {
     labels: reversed_revenus.map((revenu) => {
       const date = new Date(revenu.createdAt);
@@ -219,20 +221,17 @@ function triggerUpload() {
 }
 
 async function uploadFile(event) {
-  indexStore.setLoading(true);
+  loadingStore.setLoading(true);
   try {
-    const form = new FormData();
-    form.append("file", event.target.files[0]);
-    const bankId = bankStore.banks?.[0].id || 1;
-    await revenuStore.createRevenu(bankId, form);
+    await createRevenu(banks.value?.[0]?.id || 1, { file: event.target.files[0] });
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 
 function returnRevenuTotal() {
-  if (revenuStore.revenus) {
-    const totals = revenuStore.revenus.reduce((sum: number, revenu) => sum + revenu.total, 0);
+  if (revenus.value) {
+    const totals = revenus.value.reduce((sum: number, revenu) => sum + revenu.total, 0);
     return Math.round(totals);
   } else {
     return 0;
@@ -240,9 +239,9 @@ function returnRevenuTotal() {
 }
 
 function returnRevenusCostTotal() {
-  if (!revenuStore.revenus.length) return 0;
+  if (!revenus.value.length) return 0;
   let total = 0;
-  for (let revenu of revenuStore.revenus) {
+  for (let revenu of revenus.value) {
     if (revenu.Costs) {
       total += revenu.Costs.reduce((sum, cost) => sum + cost.total, 0);
     }
@@ -272,16 +271,16 @@ function returnTaxAmount() {
 }
 
 function returnExpenseAverage() {
-  const total_expense = revenuStore.revenus.reduce((sum: number, revenu) => sum - revenu.expense, 0);
-  return Math.round(total_expense / revenuStore.revenus.length);
+  const total_expense = revenus.value.reduce((sum: number, revenu) => sum - revenu.expense, 0);
+  return Math.round(total_expense / revenus.value.length);
 }
 
 function returnRevenuAverage() {
-  const total_revenu = revenuStore.revenus.reduce((sum: number, revenu) => sum + revenu.total, 0);
-  return Math.round(total_revenu / revenuStore.revenus.length);
+  const total_revenu = revenus.value.reduce((sum: number, revenu) => sum + revenu.total, 0);
+  return Math.round(total_revenu / revenus.value.length);
 }
 
 const returnRecurrentCost = computed(() => {
-  return revenuStore.revenus[1]?.Costs?.filter((c) => c.recurrent).reduce((sum, cost) => sum + cost.total, 0) || 0;
+  return revenus.value[1]?.Costs?.filter((c) => c.recurrent).reduce((sum, cost) => sum + cost.total, 0) || 0;
 });
 </script>

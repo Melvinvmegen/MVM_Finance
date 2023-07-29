@@ -19,7 +19,7 @@ v-container(:class="display.mobile.value ? 'pt-0' : 'pa-0'")
 <script setup lang="ts">
 import { signUp, signIn } from "../../utils/generated/api-public";
 
-const indexStore = useIndexStore();
+const loadingStore = useLoadingStore();
 const userStore = useUserStore();
 const router = useRouter();
 const display = useDisplay();
@@ -31,14 +31,14 @@ if (loggedIn.value) {
 }
 
 async function handleSubmit(user: any): Promise<void> {
-  indexStore.setLoading(true);
+  loadingStore.setLoading(true);
   try {
     if (!isSignIn.value) await signUp(user);
     const auth = await signIn(user);
     await userStore.signIn(auth);
     window.location.href = `${window.location.origin}/dashboard`;
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 

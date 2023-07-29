@@ -50,12 +50,12 @@ const query = ref("Paris");
 const weather = reactive<Weather | any>({});
 const errorMessage = ref("");
 const icon = computed((): string => `http://openweathermap.org/img/w/${weather?.value?.weather[0]?.icon}.png`);
-const indexStore = useIndexStore();
+const loadingStore = useLoadingStore();
 
 fetchWeather();
 
 async function fetchWeather() {
-  indexStore.setLoading(true);
+  loadingStore.setLoading(true);
   try {
     const response = await getWeather();
     weather.value = response.data;
@@ -67,7 +67,7 @@ async function fetchWeather() {
     }
     weather.value = {};
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
     errorMessage.value = "";
   }
 }

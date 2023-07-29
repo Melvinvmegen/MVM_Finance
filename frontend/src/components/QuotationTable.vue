@@ -16,7 +16,7 @@ v-card(elevation="3")
     v-form(@submit.prevent ref="searchFrom")
       v-row
         v-col.mr-2(cols="12" sm="3" md="2")
-          v-text-field( hide-details :label='$t("quotations.searchByTotal")' name='by_total' v-model='query.total' @blur='filterAll(itemName, true)')
+          v-text-field( hide-details :label='$t("quotations.searchByTotal")' name='by_total' v-model='query.total' @blur='filterAll(true)')
 
         v-row(align="center")
           v-btn.bg-secondary {{ $t("quotations.search") }}
@@ -48,7 +48,7 @@ v-card(elevation="3")
             td
               v-row
                 v-btn(variant="text" icon="mdi-cash" @click.stop="selectedQuotation = quotation" v-if='!quotation.cautionPaid')
-                v-btn(variant="text" icon="mdi-receipt" @click.stop="downloadPDF(quotation, lowerCaseItemName)")
+                v-btn(variant="text" icon="mdi-receipt" @click.stop="downloadQuotation(quotation, lowerCaseItemName)")
                 v-btn(
                   variant="text" 
                   icon="mdi-file-swap" 
@@ -70,6 +70,13 @@ v-card(elevation="3")
 </template>
 
 <script setup lang="ts">
+import {
+  getQuotations,
+  deleteQuotation,
+  downloadQuotation,
+  convertQuotationToInvoice,
+} from "../utils/generated/api-user";
+
 import type { Revenus, Quotations } from "../../types/models";
 
 const props = defineProps({
@@ -79,23 +86,18 @@ const props = defineProps({
   },
 });
 
-const quotationStore = useQuotationStore();
-const indexStore = useIndexStore();
-const { compute, filterAll, query } = useFilter(quotationStore, "quotations", {
-  CustomerId: props.customerId,
-});
+const loadingStore = useLoadingStore();
+const { compute, filterAll, query } = useFilter([], () => getQuotations({ CustomerId: props.customerId }));
 const { items, pages } = compute;
-const { deleteItem } = useDelete(quotationStore);
-const { downloadPDF } = useDownload(quotationStore);
+const { deleteItem } = useDelete(() => deleteQuotation);
 query.name = undefined;
 query.total = undefined;
 const lowerCaseItemName = "quotation";
-const itemName = "Quotations";
 const router = useRouter();
 const searchFrom = ref(null);
 const selectedQuotation = ref(null);
 
-filterAll(itemName);
+filterAll();
 
 function revenuDate(revenu: Revenus) {
   if (!revenu) return;
@@ -114,15 +116,15 @@ function pushToShow(event, quotation: Quotations) {
 
 function resetAll() {
   searchFrom.value.reset();
-  filterAll(itemName, true);
+  filterAll(true);
 }
 
-function convertToInvoice(quotation: Quotations, confirmString: string) {
-  indexStore.setLoading(true);
+async function convertToInvoice(quotation: Quotations, confirmString: string) {
+  loadingStore.setLoading(true);
   const result = confirm(confirmString);
   if (result) {
-    quotationStore.convertToInvoice(quotation);
+    await convertQuotationToInvoice(quotation.id, quotation);
   }
-  indexStore.setLoading(false);
+  loadingStore.setLoading(false);
 }
 </script>

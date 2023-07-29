@@ -37,16 +37,17 @@ v-row
 
 <script setup lang="ts">
 import type { CryptoCurrencies, Transactions } from "../../../types/models";
+import { getCryptos, refreshCryptos } from "../../utils/generated/api-user";
+
 type CryptoCurrencyWithTransactions = CryptoCurrencies & { Transactions: Transactions[] };
 
-const indexStore = useIndexStore();
-const cryptoStore = useCryptoStore();
-const { compute } = useFilter(cryptoStore, "cryptos");
+const loadingStore = useLoadingStore();
+const { compute } = useFilter([], () => getCryptos);
 const { items } = compute;
 
 const chartData = computed(() => {
   const chartData = {
-    labels: cryptoStore.cryptos.filter((c) => !c.sold).map((crypto) => crypto.name),
+    labels: items.value.filter((c) => !c.sold).map((crypto) => crypto.name),
     datasets: [
       {
         label: "",
@@ -55,7 +56,7 @@ const chartData = computed(() => {
       },
     ],
   };
-  for (let crypto of cryptoStore.cryptos.filter((c) => !c.sold)) {
+  for (let crypto of items.value.filter((c) => !c.sold)) {
     if (crypto.Transactions) {
       const totals = crypto.Transactions.reduce((sum, transaction) => sum + transaction.total, 0);
       const value = (totals / +returnTotalInvestment.value) * 100;
@@ -149,11 +150,11 @@ function returnTotalPricePurchased(crypto: CryptoCurrencyWithTransactions) {
 }
 
 async function fetchPriceUpdate(): Promise<void> {
-  indexStore.setLoading(true);
+  loadingStore.setLoading(true);
   try {
-    await cryptoStore.updateCryptos();
+    await refreshCryptos();
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 </script>

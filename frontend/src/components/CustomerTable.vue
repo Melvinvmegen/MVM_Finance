@@ -2,16 +2,16 @@
 v-form(@submit.prevent ref="searchFrom")
   v-row
     v-col(cols="12" sm="3" md="2")
-      v-text-field(hide-details :label='$t("customers.fullName")' name='by_name' v-model='query.lastName' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details :label='$t("customers.fullName")' name='by_name' v-model='query.lastName' @blur='filterAll(true)')
 
     v-col(cols="12" sm="3" md="2")
-      v-text-field(hide-details :label='$t("customers.email")' name='by_email' v-model='query.email' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details :label='$t("customers.email")' name='by_email' v-model='query.email' @blur='filterAll(true)')
 
     v-col(cols="12" sm="3" md="2")
-      v-text-field(hide-details :label='$t("customers.city")' name='by_city' v-model='query.city' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details :label='$t("customers.city")' name='by_city' v-model='query.city' @blur='filterAll(true)')
 
     v-col.mr-2(cols="12" sm="3" md="2")
-      v-text-field(hide-details :label='$t("customers.phone")' name='by_phone' v-model='query.phone' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details :label='$t("customers.phone")' name='by_phone' v-model='query.phone' @blur='filterAll(true)')
 
     v-row(align="center")
       v-btn.bg-secondary Rechercher
@@ -53,17 +53,16 @@ v-pagination(v-model="query.currentPage" :total-visible='query.perPage' :length=
 </template>
 
 <script setup lang="ts">
+import { getCustomers, deleteCustomer } from "../utils/generated/api-user";
 import type { Customers, Invoices } from "../../types/models";
 type CustomerWithInvoices = Customers & { Invoices: Invoices[] };
-const customerStore = useCustomerStore();
-const { compute, filterAll, query } = useFilter(customerStore, "customers");
+const { compute, filterAll, query } = useFilter([], () => getCustomers);
 const { pages, items } = compute;
-const { deleteItem } = useDelete(customerStore);
-const itemName = "Customers";
+const { deleteItem } = useDelete(() => deleteCustomer);
 const router = useRouter();
 const searchFrom = ref(null);
 
-filterAll(itemName);
+filterAll();
 
 function returnUnpaidInvoiceTotal(customer: CustomerWithInvoices) {
   if (customer.Invoices) {
@@ -91,7 +90,7 @@ function returnTvaAmount(customer: CustomerWithInvoices) {
 
 function resetAll() {
   searchFrom?.value?.reset();
-  filterAll(itemName, true);
+  filterAll(true);
 }
 
 function pushToShow(customer: Customers) {

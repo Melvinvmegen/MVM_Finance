@@ -49,7 +49,7 @@ div
             v-card-subtitle {{ $t("dashboard.balance") }}
             v-card-title {{ $n(revenu?.total + revenu?.expense, "currency") }}
       v-card(class="v-col mt-4")
-        v-card-text(v-for="bank in bankStore.$state.banks" :key="bank.id")
+        v-card-text(v-for="bank in banks" :key="bank.id")
           v-card-subtitle.text-h6 {{ bank.name }}
           br
           v-card-title
@@ -59,7 +59,7 @@ div
               .text-subtitle-1.mr-2 {{ +(((revenu?.total + revenu?.expense) / bank.amount) * 100).toFixed(2) }}%
           br
           p.text-overline.text-decoration-underline.text-right(@click="show_modal = true") {{ $t("dashboard.editBank") }}
-        v-card-text(v-if="!bankStore.$state.banks.length")
+        v-card-text(v-if="!banks.length")
           v-card-subtitle.text-h6 {{ $t("dashboard.bank") }}
           br
           br
@@ -71,7 +71,6 @@ div
       v-form(@submit.prevent="handleSubmit")
         v-card-title.text-center {{ mutable_bank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
         v-card-text.mt-4
-          v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
           v-row(dense justify="center")
             v-col(cols="10")
               v-text-field(name='name' :label='$t("dashboard.name")' v-model='mutable_bank.name' :rules="[$v.required()]")
@@ -86,12 +85,12 @@ div
 </template>
 
 <script setup lang="ts">
-import type { Revenus, Costs } from "../../../types/models";
+import type { Revenus, Costs, Banks } from "../../../types/models";
+import { getBanks, createBank, updateBank, getRevenus } from "../../utils/generated/api-user";
 
-const indexStore = useIndexStore();
-const revenuStore = useRevenuStore();
-const bankStore = useBankStore();
-const { compute, filterAll } = useFilter(revenuStore, "revenus");
+const loadingStore = useLoadingStore();
+let banks: Banks[] = reactive([]);
+const { compute, filterAll } = useFilter([], () => getRevenus());
 const { items } = compute;
 const show_modal = ref(false);
 let mutable_bank = ref({
@@ -108,14 +107,12 @@ const dates: string[] = [];
 let revenu: Ref<(Revenus & { Costs: Costs }) | unknown> = ref(null);
 
 onBeforeMount(async () => {
-  await bankStore.getBanks();
-  if (!revenuStore.revenus.length) {
-    await filterAll("Revenus", true, {
-      BankId: bankStore.$state.banks[0]?.id,
-    });
-    revenuStore.revenus.value = items.value;
-  }
-  if (bankStore.$state.banks.length) mutable_bank.value = bankStore.$state.banks[0];
+  banks = await getBanks();
+  mutable_bank.value = banks[0];
+  await filterAll(true, {
+    BankId: mutable_bank.value.id,
+  });
+
   revenu.value = items.value[0];
   const today = new Date(revenu.value?.Costs?.at(0)?.createdAt);
   const month = today.getMonth();
@@ -282,15 +279,16 @@ function revenuDate(revenu: Revenus) {
 }
 
 async function handleSubmit(): Promise<void> {
-  indexStore.setLoading(true);
-  let action = mutable_bank.value.id ? "updateBank" : "createBank";
-  const bankRevenu = mutable_bank.value;
-  delete bankRevenu["Revenus"];
+  loadingStore.setLoading(true);
   try {
-    mutable_bank = await bankStore[action](bankRevenu);
+    if (mutable_bank.value.id) {
+      await updateBank(mutable_bank.value);
+    } else {
+      await createBank(mutable_bank.value);
+    }
     show_modal.value = false;
   } finally {
-    indexStore.setLoading(false);
+    loadingStore.setLoading(false);
   }
 }
 </script>
