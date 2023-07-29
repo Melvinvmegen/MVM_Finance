@@ -4,13 +4,13 @@ div
     v-col(cols="12" md="4")
       v-card(elevation="3")
         v-card-title
-          v-col.text-uppercase(cols="11") Costs ({{ revenuDate(revenu) }})
+          v-col.text-uppercase(cols="11") {{ $t("dashboard.costs") }} ({{ revenuDate(revenu) }})
         v-card-text
           BarChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
     v-col(cols="12" md="4")
       v-card(elevation="3")
         v-card-title
-          v-col.text-uppercase(cols="11") Revenus ({{ revenuDate(revenu) }})
+          v-col.text-uppercase(cols="11") {{ $t("dashboard.revenus") }} ({{ revenuDate(revenu) }})
         v-card-text
           BarChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
     v-col(cols="12" md="4")
@@ -20,68 +20,68 @@ div
     v-col(cols="12" md="8")
       v-card(elevation="3")
         v-card-title
-          v-col.text-uppercase(cols="11") Costs && Revenus evolution ({{ revenuDate(revenu) }})
+          v-col.text-uppercase(cols="11") {{ $t("dashboard.evolution") }} ({{ revenuDate(revenu) }})
         v-card-text
           LineChart(v-if="lineChartData" :chart-data='lineChartData' :chart-options='chartOptions')
     v-col(cols="12" md="4")
       v-card(class="v-col mt-4")
         v-card-text
           v-row(justify="space-around" align="center" v-if="revenu?.pro")
-            v-card-subtitle Revenu Pro
-            v-card-title {{ revenu?.pro }} €
+            v-card-subtitle {{ $t("dashboard.revenuPro") }}
+            v-card-title {{ $n(revenu?.pro, "currency") }}
           v-row(justify="space-around" align="center" v-if="revenu?.perso")
-            v-card-subtitle Revenu Perso
-            v-card-title + {{ revenu?.perso }} €
+            v-card-subtitle {{ $t("dashboard.revenuPerso") }}
+            v-card-title + {{ $n(revenu?.perso, "currency") }}
           v-row(justify="space-around" align="center" v-if="revenu?.refund")
-            v-card-subtitle Remboursement
-            v-card-title + {{ revenu?.refund }} €
+            v-card-subtitle {{ $t("dashboard.refund") }}
+            v-card-title + {{ $n(revenu?.refund, "currency") }}
           v-row(justify="space-around" align="center" v-if="revenu?.tva_collected")
-            v-card-subtitle TVA collectée
-            v-card-title + {{ revenu?.tva_collected }} €
+            v-card-subtitle {{ $t("dashboard.vatCollected") }}
+            v-card-title + {{ $n(revenu?.tva_collected, "currency") }}
           v-row(justify="space-around" align="center" v-if="revenu?.tva_dispatched")
-            v-card-subtitle TVA déductible
-            v-card-title {{ - revenu?.tva_dispatched }} €
+            v-card-subtitle {{ $t("dashboard.vatDeducted") }}
+            v-card-title {{ - $n(revenu?.tva_dispatched, "currency") }}
           v-row(justify="space-around" align="center" v-if="revenu?.expense")
-            v-card-subtitle Dépenses
-            v-card-title {{ revenu?.expense }} €
+            v-card-subtitle {{ $t("dashboard.costs") }}
+            v-card-title {{ $n(revenu?.expense, "currency") }}
           hr.mx-2.my-4
           v-row(justify="space-around" align="center")
-            v-card-subtitle Balance
-            v-card-title {{ revenu?.total + revenu?.expense }} €
+            v-card-subtitle {{ $t("dashboard.balance") }}
+            v-card-title {{ $n(revenu?.total + revenu?.expense, "currency") }}
       v-card(class="v-col mt-4")
         v-card-text(v-for="bank in bankStore.$state.banks" :key="bank.id")
           v-card-subtitle.text-h6 {{ bank.name }}
           br
           v-card-title
             .d-flex.justify-center.align-center
-              .text-h4.mr-2 {{ bank.amount + (revenu?.total + revenu?.expense) }} €
+              .text-h4.mr-2 {{ $n(bank.amount + (revenu?.total + revenu?.expense), "currency") }}
               v-icon(:class="[(revenu?.total + revenu?.expense) > 0 ? 'text-success' : 'text-red']") mdi-chart-line-variant 
               .text-subtitle-1.mr-2 {{ +(((revenu?.total + revenu?.expense) / bank.amount) * 100).toFixed(2) }}%
           br
-          p.text-overline.text-decoration-underline.text-right(@click="show_modal = true") Editer la banque
+          p.text-overline.text-decoration-underline.text-right(@click="show_modal = true") {{ $t("dashboard.editBank") }}
         v-card-text(v-if="!bankStore.$state.banks.length")
-          v-card-subtitle.text-h6 Banque
+          v-card-subtitle.text-h6 {{ $t("dashboard.bank") }}
           br
           br
           v-card-title
-            .text-overline.text-center.text-decoration-underline(@click="show_modal = true") Ajouter une banque
+            .text-overline.text-center.text-decoration-underline(@click="show_modal = true") {{ $t("dashboard.addBank") }}
           br
   v-dialog(v-model='show_modal' width='600')
     v-card
       v-form(@submit.prevent="handleSubmit")
-        v-card-title.text-center {{ mutable_bank?.id ? "Editer la banque" : "Ajouter une banque" }}
+        v-card-title.text-center {{ mutable_bank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
         v-card-text.mt-4
           v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
           v-row(dense justify="center")
             v-col(cols="10")
-              v-text-field(name='name' label='Name' v-model='mutable_bank.name' :rules="[$v.required()]")
+              v-text-field(name='name' :label='$t("dashboard.name")' v-model='mutable_bank.name' :rules="[$v.required()]")
             v-col(cols="10")
-              v-text-field(name='amount' label='Amount' v-model.number='mutable_bank.amount' :rules="[$v.required(), $v.number()]")
+              v-text-field(name='amount' :label='$t("dashboard.amount")' v-model.number='mutable_bank.amount' :rules="[$v.required(), $v.number()]")
 
         v-card-actions.mb-2
           v-row(dense justify="center")
             v-col.d-flex.justify-center(cols="12" lg="8")
-              v-btn.bg-secondary.text-white(type="submit") {{ mutable_bank?.id ? "Editer la banque" : "Ajouter une banque" }}
+              v-btn.bg-secondary.text-white(type="submit") {{ mutable_bank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
 
 </template>
 

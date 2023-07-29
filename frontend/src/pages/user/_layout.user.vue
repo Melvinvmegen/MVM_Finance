@@ -1,7 +1,7 @@
 <template lang="pug">
 v-app
   v-app-bar(color='primary' fixed)
-    v-app-bar-title  MVM
+    v-app-bar-title {{ $t("common.brand") }}
     v-spacer
     v-menu(offset-y)
       template(v-slot:activator='{}')

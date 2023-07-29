@@ -1,41 +1,42 @@
 <template lang="pug">
 v-card
   v-form(@submit.prevent="handleSubmit")
-    v-card-title {{ props.initialCustomer?.id ? "Editer un client" : "Créer un client" }}
+    v-card-title {{ props.initialCustomer?.id ? $t("customers.editCustomer") : $t("customers.createCustomer") }}
     v-card-text
       v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='firstName' label='Prénom' v-model="mutableCustomer.firstName" :rules="[$v.required()]")
+          v-text-field(name='firstName' :label='$t("customers.firstname")' v-model="mutableCustomer.firstName" :rules="[$v.required()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='lastName' label='Nom' v-model="mutableCustomer.lastName" :rules="[$v.required()]")
+          v-text-field(name='lastName' :label='$t("customers.lastname")' v-model="mutableCustomer.lastName" :rules="[$v.required()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='email' label='Email' v-model="mutableCustomer.email" :rules="[$v.required(), $v.isEmail()]")
+          v-text-field(name='email' :label='$t("customers.email")' v-model="mutableCustomer.email" :rules="[$v.required(), $v.isEmail()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='phone' label='Téléphone' v-model="mutableCustomer.phone")
+          v-text-field(name='phone' :label='$t("customers.phone")' v-model="mutableCustomer.phone")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='company' label='Entreprise' v-model="mutableCustomer.company" :rules="[$v.required()]")
+          v-text-field(name='company' :label='$t("customers.company")' v-model="mutableCustomer.company" :rules="[$v.required()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='address' label='Adresse' v-model="mutableCustomer.address")
+          v-text-field(name='address' :label='$t("customers.address")' v-model="mutableCustomer.address")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='city' label='Ville' v-model="mutableCustomer.city")
+          v-text-field(name='city' :label='$t("customers.city")' v-model="mutableCustomer.city")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='siret' label='Siret' v-model="mutableCustomer.siret")
+          v-text-field(name='siret' :label='$t("customers.siret")' v-model="mutableCustomer.siret")
 
     v-card-actions
       v-row(dense justify="center")
         v-col.d-flex.justify-center(cols="12" lg="8")
-          v-btn.bg-secondary.text-white(type="submit") {{ props.initialCustomer?.id ? "Editer un client" : "Créer un client" }}
+          v-btn.bg-secondary.text-white(type="submit") {{ props.initialCustomer?.id ? $t("customers.editCustomer") : $t("customers.createCustomer") }}
 </template>
 
 <script setup lang="ts">
+import type { Customers } from "../../types/models";
 const props = defineProps({
   initialCustomer: {
     type: Object as PropType<Customers>,

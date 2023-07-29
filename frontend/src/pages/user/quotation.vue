@@ -8,37 +8,37 @@ v-container
             v-row
               a(@click='router.go(-1)')
                 v-icon mdi-arrow-left
-              span {{ quotation?.id ? "Editer un devis" : "Créer un devis" }}
+              span {{ quotation?.id ? $t("quotation.editQuotation") : $t("quotation.createQuotation") }}
           
           v-card-text
             v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
             v-row(dense)
               v-col(cols="2")
-                v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="quotation.RevenuId" label='Revenu'  )
+                v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="quotation.RevenuId" :label='$t("quotation.revenu")')
               v-col(cols="2")
                 DateInput(:value="quotation.paymentDate")
               v-col(cols="2")
-                v-switch(name='cautionPaid' label='Payé' v-model="quotation.cautionPaid" color="secondary" )
+                v-switch(name='cautionPaid' :label='$t("quotation.paid")' v-model="quotation.cautionPaid" color="secondary" )
               v-col(cols="2")
-                v-switch(name='tvaApplicable' label='TVA applicable' v-model="quotation.tvaApplicable" @change="updateTotal(quotation)" color="secondary" )
+                v-switch(name='tvaApplicable' :label='$t("quotation.vatApplicable")' v-model="quotation.tvaApplicable" @change="updateTotal(quotation)" color="secondary" )
             v-row
-              v-col(cols="3") Référence
-              v-col(cols="2") Prix unitaire
-              v-col(cols="2") Quantité
-              v-col(cols="1") Total
+              v-col(cols="3") {{ $t("quotation.reference") }}
+              v-col(cols="2") {{ $t("quotation.priceUnit") }}
+              v-col(cols="2") {{ $t("quotation.quantity") }}
+              v-col(cols="1") {{ $t("quotation.total") }}
               v-col(cols="1")
             br
             transition-group(name='slide-up')
               div(v-for='(item, index) in quotation.InvoiceItems' :key="item.id || index")
                 v-row(v-if="item?.markedForDestruction !== true")
                   v-col(cols="3")
-                    v-text-field(label='Référence'  v-model="item.name" :rules="[$v.required()]")
+                    v-text-field(:label='$t("quotation.reference")' v-model="item.name" :rules="[$v.required()]")
                   v-col(cols="3")
-                    v-text-field(label='Prix unitaire'  v-model.number="item.unit" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
+                    v-text-field(:label='$t("quotation.priceUnit")' v-model.number="item.unit" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
                   v-col(cols="3")
-                    v-text-field(label='Quantité'  v-model.number="item.quantity" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
+                    v-text-field(:label='$t("quotation.quantity")' v-model.number="item.quantity" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
                   v-col(cols="2")
-                    v-text-field(label='Total'  v-model="item.total" :disabled='true'  )
+                    v-text-field(:label='$t("quotation.total")' v-model="item.total" :disabled='true')
                   v-col(cols="1")
                     v-btn(color="error" href='#' @click.prevent='removeItem(item)')
                       v-icon mdi-delete
@@ -46,21 +46,20 @@ v-container
               v-row
                 v-col(cols="12" justify="end")
                   v-btn(color="primary" @click.prevent='addItem')
-                    span + Ajouter une ligne
+                    span + {{ $t("quotation.addLigne") }}
 
 
           v-card-actions
             v-row(dense justify="center")
               v-col.d-flex.justify-center(cols="12" lg="8")
-                v-btn.bg-secondary.text-white(type="submit") {{ quotation?.id ? "Editer un devis" : "Créer un devis" }}
+                v-btn.bg-secondary.text-white(type="submit") {{ quotation?.id ? $t("quotation.editQuotation") : $t("quotation.createQuotation") }}
     v-col(cols='3')
       TotalField(
         :initial-total='itemsTotal || quotation.total',
         :initial-tva-applicable='quotation.tvaApplicable',
         :initial-tva-amount='tvaAmount || quotation.tvaAmount'
         :initial-total-t-t-c='totalTTC || quotation.totalTTC',
-        :model='quotation'
-      )
+        :model='quotation')
 </template>
 
 <script setup lang="ts">

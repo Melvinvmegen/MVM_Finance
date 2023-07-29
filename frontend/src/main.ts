@@ -1,6 +1,7 @@
 import "./styles/main.css";
 import { createApp } from "vue";
 import { createRouter } from "./router";
+import { createI18n } from "./plugins/i18n";
 import { createPinia } from "./plugins/pinia";
 import { createVuetify } from "./plugins/vuetify";
 import { createValidator } from "./plugins/validator";
@@ -12,9 +13,11 @@ function createVueApp() {
   app.use(pinia);
   const router = createRouter();
   app.use(router);
-  const vuetify = createVuetify();
+  const i18n = createI18n();
+  app.use(i18n);
+  const vuetify = createVuetify(i18n);
   app.use(vuetify);
-  const validator = createValidator();
+  const validator = createValidator(i18n);
   app.use(validator);
 
   return {

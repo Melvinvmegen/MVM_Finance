@@ -23,7 +23,8 @@ const rules = {
   isHexColor: (v) => !v || /^#?[0-9a-f]{3}([0-9a-f]{3}([0-9a-f]{2})?)?$/i.test(v),
 };
 
-function rulify(rules) {
+function rulify(rules, i18n) {
+  const $t = i18n.global.t;
   return Object.fromEntries(
     Object.entries(rules).map(([key, validator]) => {
       return [
@@ -37,7 +38,9 @@ function rulify(rules) {
               // if value is empty and rule not handling this case, return true
               if (!value) return true;
             }
-            return valid;
+            return (
+              valid || $t(`errors.validator.${key}`, args.length === 1 && typeof args[0] === "object" ? args[0] : args)
+            );
           };
         },
       ];
@@ -47,10 +50,10 @@ function rulify(rules) {
 
 let $v;
 export const useValidation = () => $v;
-export function createValidator() {
+export function createValidator(i18n) {
   return {
     install(app) {
-      $v = rulify(rules);
+      $v = rulify(rules, i18n);
       app.config.globalProperties.$v = $v;
     },
   };

@@ -2,16 +2,16 @@
 v-form(@submit.prevent ref="searchFrom")
   v-row
     v-col(cols="12" sm="3" md="2")
-      v-text-field(hide-details label='Nom' name='by_name' v-model='query.lastName' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details :label='$t("customers.fullName")' name='by_name' v-model='query.lastName' @blur='filterAll(itemName, true)')
 
     v-col(cols="12" sm="3" md="2")
-      v-text-field(hide-details label='Email' name='by_email' v-model='query.email' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details :label='$t("customers.email")' name='by_email' v-model='query.email' @blur='filterAll(itemName, true)')
 
     v-col(cols="12" sm="3" md="2")
-      v-text-field(hide-details label='Ville' name='by_city' v-model='query.city' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details :label='$t("customers.city")' name='by_city' v-model='query.city' @blur='filterAll(itemName, true)')
 
     v-col.mr-2(cols="12" sm="3" md="2")
-      v-text-field(hide-details  label='Téléphone' name='by_phone' v-model='query.phone' @blur='filterAll(itemName, true)')
+      v-text-field(hide-details :label='$t("customers.phone")' name='by_phone' v-model='query.phone' @blur='filterAll(itemName, true)')
 
     v-row(align="center")
       v-btn.bg-secondary Rechercher
@@ -22,21 +22,21 @@ v-col(cols="12")
     thead
       tr
         th.text-left
-          | Nom
+          | {{ $t("customers.lastname") }}
         th.text-left
-          | Prénom
+          | {{ $t("customers.firstname") }}
         th.text-left
-          | Email
+          | {{ $t("customers.email") }}
         th.text-left
-          | Téléphone
+          | {{ $t("customers.phone") }}
         th.text-left
-          | Revenus
+          | {{ $t("customers.revenus") }}
         th.text-left
-          | Montant impayé
+          | {{ $t("customers.unpaidAmount") }}
         th.text-left
-          | TVA récoltée
+          | {{ $t("customers.vatCollected") }}
         th.text-left
-          | Actions
+          | {{ $t("customers.actions") }}
     tbody
       tr(v-for='customer in items' :key='customer.id' @click='pushToShow(customer)')
         td {{ customer.lastName }}
@@ -47,13 +47,13 @@ v-col(cols="12")
         td {{ returnUnpaidInvoiceTotal(customer) }}
         td {{ returnTvaAmount(customer) }}
         td
-          v-btn(color='red' variant="text" icon="mdi-delete" @click.stop="deleteItem(customer, 'Customer', `Vous êtes sur de vouloir supprimer la customer ${customer.firstName} ${customer.lastName}` )" :key='customer.id')
+          v-btn(color='red' variant="text" icon="mdi-delete" @click.stop="deleteItem(customer, 'Customer', $t('customers.confirmDelete', [`${customer.firstName} ${customer.lastName}`]) )" :key='customer.id')
 
 v-pagination(v-model="query.currentPage" :total-visible='query.perPage' :length='pages')
 </template>
 
 <script setup lang="ts">
-import type { Customers, Invoices } from "../../../types/models";
+import type { Customers, Invoices } from "../../types/models";
 type CustomerWithInvoices = Customers & { Invoices: Invoices[] };
 const customerStore = useCustomerStore();
 const { compute, filterAll, query } = useFilter(customerStore, "customers");

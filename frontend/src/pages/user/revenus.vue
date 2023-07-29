@@ -4,7 +4,7 @@ v-row
     v-card(elevation="3")
       v-card-title
         v-row(justify="space-between" align="center")
-          v-col.text-uppercase(cols="11") Revenus
+          v-col.text-uppercase(cols="11") {{ $t("revenus.title") }}
           v-spacer
           v-col(cols="1")
             v-btn(icon="mdi-plus" @click="triggerUpload" color="primary")
@@ -18,45 +18,45 @@ v-row
           v-col(cols="12" md="6")
             v-row(justify="space-around" align="center")       
               v-col(cols="12" md="6")
-                v-card-subtitle Dépense mensuel moyenne :
-                v-card-title {{ returnExpenseAverage() }} €
+                v-card-subtitle {{ $t("revenus.averageMonthlySpending") }}
+                v-card-title {{ $n(returnExpenseAverage(), "currency") }}
               v-col(cols="12" md="6")
-                v-card-subtitle Dépense recurrent mensuel :
-                v-card-title {{ returnRecurrentCost }} €
+                v-card-subtitle {{ $t("revenus.averageRecurrentSpending") }}
+                v-card-title {{ $n(returnRecurrentCost, "currency") }}
             bar(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
           v-col(cols="12" md="6")
             v-row(justify="space-around" align="start")
-              v-card-subtitle Revenu mensuel moyen :
-              v-card-title.pt-0.mb-4 {{ returnRevenuAverage() }} €
+              v-card-subtitle {{ $t("revenus.averageRevenu") }}
+              v-card-title.pt-0.mb-4 {{ $n(returnRevenuAverage(), "currency") }}
             bar(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
 
   v-col(cols="12" md="4")
     v-card
       v-card-text
         v-row(justify="space-around" align="center")
-          v-card-subtitle Chiffre d'affaires
-          v-card-title {{ returnRevenuTotal() }} €
+          v-card-subtitle {{ $t("revenus.turnover") }}
+          v-card-title {{ $n(returnRevenuTotal(), "currency") }}
         v-row(justify="space-around" align="center")
-          v-card-subtitle Dépenses totales
-          v-card-title {{ returnRevenusCostTotal() }} €
+          v-card-subtitle {{ $t("revenus.totalSpending") }}
+          v-card-title {{ $n(returnRevenusCostTotal(), "currency") }}
         v-row(justify="space-around" align="center")
-          v-card-subtitle Impôts
-          v-card-title {{ - returnTaxAmount() }} €
+          v-card-subtitle {{ $t("revenus.taxes") }}
+          v-card-title {{ $n(- returnTaxAmount(), "currency") }}
         hr.mx-2.my-4
         v-row(justify="space-around" align="center")
-          v-card-subtitle Résultat Net
-          v-card-title {{ Math.round(returnRevenuTotal() + returnRevenusCostTotal()) }} €
+          v-card-subtitle {{ $t("revenus.netResult") }}
+          v-card-title {{ $n(Math.round(returnRevenuTotal() + returnRevenusCostTotal()), "currency") }}
       hr.mx-2.my-4
       v-card-text
         v-row(justify="center" align="center")
           v-col(cols="12" md="10")
             v-row(justify="space-around" align="center")
-              v-card-subtitle Répartition des coûts :
+              v-card-subtitle {{ $t("revenus.costDistribution") }}
             br
             PieChart(v-if="costPieChartData" :chart-data='costPieChartData' :chart-options='pieChartOptions')
             hr.mx-2.my-10
             v-row(justify="space-around" align="center")
-              v-card-subtitle Répartition des revenus :
+              v-card-subtitle {{ $t("revenus.revenuDistribution") }}
             br
             PieChart(v-if="creditPieChartData" :chart-data='creditPieChartData' :chart-options='pieChartOptions')
 

@@ -1,15 +1,15 @@
 <template lang="pug">
 v-card(width="800")
   v-form(@submit.prevent="handleSubmit" class="my-8")
-    v-card-title.text-center {{ "paid" in mutableModel ? "Editer la facture" : "Editer le devis" }}
+    v-card-title.text-center {{ "paid" in mutableModel ? $t("invoice.editInvoice") : $t("quotation.editQuotation") }}
     v-card-text
       v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
       v-row.my-2(justify="center")
         v-col(cols="12" sm="6")
-          v-select(:items="items" item-title="createdAt" item-value="id" name='revenuId' v-model="mutableModel.RevenuId" label='Revenu'  )
+          v-select(:items="items" item-title="createdAt" item-value="id" name='revenuId' v-model="mutableModel.RevenuId" :label='$t("invoice.revenu")'  )
       v-row.my-2(justify="center")
         v-col(cols="12" sm="6")
-          label Date de paiement
+          label {{ $t("invoice.paymentDate") }}
           Datepicker(
             name="paymentDate",
             v-model="mutableModel.paymentDate",
@@ -21,12 +21,12 @@ v-card(width="800")
           )
 
     v-card-actions(class="justify-center")
-      v-btn.bg-secondary.text-white.my-2(type="submit") Sauvegarder
+      v-btn.bg-secondary.text-white.my-2(type="submit") {{ $t("invoice.save") }}
 
 </template>
 
 <script setup lang="ts">
-import type { Quotations, Invoices, Revenus } from "../../../types/models";
+import type { Quotations, Invoices, Revenus } from "../../types/models";
 type InvoiceWithRevenu = Invoices & { Revenus: Revenus | undefined };
 type QuotationsWithRevenu = Quotations & { Revenus: Revenus | undefined };
 

@@ -6,7 +6,7 @@ v-container
         v-form(@submit.prevent="handleSubmit")
           v-card-title.my-4
             .d-flex
-              span {{ "Editer vos revenus de " + revenuMonth }}
+              span {{ $t("revenu.editRevenu", [revenuMonth])  }}
               v-spacer 
               v-btn(icon="mdi-arrow-left" color="white"  @click='router.go(-1)')
 
@@ -14,38 +14,38 @@ v-container
             v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
             v-row(dense)
               v-col(cols="2")
-                v-text-field(name='taxPercentage' label='% Taxe'  v-model="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
+                v-text-field(name='taxPercentage' :label='$t("revenu.tax")'  v-model="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
 
             div(v-if='revenu?.Invoices?.length')
-              v-card-title Factures : 
+              v-card-title {{ $t("revenu.invoices") }} 
               transition-group(name='slide-up')
                 v-row(v-for='invoice in revenu.Invoices' :key="invoice.id")
                   v-col(cols="3")
-                    v-text-field(label='name' :model-value="invoice.company || invoice.lastName" disabled)
+                    v-text-field(:label='$t("revenu.name")' :model-value="invoice.company || invoice.lastName" disabled)
                   v-col(cols="2")
-                    v-text-field(label='Total' :model-value="invoice.total" disabled)
+                    v-text-field(:label='$t("revenu.total")' :model-value="invoice.total" disabled)
 
             div(v-if='revenu.Quotations?.length')
-              v-card-title Devis :
+              v-card-title {{ $t("revenu.quotations") }}
               transition-group(name='slide-up')
                 v-row(v-for='quotation in revenu.Quotations' :key="quotation.id")
                   v-col(cols="3")
-                    v-text-field(label='name' v-model="quotation.company" :rules="[$v.required()]")
+                    v-text-field(:label='$t("revenu.name")' v-model="quotation.company" :rules="[$v.required()]")
                   v-col(cols="2")
-                    v-text-field(label='Total' v-model="quotation.total" :disabled='true'  )
+                    v-text-field(:label='$t("revenu.total")' v-model="quotation.total" :disabled='true'  )
 
             hr.my-8
-            v-card-title Credits :
+            v-card-title {{ $t("revenu.credits") }}
             transition-group(name='slide-up')
               v-row(v-for='(credit, index) in credits' :key="credit.id || index")
                 v-col(cols="2")
                   DateInput(:value="credit.createdAt")
                 v-col(cols="3")
-                  v-text-field(label='creditor' v-model="credit.creditor" :rules="[$v.required()]")
+                  v-text-field(:label='$t("revenu.creditor")' v-model="credit.creditor" :rules="[$v.required()]")
                 v-col(cols="2")
-                  v-select(label='Category' v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal(credit)" )
+                  v-select(:label='$t("revenu.category")' v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal(credit)" )
                 v-col(cols="2")
-                  v-text-field(label='Total' v-model.number="credit.total" @change="updateTotal(credit)" :rules="[$v.required(), $v.number()]")
+                  v-text-field(:label='$t("revenu.total")' v-model.number="credit.total" @change="updateTotal(credit)" :rules="[$v.required(), $v.number()]")
                 v-col(cols="1")
                   v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
                     v-icon mdi-delete
@@ -53,14 +53,14 @@ v-container
               v-row
                 v-col(cols="12" justify="end")
                   v-btn(color="secondary" @click.prevent="addItem('Credit')")
-                    span + Ajouter une ligne
+                    span {{ $t("revenu.addLine") }}
 
             hr.my-8
-            v-card-title Coûts :
+            v-card-title {{ $t("revenu.costs") }}
             v-spacer
             v-autocomplete(
               chips
-              label="Autocomplete"
+              :label='$t("revenu.watchers")'
               :items="costsNames"
               v-model="revenu.watchers"
               multiple)
@@ -71,13 +71,13 @@ v-container
                 v-col(cols="2")
                   DateInput(:value="cost.createdAt")
                 v-col(cols="3")
-                  v-text-field(label='Référence' v-model="cost.name" :rules="[$v.required()]")
+                  v-text-field(:label='$t("revenu.reference")' v-model="cost.name" :rules="[$v.required()]")
                 v-col(cols="2")
-                  v-select(label='Category' v-model="cost.category" :items="costCategories")
+                  v-select(:label='$t("revenu.category")' v-model="cost.category" :items="costCategories")
                 v-col(cols="1")
-                  v-text-field(label='TVA' v-model.number="cost.tvaAmount" @change="updateTotal(cost)" :rules="[$v.required(), $v.number()]")
+                  v-text-field(:label='$t("revenu.vat")' v-model.number="cost.tvaAmount" @change="updateTotal(cost)" :rules="[$v.required(), $v.number()]")
                 v-col(cols="2")
-                  v-text-field(label='Total' v-model.number="cost.total" @change="updateTotal(cost)" :rules="[$v.required(), $v.number()]")
+                  v-text-field(:label='$t("revenu.total")' v-model.number="cost.total" @change="updateTotal(cost)" :rules="[$v.required(), $v.number()]")
                 v-col(cols="1")
                   v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
                     v-icon mdi-delete
@@ -85,7 +85,7 @@ v-container
               v-row
                 v-col(cols="12" justify="end")
                   v-btn(color="secondary" @click.prevent="addItem('Cost')")
-                    span + Ajouter une ligne
+                    span {{ $t("revenu.addLine") }}
 
           v-card-actions
             v-row(dense justify="center")
@@ -100,12 +100,12 @@ v-container
             :model='revenu'
           )
         v-card-text
-          v-card-title Revenus : {{ revenu.total }} €
+          v-card-title {{ $t("revenu.revenus") }} {{ revenu.total }} €
           PieChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
-          v-card-title Costs : {{ revenu.expense }} €
+          v-card-title {{ $t("revenu.costs") }} {{ revenu.expense }} €
           PieChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
           hr.mx-2.my-4
-          v-card-title Watchers :
+          v-card-title {{ $t("revenu.watchers") }}
           v-row(align="center" class="ml-1 mt-1" v-for='watcher in splitedWatchers' closable-chips :key="watcher")
             v-card-subtitle - {{ watcher }}
             v-card-title {{ revenu.Costs.filter((c) => c.name.includes(watcher)).reduce((sum, c) => sum + c.total, 0) }} €

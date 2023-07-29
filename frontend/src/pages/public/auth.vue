@@ -5,15 +5,15 @@ v-container(:class="display.mobile.value ? 'pt-0' : 'pa-0'")
       v-card.elevation-12.mt-5
         v-row.pa-md-5(justify='center')
           v-col(cols='12')
-            v-card-title.font-weight-regular.text-h4 {{ isSignIn ? "Se connecter" : "S'inscrire" }}
-            v-card-subtitle {{ isSignIn ? "Pour accéder à mon tableau de bord" : "Pour créer mon tableau de bord" }}
+            v-card-title.font-weight-regular.text-h4 {{ isSignIn ? $t("auth.signIn.title") : $t("auth.signUp.title") }}
+            v-card-subtitle {{ isSignIn ? $t("auth.signIn.subtitle") : $t("auth.signUp.subtitle") }}
             v-divider.my-7
             transition(name="switch" mode="out-in")
               sign-in-form(@submit="handleSubmit" v-if='isSignIn')
               sign-up-form(@submit="handleSubmit" v-else)
       br
       span
-        u.text-underline.d-flex.justify-center.mx-8(@click='changeMode') {{ isSignIn ? "Je créé un compte" : "J'ai déjà un compte"}}
+        u.text-underline.d-flex.justify-center.mx-8(@click='changeMode') {{ isSignIn ? $t("auth.signIn.submit") : $t("auth.signUp.submit") }}
 </template>
 
 <script setup lang="ts">

@@ -4,14 +4,14 @@ v-form(@submit.prevent="handleSubmit" key="signIn")
   v-card-text
     v-row(dense justify="center")
       v-col(cols="12" md="8")
-        v-text-field(name='email' label='email' v-model="user.email" :rules="[$v.required(), $v.isEmail()]")
+        v-text-field(name='email' :label='$t("auth.signIn.email")' v-model="user.email" :rules="[$v.required(), $v.isEmail()]")
     v-row(dense justify="center")
       v-col(cols="12" md="8")
-        v-text-field(name='password' label='password' v-model="user.password" type='password' :rules="[$v.required()]")
+        v-text-field(name='password' :label='$t("auth.signIn.password")' v-model="user.password" type='password' :rules="[$v.required()]")
   v-card-actions
     v-row(dense justify="center")
       v-col.d-flex.justify-center(cols="12" md="8")
-        v-btn.bg-secondary.text-white(type="submit") Je me connecte
+        v-btn.bg-secondary.text-white(type="submit")  {{ $t("auth.signIn.submit") }}
 
 </template>
 

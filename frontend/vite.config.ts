@@ -29,7 +29,7 @@ export default defineConfig({
       types: [],
     }),
     AutoImport({
-      imports: ["vue", "vue-router"],
+      imports: ["vue", "vue-router", "vue-i18n"],
       dirs: ["./src/stores", "./src/composables"],
       dts: "./types/composables.d.ts",
     }),

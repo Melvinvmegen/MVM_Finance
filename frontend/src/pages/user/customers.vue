@@ -4,7 +4,7 @@ v-row
     v-card(elevation="3")
       v-card-title
         v-row(justify="space-between" align="center")
-          v-col.text-uppercase(cols="11") Clients
+          v-col.text-uppercase(cols="11") {{ $t("customers.title") }}
           v-spacer  
           v-col(cols="1" class="d-flex justify-center align-center")
             router-link(:to="'/customers/new'")
@@ -17,17 +17,17 @@ v-row
     v-card(position="absolute" class="v-col v-col-3")
       v-card-text
         v-row(justify="space-around" align="center")
-          v-card-subtitle Chiffres d'affaires
-          v-card-title {{ returnTotals(true, "totalTTC") }} €
+          v-card-subtitle {{ $t("customers.turnover") }}
+          v-card-title {{ $n(returnTotals(true, "totalTTC"), "currency") }}
         v-row(justify="space-around" align="center")
-          v-card-subtitle Impayés
-          v-card-title {{ returnTotals((false || null), "totalTTC") }} €
+          v-card-subtitle {{ $t("customers.unpaid") }}
+          v-card-title {{ $n(returnTotals((false || null), "totalTTC"), "currency") }}
         v-row(justify="space-around" align="center")
-          v-card-subtitle TVA collectée
-          v-card-title {{ returnTotals(true, "tvaAmount") }} €
+          v-card-subtitle {{ $t("customers.vatCollected") }}
+          v-card-title {{ $n(returnTotals(true, "tvaAmount"), "currency") }} €
       hr.mx-2.my-4
       v-card-text
-        v-card-title Répartition du chiffre d'affaires par client 
+        v-card-title {{ $t("customers.turnoverByCustomer") }} 
         PieChart(v-if="chartData" :chart-data='chartData' :chart-options='chartOptions')
 
 </template>

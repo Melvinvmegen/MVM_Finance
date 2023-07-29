@@ -14,33 +14,33 @@ v-table.pt-3
       template(#upper_content)
         .d-flex
           p.mr-3 {{ Math.round(crypto.pricePurchase) }}
-          v-badge(:color="returnCryptoPercentageGain(crypto) > 0 ? 'success' : 'error'" :content='returnCryptoPercentageGain(crypto) + "%"')
+          v-badge(:color="returnCryptoPercentageGain(crypto) > 0 ? 'success' : 'error'" :content='$n(returnCryptoPercentageGain(crypto), "percent")')
 
       template(#upper_content_low)
         p.mr-3 {{ Math.round(crypto.price) }}
 
       template(#lower_content_button)
-        v-chip.mt-3(color="secondary" gradient size="small") {{ returnTotalPricePurchased(crypto)}} €
+        v-chip.mt-3(color="secondary" gradient size="small") {{ $n(returnTotalPricePurchased(crypto) || 0, "currency") }}
       template(#lower_content_return)
-        v-chip.mt-3(:color="returnTotalCurrentPrice(crypto) > returnTotalPricePurchased(crypto) ? 'success' : 'error'" size="small") {{ returnTotalCurrentPrice(crypto) }} €
-        v-chip.mt-3(v-if='crypto.profit' :color="crypto.profit > returnTotalPricePurchased(crypto) ? 'success' : 'error'" size="small") {{ Math.round(crypto.profit * 100) / 100 }} €
+        v-chip.mt-3(:color="returnTotalCurrentPrice(crypto) > returnTotalPricePurchased(crypto) ? 'success' : 'error'" size="small") {{ $n(returnTotalCurrentPrice(crypto) || 0, "currency") }}
+        v-chip.mt-3(v-if='crypto.profit' :color="crypto.profit > returnTotalPricePurchased(crypto) ? 'success' : 'error'" size="small") {{ $n(Math.round(crypto.profit * 100) / 100, "currency") }} €
 
   v-row(justify="center").mb-3.mt-6
-    v-btn(@click="openModal" color="secondary") Créer un token
+    v-btn(@click="openModal" color="secondary") {{ $t("cryptos.createToken") }}
 
   v-dialog(v-model='show_modal' width='800')
     v-card
       v-form(@submit.prevent="handleSubmit")
-        v-card-title {{ mutable_crypto?.id ? "Editer un token" : "Créer un token" }}
+        v-card-title {{ mutable_crypto?.id ? $t("cryptos.editToken") : $t("cryptos.createToken") }}
         v-card-text
           v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
           v-row(dense)
             v-col(cols="12")
-              v-text-field(name='name' label='Name' v-model='mutable_crypto.name' :rules="[$v.required()]")
+              v-text-field(name='name' :label='$t("cryptos.name")' v-model='mutable_crypto.name' :rules="[$v.required()]")
             v-col(cols="12")
-              v-text-field(name='price' label='Price' v-model.number='mutable_crypto.price' :rules="[$v.required(), $v.number()]")
+              v-text-field(name='price' :label='$t("cryptos.price")' v-model.number='mutable_crypto.price' :rules="[$v.required(), $v.number()]")
             v-col(cols="12")
-              v-text-field(name='profit' label="Bénéfice" v-model.number='mutable_crypto.profit' :rules="[$v.number()]")
+              v-text-field(name='profit' l:label='$t("cryptos.profit")' v-model.number='mutable_crypto.profit' :rules="[$v.number()]")
             v-col(cols="12")
           transition-group(name='slide-up')
             div(v-for='(transaction, index) in mutable_crypto.Transactions' :key="transaction.id || index")
@@ -48,13 +48,13 @@ v-table.pt-3
                 v-col(cols="2")
                   DateInput(:value="transaction.buyingDate")
                 v-col(cols="2")
-                  v-text-field(label='Exchange' v-model="transaction.exchange" :rules="[$v.required()]")
+                  v-text-field(:label='$t("cryptos.exchange")' v-model="transaction.exchange" :rules="[$v.required()]")
                 v-col(cols="2")
-                  v-text-field(label='Prix' v-model.number="transaction.price"  @change="updateTotal(transaction)" :rules="[$v.required(), $v.number()]")
+                  v-text-field(:label='$t("cryptos.price")' v-model.number="transaction.price"  @change="updateTotal(transaction)" :rules="[$v.required(), $v.number()]")
                 v-col(cols="2")
-                  v-text-field(label='Quantity' v-model.number="transaction.quantity"  @change="updateTotal(transaction)" :rules="[$v.required(), $v.number()]")
+                  v-text-field(:label='$t("cryptos.quantity")' v-model.number="transaction.quantity"  @change="updateTotal(transaction)" :rules="[$v.required(), $v.number()]")
                 v-col(cols="2")
-                  v-text-field(label='Frais' v-model.number="transaction.fees" @change="updateTotal(transaction)"  :rules="[$v.required(), $v.number()]")
+                  v-text-field(:label='$t("cryptos.fees")' v-model.number="transaction.fees" @change="updateTotal(transaction)"  :rules="[$v.required(), $v.number()]")
 
                 v-col(cols="1")
                   v-btn(color="error" href='#' @click.prevent='removeItem(transaction)')
@@ -63,15 +63,17 @@ v-table.pt-3
             v-row
               v-col(cols="12" justify="end")
                 v-btn(color="primary" @click.prevent='addItem')
-                  span + Ajouter une ligne
+                  span {{ $t("cryptos.addLine") }}
 
         v-card-actions
           v-row(dense justify="center")
             v-col.d-flex.justify-center(cols="12" lg="8")
-              v-btn.bg-secondary.text-white(type="submit") {{ mutable_crypto?.id ? "Mettre à jour une crypto" : "Créer une cypto" }}
+              v-btn.bg-secondary.text-white(type="submit") {{ mutable_crypto?.id ? $t("cryptos.editToken") : $t("cryptos.createToken") }}
 </template>
 
 <script setup lang="ts">
+import type { CryptoCurrencies, Transactions } from "../../types/models";
+
 type CryptoCurrencyWithTransactions = CryptoCurrencies & { Transactions: Transactions[] };
 const indexStore = useIndexStore();
 const cryptoStore = useCryptoStore();

@@ -1,0 +1,254 @@
+{
+  "$vuetify": {
+    "dataFooter": {
+      "itemsPerPageText": "Items per page:",
+      "itemsPerPageAll": "All",
+      "nextPage": "Next page",
+      "prevPage": "Previous page",
+      "firstPage": "First page",
+      "lastPage": "Last page",
+      "pageText": "{0}-{1} of {2}"
+    }
+  },
+  "errors": {
+    "server": {
+      "noUserFound": "No account corresponds to this e-mail",
+      "wrongCredentials": "Invalid password",
+      "notReachable": "Server is not reachable. Retry in a few seconds.",
+      "technical": "Oops, something went wrong",
+      "unauthorized": "You have been disconnected",
+      "unexpected": "Oops, something went wrong",
+      "validation": "Validation failed, please check the form for errors"
+    },
+    "validator": {
+      "number": "Must be a number",
+      "futureDate": "Date must be in future",
+      "isEmail": "Must be a valid email address",
+      "isHexColor": "Must be a valid color in hex format",
+      "isLength": "Must contains between {min} and {max} characters",
+      "isUrl": "Must be a valid url",
+      "maxLength": "Too long. Max length is {0} characters",
+      "zipCode": "Invalid zip code",
+      "min": "Minimum value is {0}",
+      "minLength": "Must be at least {0} characters long",
+      "nonNegative": "Value must be greater or equal 0",
+      "notUniqueSlugMessage": "This slug already exist",
+      "passwordMatch": "Password and confirm password must match",
+      "required": "Required",
+      "requiredIf": "Required",
+      "isValidUrl": "Must be a valid URL (ex: https://google.com)"
+    }
+  },
+  "common": {
+    "footer": {
+      "login": "Login",
+      "charityAccount": "Charity Account",
+      "help": "Help",
+      "cookies": "Cookies",
+      "termsAndConditions": "Terms & Conditions",
+      "privacyPolicy": "Privacy Policy",
+      "legalNotice": "Legal notice"
+    },
+    "brand": "MVM",
+    "header": {
+      "search": "Search...",
+      "currentLanguage": "English",
+      "login": "Log in",
+      "logout": "Sign-out",
+      "myapps": "My applications",
+      "myaccount": "My account"
+    },
+    "locale": {
+      "fr": "Français",
+      "en": "English",
+      "nl": "Nederlands",
+      "de": "Deutsch"
+    }
+  },
+  "notFound": {
+    "title": "Oops! Page not found",
+    "message": "It seems the page you're looking for does not exists or has been moved.",
+    "backHome": "Get back home"
+  },
+  "auth": {
+    "signIn": {
+      "email": "E-mail address",
+      "password": "Password",
+      "submit": "Log in",
+      "title": "Log in",
+      "subtitle": "To access my dashboard"
+    },
+    "signUp": {
+      "email": "E-mail address",
+      "password": "Password",
+      "submit": "Create my account",
+      "title": "Sign up",
+      "subtitle": "To create my dashboard",
+      "firstname": "Firstname",
+      "confirmPassword": "Confirm password",
+      "lastname": "Lastname"
+    }
+  },
+  "cryptos": {
+    "title": "Cryptos:",
+    "subtitle": "Watchlist",
+    "chartTitle": "Crypto distribution",
+    "createToken": "Create token",
+    "editToken": "Edit token",
+    "addLine": "+ Add a new line",
+    "price": "Price",
+    "profit": "Profit",
+    "name": "Name",
+    "exchange": "Exchange",
+    "quantity": "Quantity",
+    "fees": "Fees"
+  },
+  "customers": {
+    "title": "Customers",
+    "turnover": "Turnover",
+    "unpaid": "Unpaid",
+    "vatCollected": "VAT collected",
+    "turnoverByCustomer": "Turnover by customer",
+    "fullName": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "city": "City",
+    "lastname": "Lastname",
+    "firstname": "Firstname",
+    "revenus": "Revenus",
+    "unpaidAmount": "Unpaid Amount",
+    "actions": "Actions",
+    "confirmDelete": "Are you sure you want to delete this customer: {0}",
+    "company": "Company",
+    "address": "Address",
+    "siret": "SIRET",
+    "editCustomer": "Edit customer",
+    "createCustomer": "Create customer"
+  },
+  "dashboard": {
+    "costs": "Costs",
+    "revenus": "Revenus",
+    "evolution": "Costs && Revenus evolution",
+    "revenuPro": "Revenu Pro",
+    "revenuPerso": "Revenu Perso",
+    "refund": "Refund",
+    "vatCollected": "VAT collected",
+    "vatDeducted": "VAT deducted",
+    "balance": "Balance",
+    "editBank": "Edit bank",
+    "bank": "bank",
+    "addBank": "Add a banque",
+    "name": "Name",
+    "amount": "Amount"
+  },
+  "invoice": {
+    "editInvoice": "Edit an invoice",
+    "createInvoice": "Create invoice",
+    "revenu": "Revenu",
+    "paid": "Paid",
+    "vatApplicable": "VAT Applicable",
+    "reference": "Reference",
+    "priceUnit": "Price unit",
+    "quantity": "Quantity",
+    "total": "Total",
+    "addLigne": "+ Add a new line",
+    "paymentDate": "Payment Date",
+    "save": "Save",
+    "searchByTotal": "Search by total"
+  },
+  "quotation": {
+    "editQuotation": "Edit a quotation",
+    "createQuotation": "Create quotation",
+    "revenu": "Revenu",
+    "paid": "Paid",
+    "vatApplicable": "VAT Applicable",
+    "reference": "Reference",
+    "priceUnit": "Price unit",
+    "quantity": "Quantity",
+    "total": "Total",
+    "addLigne": "+ Add a new line"
+  },
+  "revenu": {
+    "editRevenu": "Edit your {0} revenu",
+    "invoices": "Invoices:",
+    "tax": "Tax %",
+    "name": "Name",
+    "total": "Total",
+    "creditor": "Creditor",
+    "quotations": "Quotations:",
+    "category": "Category",
+    "credits": "Credits:",
+    "addLine": "+ Add a new line",
+    "costs": "Costs:",
+    "watchers": "Watchers",
+    "vat": "VAT amount",
+    "revenus": "Revenus:",
+    "reference": "Reference",
+    "search": "Search revenu"
+  },
+  "revenus": {
+    "title": "Revenus:",
+    "averageMonthlySpending": "Average Monthly spending",
+    "averageRecurrentSpending": "Average Monthly recurrent spending",
+    "averageRevenu": "Average monthly revenu",
+    "turnover": "Turnover",
+    "totalSpending": "Total spending",
+    "taxes": "Taxes",
+    "netResult": "Net result",
+    "costDistribution": "Cost distribution:",
+    "revenuDistribution": "Revenu distribution:",
+    "search": "Search",
+    "month": "Month",
+    "revenuPro": "Pro Income",
+    "revenuPerso": "Personam income",
+    "revenuNet": "Net income",
+    "investments": "Investments",
+    "expenses": "Expenses",
+    "vatCollected": "VAT collected",
+    "balance": "Balance"
+  },
+  "invoices": {
+    "title": "Invoices:",
+    "revenu": "Revenu",
+    "customer": "Customer",
+    "total": "Total",
+    "vatApplicable": "VAT Applicable",
+    "paid": "Paid",
+    "actions": "Actions",
+    "confirmDelete": "Are you sure you want to delete the invoice #{0}",
+    "search": "Search"
+  },
+  "quotations": {
+    "title": "Quotations",
+    "search": "Search",
+    "revenu": "Revenu",
+    "name": "Name",
+    "total": "Total",
+    "caution": "Caution",
+    "cautionPaid": "Caution paid",
+    "actions": "Actions",
+    "confirmConvert": "Are you sure you want to convert quotation #{0} to an invoice?",
+    "confirmDelete": "Are you sure you want to delet #{0}",
+    "searchByTotal": "Search by total"
+  },
+  "totalField": {
+    "invoiceNumber": "Invoice n°{0}",
+    "invoiceFor": "To the attention of Mr or Mrs",
+    "totalPro": "Pro total",
+    "totalPerso": "Personal total",
+    "total": "Total",
+    "withVAT": "Including VAT",
+    "expenses": "Expenses",
+    "totalVAT": " Total incl. VAT",
+    "balance": "Balance",
+    "vatCollected": "VAT collected",
+    "vatDeductible": "VAT deductible",
+    "vatTotal": "VAT total",
+    "quotationNumber": "Quotation n°{0}"
+  },
+  "weather": {
+    "warm": "Warm",
+    "cold": "Cold",
+    "search": "Search for a city then press enter..."
+  }
+}

@@ -1,11 +1,11 @@
 <template lang="pug">
 v-card
-  v-card-text#weather(:class="weather.value && weather.value.main.temp > 16 ? 'warm' : 'cold'")
+  v-card-text#weather(:class="weather.value && weather.value.main.temp > 16 ? $t('weather.warm') : $t('weather.cold')")
     v-text-field.text-white(
       color="white"
       shaped
       variant="filled"
-      label="Search for a city then press enter..." 
+      :label="$t('weather.search')" 
       name='by_city' 
       @blur='filterAll(itemName, true)' 
       v-model="query"

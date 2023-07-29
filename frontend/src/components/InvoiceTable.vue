@@ -5,7 +5,7 @@ v-card(elevation="3")
       v-col(cols="11")
         v-row(align="center")
           v-btn(icon="mdi-arrow-left" variant="text" @click='router.push("/customers")' color="primary")
-          .text-uppercase Invoices
+          .text-uppercase {{ $t("invoices.title") }}
 
       v-spacer  
       v-col(cols="1")
@@ -16,10 +16,10 @@ v-card(elevation="3")
     v-form(@submit.prevent ref="searchFrom")
       v-row
         v-col.mr-2(cols="12" sm="3" md="2")
-          v-text-field(hide-details label='Total' name='by_total' v-model='query.total' @blur='filterAll(itemName, true)')
+          v-text-field(hide-details :label='$t("invoice.searchByTotal")' name='by_total' v-model='query.total' @blur='filterAll(itemName, true)')
 
         v-row(align="center")
-          v-btn.bg-secondary Rechercher
+          v-btn.bg-secondary {{ $t("invoices.search") }}
           v-icon.ml-2(@click="resetAll()") mdi-restore
 
     v-col(cols="12")
@@ -27,23 +27,23 @@ v-card(elevation="3")
         thead
           tr
             th.text-left
-              | Revenu
+              | {{ $t("invoices.revenu") }}
             th.text-left
-              | Client
+              | {{ $t("invoices.customer") }}
             th.text-left
-              | Total
+              | {{ $t("invoices.total") }}
             th.text-left
-              | TVA Applicable
+              | {{ $t("invoices.vatApplicable") }}
             th.text-left
-              | Payé
+              | {{ $t("invoices.paid") }}
             th.text-left
-              | Actions
+              | {{ $t("invoices.actions") }}
         tbody
           tr(v-for="invoice in items.filter(item => item?.CustomerId === props?.customerId)", :key="invoice.id" @click='pushToShow($event, invoice)')
             td {{ revenuDate(invoice.Revenus) }}
             td {{ invoice.lastName + invoice.firstName }}
-            td {{ invoice.totalTTC }}
-            td {{ invoice.tvaAmount }}
+            td {{ $n(invoice.totalTTC, "currency") }}
+            td {{ $n(invoice.tvaAmount, "currency") }}
             td {{ invoice.paid }}
             td
               v-row
@@ -53,7 +53,7 @@ v-card(elevation="3")
                 v-btn(
                   variant="text" 
                   icon="mdi-delete"
-                  @click.stop="deleteItem(invoice, 'Invoice', `Vous êtes sur de vouloir supprimer la facture ${invoice.id}`)",
+                  @click.stop="deleteItem(invoice, 'Invoice', $t('invoices.confirmDelete', [invoice.id]))",
                   :key="invoice.id"
                 )
 
@@ -63,7 +63,7 @@ v-card(elevation="3")
 </template>
 
 <script setup lang="ts">
-import type { Revenus, Invoices } from "../../../types/models";
+import type { Revenus, Invoices } from "../../types/models";
 
 const props = defineProps({
   customerId: {

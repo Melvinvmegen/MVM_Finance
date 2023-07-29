@@ -5,7 +5,7 @@ v-card(elevation="3")
       v-col(cols="11")
         v-row(align="center")
           v-btn(icon="mdi-arrow-left" variant="text" @click='router.push("/customers")' color="primary")
-          .text-uppercase.px-0 Quotations
+          .text-uppercase.px-0 {{ $t("quotations.title") }}
 
       v-spacer  
       v-col(cols="1")
@@ -16,10 +16,10 @@ v-card(elevation="3")
     v-form(@submit.prevent ref="searchFrom")
       v-row
         v-col.mr-2(cols="12" sm="3" md="2")
-          v-text-field( hide-details label='Total' name='by_total' v-model='query.total' @blur='filterAll(itemName, true)')
+          v-text-field( hide-details :label='$t("quotations.searchByTotal")' name='by_total' v-model='query.total' @blur='filterAll(itemName, true)')
 
         v-row(align="center")
-          v-btn.bg-secondary Rechercher
+          v-btn.bg-secondary {{ $t("quotations.search") }}
           v-icon.ml-2(@click="resetAll()") mdi-restore
 
     v-col(cols="12")
@@ -27,23 +27,23 @@ v-card(elevation="3")
         thead
           tr
             th.text-left
-              | Revenu
+              | {{ $t("quotations.revenu") }}
             th.text-left
-              | Nom
+              | {{ $t("quotations.name") }}
             th.text-left
-              | Total
+              | {{ $t("quotations.total") }}
             th.text-left
-              | Caution
+              | {{ $t("quotations.caution") }}
             th.text-left
-              | Caution payé
+              | {{ $t("quotations.cautionPaid") }}
             th.text-left 
-              | Actions
+              | {{ $t("quotations.actions") }}
         tbody
           tr(v-for="quotation in items", :key="quotation.id" @click='pushToShow($event, quotation)')
             td {{ revenuDate(quotation.Revenus) }}
             td {{ `${quotation.lastName} ${quotation.firstName}` }}
-            td {{ quotation.total }}
-            td {{ quotation.total * 0.3 }}
+            td {{ $n(quotation.total, "currency") }}
+            td {{ $n(quotation.total * 0.3, "currency") }}
             td {{ quotation.cautionPaid }}
             td
               v-row
@@ -53,12 +53,12 @@ v-card(elevation="3")
                   variant="text" 
                   icon="mdi-file-swap" 
                   v-if="!quotation.InvoiceId"
-                  @click.stop="convertToInvoice(quotation, `Vous êtes sur de vouloir convertir le devis ${quotation.id} en facture ?`)"
+                  @click.stop="convertToInvoice(quotation, $t('quotations.confirmConvert', [quotation.id]))"
                 )
                 v-btn(
                   variant="text" 
                   icon="mdi-delete"
-                  @click.stop="deleteItem(quotation, 'Quotation', `Vous êtes sur de vouloir supprimer le devis ${quotation.id}`)",
+                  @click.stop="deleteItem(quotation, 'Quotation', $t('quotations.confirmDelete', [quotation.id]))",
                   :key="quotation.id"
                 )
 
@@ -70,7 +70,7 @@ v-card(elevation="3")
 </template>
 
 <script setup lang="ts">
-import type { Revenus, Quotations } from "../../../types/models";
+import type { Revenus, Quotations } from "../../types/models";
 
 const props = defineProps({
   customerId: {

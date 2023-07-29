@@ -1,7 +1,7 @@
 <template lang="pug">
 v-card(width="100%" :disabled="sold")
   v-card-title.justify-center
-    slot(name="header") Crypto
+    slot(name="header") {{ $t("cryptos.title") }}
   v-card-text.justify-center
 
       v-row(justify="space-between" align="center")

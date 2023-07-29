@@ -4,16 +4,16 @@
       <v-card class="pa-5 mt-5">
         <v-card-title class="headline">
           <v-icon color="error" x-large left>mdi-alert-circle-outline</v-icon>
-          Oups ! Impossible de trouver cette page.
+          {{ $t("notFound.title") }}
         </v-card-title>
         <v-card-text>
-          Il semble que la page que vous cherchez n'existe pas ou a été déplacée.
+          {{ $t("notFound.message") }}
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn raised color="primary" to="/">
             <v-icon left>mdi-home</v-icon>
-            <span>Retourner à l'accueil</span>
+            {{ $t("notFound.backHome") }}
           </v-btn>
           <v-spacer></v-spacer>
         </v-card-actions>

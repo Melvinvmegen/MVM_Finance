@@ -2,51 +2,51 @@
 v-form(@submit.prevent ref="searchFrom")
   v-row
     v-col(cols="12" sm="3" md="2")
-      v-select(:items="revenuStore.revenus"  clearable item-title="createdAt" item-value="id" name='revenuId' v-model="query.id" label='Revenu'  @blur='filterAll(itemName, true)')
+      v-select(:items="revenuStore.revenus"  clearable item-title="createdAt" item-value="id" name='revenuId' v-model="query.id" :label='$t("revenu.search")'  @blur='filterAll(itemName, true)')
 
     v-col(cols="12" sm="3" md="2")
-      v-btn.bg-secondary Rechercher
+      v-btn.bg-secondary {{ $t("revenus.search") }}
 
 v-col(cols="12")
   v-table(v-if="!indexStore.loading")
     thead
       tr
         th.text-left
-          | Mois
+          | {{ $t("revenus.month") }}
         th.text-left
-          | Revenus Pro
+          | {{ $t("revenus.revenuPro") }}
         th.text-left
-          | Revenu Net
+          | {{ $t("revenus.revenuNet") }}
         th.text-left
-          | Revenus Perso
+          | {{ $t("revenus.revenuPerso") }}
         th.text-left
-          | Revenus
+          | {{ $t("revenus.title") }}
         th.text-left
-          | Investissements
+          | {{ $t("revenus.investments") }}
         th.text-left
-          | Charges
+          | {{ $t("revenus.expenses") }}
         th.text-left
-          | TVA récoltée
+          | {{ $t("revenus.vatCollected") }}
         th.text-left
-          | Balance
+          | {{ $t("revenus.balance") }}
 
     tbody
       tr(v-for='revenu in items' :key='revenu.id' @click='pushToShow($event, revenu)')
         td {{ revenuDate(revenu) }}
-        td {{ Math.round(revenu.pro) }}
-        td {{ returnRevenuNet(revenu) }}
-        td {{ Math.round(revenu.perso) }}
-        td {{ Math.round(revenu.total) }}
-        td {{ returnInvestmentTotal(revenu) }}
-        td {{ Math.round(revenu.expense) }}
-        td {{ returnTVABalance(revenu) }}
-        td {{ Math.round((returnRevenuNet(revenu) + revenu.perso)- Math.abs(revenu.expense)) }}
+        td {{ $n(Math.round(revenu.pro), "currency") }}
+        td {{ $n(returnRevenuNet(revenu), "currency") }}
+        td {{ $n(Math.round(revenu.perso), "currency") }}
+        td {{ $n(Math.round(revenu.total), "currency") }}
+        td {{ $n(returnInvestmentTotal(revenu), "currency") }}
+        td {{ $n(Math.round(revenu.expense), "currency") }}
+        td {{ $n(returnTVABalance(revenu), "currency") }}
+        td {{ $n(Math.round((returnRevenuNet(revenu) + revenu.perso)- Math.abs(revenu.expense)), "currency") }}
 
 v-pagination(v-model="query.currentPage" :total-visible='query.perPage' :length='pages')
 </template>
 
 <script setup lang="ts">
-import type { Revenus, Invoices, Costs, Transactions } from "../../../types/models";
+import type { Revenus, Invoices, Costs, Transactions } from "../../types/models";
 type RevenuWithCostsInvoicesTransactions = Revenus & {
   Invoices: Invoices[];
   Costs: Costs[];

@@ -8,38 +8,38 @@ v-container
             v-row
               a(@click='router.go(-1)')
                 v-icon mdi-arrow-left
-              span {{ invoice?.id ? "Editer une facture" : "Créer une facture" }}
+              span {{ invoice?.id ? $t("invoice.editInvoice") : $t("invoice.createInvoice") }}
           
           v-card-text
             v-alert(color="danger" v-if='indexStore.error') {{ indexStore.error }}
             v-row(dense)
               v-col(cols="2")
-                v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="invoice.RevenuId" label='Revenu'  )
+                v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="invoice.RevenuId" :label='$t("invoice.revenu")'  )
               v-col(cols="2")
                 DateInput(:value="invoice.paymentDate")
                 v-icon mdi-calendar
               v-col(cols="2")
-                v-switch(name='paid' label='Payé' v-model="invoice.paid" color="secondary" )
+                v-switch(name='paid' :label='$t("invoice.paid")' v-model="invoice.paid" color="secondary" )
               v-col(cols="2")
-                v-switch(name='tvaApplicable' label='TVA applicable' v-model="invoice.tvaApplicable" @change="updateTotal(invoice)" color="secondary" )
+                v-switch(name='tvaApplicable' :label='$t("invoice.vatApplicable")' v-model="invoice.tvaApplicable" @change="updateTotal(invoice)" color="secondary" )
             v-row
-              v-col(cols="3") Référence
-              v-col(cols="2") Prix unitaire
-              v-col(cols="2") Quantité
-              v-col(cols="1") Total
+              v-col(cols="3") {{ $t("invoice.reference") }}
+              v-col(cols="2") {{ $t("invoice.priceUnit") }}
+              v-col(cols="2") {{ $t("invoice.quantity") }}
+              v-col(cols="1") {{ $t("invoice.total") }}
               v-col(cols="1")
             br
             transition-group(name='slide-up')
               div(v-for='(item, index) in invoice.InvoiceItems' :key="item.id || index")
                 v-row(v-if="item?.markedForDestruction !== true")
                   v-col(cols="3")
-                    v-text-field(label='Référence' v-model="item.name" :rules="[$v.required()]")
+                    v-text-field(:label='$t("invoice.reference")' v-model="item.name" :rules="[$v.required()]")
                   v-col(cols="3")
-                    v-text-field(label='Prix unitaire' v-model.number="item.unit" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
+                    v-text-field(:label='$t("invoice.priceUnit")' v-model.number="item.unit" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
                   v-col(cols="3")
-                    v-text-field(label='Quantité' v-model.number="item.quantity" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
+                    v-text-field(:label='$t("invoice.quantity")' v-model.number="item.quantity" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
                   v-col(cols="2")
-                    v-text-field(label='Total' v-model="item.total" :disabled='true')
+                    v-text-field(:label='$t("invoice.total")' v-model="item.total" :disabled='true')
                   v-col(cols="1")
                     v-btn(color="error" href='#' @click.prevent='removeItem(item)')
                       v-icon mdi-delete
@@ -47,13 +47,13 @@ v-container
               v-row
                 v-col(cols="12" justify="end")
                   v-btn(color="primary" @click.prevent='addItem')
-                    span + Ajouter une ligne
+                    span + {{ $t("invoice.addLigne") }}
 
 
           v-card-actions
             v-row(dense justify="center")
               v-col.d-flex.justify-center(cols="12" lg="8")
-                v-btn.bg-secondary.text-white(type="submit") {{ invoice?.id ? "Editer une facture" : "Créer une facture" }}
+                v-btn.bg-secondary.text-white(type="submit") {{ invoice?.id ? $t("invoice.editInvoice") : $t("invoice.createInvoice") }}
     v-col(cols='3')
       TotalField(
         :initial-total='itemsTotal || invoice.total',
