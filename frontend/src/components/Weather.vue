@@ -29,7 +29,7 @@ v-card
 
 </template>
 <script setup lang="ts">
-import axios from "axios";
+import { useOFetch } from "../plugins/ofetch";
 
 interface Weather {
   value: {
@@ -72,8 +72,10 @@ async function fetchWeather() {
   }
 }
 
-function getWeather() {
-  return axios.get(`${api_base_url}weather?q=${query.value}&units=metric&appid=${api_key}`);
+async function getWeather() {
+  return await useOFetch(`${api_base_url}weather?q=${query.value}&units=metric&appid=${api_key}`, {
+    method: "GET",
+  });
 }
 
 function dateBuilder() {

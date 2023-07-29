@@ -65,6 +65,7 @@ declare global {
   const useDisplay: typeof import('vuetify')['useDisplay']
   const useDownload: typeof import('../src/composables/download')['useDownload']
   const useFilter: typeof import('../src/composables/filter')['useFilter']
+  const useI18n: typeof import('vue-i18n')['useI18n']
   const useIndexStore: typeof import('../src/stores/indexStore')['useIndexStore']
   const useInvoiceStore: typeof import('../src/stores/invoiceStore')['useInvoiceStore']
   const useLink: typeof import('vue-router')['useLink']
