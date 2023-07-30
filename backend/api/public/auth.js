@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
-import { settings } from "../../util/settings.js";
 import { AppError } from "../../util/AppError.js";
 import { prisma, Models } from "../../util/prisma.js";
+import { randomUUID } from "crypto";
 
 /**
  * @param {API.ServerInstance} app
@@ -9,7 +9,8 @@ import { prisma, Models } from "../../util/prisma.js";
 export default async function (app) {
   app.$post("/signup", signUp);
   app.$post("/signin", signIn);
-  app.$post("/refresh-token", refreshToken);
+  app.$get("/logout", logout);
+  app.$get("/who-am-i", whoAmI);
 }
 
 /**
@@ -37,80 +38,69 @@ export async function signUp(body) {
 /**
  * @this {API.This}
  * @param {{ email: string, password: string }} body
- * @returns {Promise<{message: string, userId: number, refresh_token: string, token: string, cryptosModuleActive: boolean, customersModuleActive: boolean, revenusModuleActive: boolean}>}
+ * @returns {Promise<{id: number, email: string, cryptosModuleActive: boolean, customersModuleActive: boolean, revenusModuleActive: boolean, authTicket: string }>}
  */
-export async function signIn(body) {
+export async function signIn({ email, password }) {
   const user = await prisma.users.findUnique({
-    where: { email: body.email },
+    where: { email: email.trim() },
   });
   if (!user) throw new AppError(404, "Incorrect credentials, please check your login and password");
 
-  const passwordCheck = await bcrypt.compare(body.password, user.password);
+  const passwordCheck = await bcrypt.compare(password, user.password);
   if (!passwordCheck) {
     throw new AppError(404, "Email and password don't match!");
   }
 
-  const token = createToken(this.reply, { email: user.email, userId: user.id }, +settings.jwt.expiresIn);
-  const refresh_token = createToken(this.reply, { userId: user.id }, +settings.jwt.refreshTokenExpiration);
-  await prisma.refreshTokens.create({
+  const authTicket = randomUUID();
+
+  await prisma.users.update({
+    where: {
+      id: user.id,
+    },
     data: {
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      token: refresh_token,
-      expiryDate: new Date(new Date().getTime() + +settings.jwt.refreshTokenExpiration * 1000),
-      UserId: user.id,
+      authTicket: authTicket,
+      lastLogin: new Date(),
     },
   });
 
-  return {
-    message: "Successfully signed in",
-    userId: user.id,
-    refresh_token,
-    token,
+  const me = {
+    id: user.id,
+    email: user.email,
     cryptosModuleActive: user.cryptosModuleActive,
     customersModuleActive: user.customersModuleActive,
     revenusModuleActive: user.revenusModuleActive,
   };
+
+  this.reply.setCookie("MVMTOKEN", await this.reply.jwtSign(me), {
+    domain: /\.com$/.test(this.request.hostname)
+      ? "." + this.request.hostname.split(":")[0].split(".").slice(1).join(".")
+      : this.request.hostname.split(":")[0],
+    path: "/",
+    secure: false,
+    httpOnly: true,
+    sameSite: true, // alternative CSRF protection
+  });
+
+  return { ...me, authTicket };
 }
 
 /**
  * @this {API.This}
- * @param {{ refreshToken: Models.RefreshTokens }} body
- * @returns {Promise<{refreshToken: string, token: string }>}
  */
-export async function refreshToken(body) {
-  const { refreshToken } = body;
-
-  if (!refreshToken) throw new AppError(403, "Refresh Token is required!");
-
-  const refresh_token = await prisma.refreshTokens.findFirst({
-    where: { token: refreshToken.token },
-    include: { Users: true },
+export async function logout() {
+  this.reply.clearCookie("MVMTOKEN", {
+    domain: this.request.hostname.split(":")[0].substring(this.request.hostname.indexOf(".")),
+    path: "/",
+    secure: true,
+    httpOnly: true,
+    sameSite: true,
   });
-  if (!refresh_token) throw new AppError(403, "Refresh Token not found!");
-
-  if (refresh_token.expiryDate.getTime() < new Date().getTime()) {
-    await prisma.refreshTokens.delete({
-      where: { id: refresh_token.id },
-    });
-    throw new AppError(403, "Refresh token was expired. Please login");
-  }
-
-  const token = createToken(
-    this.reply,
-    { email: refresh_token.Users?.email, userId: refresh_token.id },
-    +settings.jwt.expiresIn
-  );
-
-  return {
-    token,
-    refreshToken: refresh_token.token,
-  };
 }
 
-const createToken = (reply, payload, expiresIn) => {
-  return reply.jwtSign(payload, settings.jwt.secret, {
-    algorithm: "HS512",
-    expiresIn,
-  });
-};
+/**
+ * @this {API.This}
+ * @returns {Promise<API.LoggedUser>}
+ */
+export async function whoAmI() {
+  return this.request.user;
+}

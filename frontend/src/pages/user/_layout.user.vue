@@ -5,7 +5,7 @@ v-app
     v-spacer
     v-menu(offset-y)
       template(v-slot:activator='{}')
-        v-btn(icon="mdi-power" @click='logOut' v-if='currentUser')
+        v-btn(icon="mdi-power" to='/logout' v-if='currentUser')
         router-link.text-decoration-none(:to="'/login'" color='white' v-else)
           v-btn(icon="mdi-account" color='white')
   v-navigation-drawer(:permanent='!display.mobile.value' width='300' v-if="currentUser")
@@ -40,9 +40,4 @@ const menuItems = [
   },
   { title: "Cryptos", link: "cryptos", icon: "mdi-currency-btc", active: currentUser?.value?.cryptosModuleActive },
 ];
-
-function logOut() {
-  userStore.logout();
-  router.push("/login");
-}
 </script>

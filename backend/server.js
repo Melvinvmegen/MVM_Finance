@@ -6,6 +6,7 @@ import { settings } from "./util/settings.js";
 import basicAuth from "@fastify/basic-auth";
 import multipart from "@fastify/multipart";
 import { prisma } from "./util/prisma.js";
+import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import pretty from "pino-pretty";
@@ -76,20 +77,20 @@ const app = clientWrapper(
 );
 
 // Handle options requests
+app.register(cookie);
 app.register(multipart);
+app.register(jwt, {
+  secret: settings.jwt.secret,
+  cookie: {
+    cookieName: "MVMTOKEN",
+    signed: false,
+  },
+});
 app.register(cors, {
   origin: /\.melvinvmegen\.com$/,
   allowedHeaders: "Content-Type, Authorization, Cookie, Content-Length, Sid, Reqid, X-Requested-With, X-Device",
   credentials: true,
   methods: "GET,PUT,POST,DELETE,OPTIONS,PATCH",
-});
-
-app.register(jwt, {
-  secret: settings.jwt.secret,
-  sign: {
-    algorithm: "HS512",
-    expiresIn: settings.jwt.expiresIn,
-  },
 });
 
 // TODO: check request

@@ -132,16 +132,6 @@ model Quotations {
   Revenus       Revenus?       @relation(fields: [RevenuId], references: [id])
 }
 
-model RefreshTokens {
-  id         Int      @id @default(autoincrement())
-  token      String   @db.VarChar(255)
-  expiryDate DateTime @db.Timestamptz(6)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  UserId     Int
-  Users      Users    @relation(fields: [UserId], references: [id], onDelete: Cascade)
-}
-
 model Revenus {
   id             Int            @id @default(autoincrement())
   total          Float          @default(0)
@@ -186,13 +176,14 @@ model Users {
   email                 String             @unique @db.VarChar(255)
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
+  lastLogin             DateTime?
+  authTicket            String?
   cryptosModuleActive   Boolean            @default(true)
   customersModuleActive Boolean            @default(true)
   revenusModuleActive   Boolean            @default(true)
   Banks                 Banks[]
   CryptoCurrencies      CryptoCurrencies[]
   Customers             Customers[]
-  RefreshTokens         RefreshTokens[]
 }
 
 model Banks {

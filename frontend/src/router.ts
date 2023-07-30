@@ -1,5 +1,5 @@
 import { createWebHistory, createRouter as _createRouter } from "vue-router";
-import { useUserStore } from "./stores/userStore";
+import { useAuthStore } from "./stores/authStore";
 
 export function createRouter() {
   const router = _createRouter({
@@ -13,6 +13,14 @@ export function createRouter() {
           {
             path: "/login",
             component: () => import("./pages/public/auth.vue"),
+            meta: {
+              public: true,
+            },
+          },
+          {
+            path: "/logout",
+            name: "Logout",
+            component: () => import("./pages/public/logout.vue"),
             meta: {
               public: true,
             },
@@ -74,18 +82,16 @@ export function createRouter() {
   });
 
   router.beforeEach(async (to, from, next) => {
-    const userStore = useUserStore();
-    await userStore.signIn({ currentPath: to });
-    if (userStore.auth) {
-      if (to.path === "/login" || to.path === "/") {
-        next("/dashboard");
-      }
-      next();
+    const authStore = useAuthStore();
+    if (isPublicPath(to)) {
+      return next();
+    } else if (authStore.me || (await authStore.authenticate())) {
+      return next();
     } else {
-      if (isPublicPath(to)) {
-        return next();
-      }
-      next("/login");
+      return next({
+        name: "Login",
+        query: { redirectUrl: import.meta.env?.BASE_URL + to.fullPath.slice(1) },
+      });
     }
   });
 
