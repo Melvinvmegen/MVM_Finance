@@ -151,7 +151,7 @@ async function handleSubmit(): Promise<void> {
   loadingStore.setLoading(true);
   try {
     if (quotation.value.id) {
-      updateQuotation(quotation.value);
+      updateQuotation(quotation.value.id, quotation.value);
     } else {
       createQuotation(quotation.value);
     }

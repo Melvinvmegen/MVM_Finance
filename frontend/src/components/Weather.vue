@@ -7,7 +7,6 @@ v-card
       variant="filled"
       :label="$t('weather.search')" 
       name='by_city' 
-      @blur='filterAll(itemName, true)' 
       v-model="query"
       @keyup.enter="fetchWeather"
     )
@@ -20,7 +19,7 @@ v-card
         .temp {{ Math.round(weather.value.main.temp) }}&deg;c
         br
         .weather
-          img(:src='icon')
+          img(:src='`${settingsStore.settings.weatherIconUrl}${weather?.value?.weather[0]?.icon}.png`')
           span {{ weather.value.weather[0].description }}
 
     .weather-wrap(v-if="errorMessage")
@@ -43,13 +42,10 @@ interface Weather {
     name: string;
   };
 }
-
-const api_key = <string>"1c2e74ddb4456f75a4a48d61a368203b";
-const api_base_url = <string>"https://api.openweathermap.org/data/2.5/";
+const settingsStore = useSettingsStore();
 const query = ref("Paris");
 const weather = reactive<Weather | any>({});
 const errorMessage = ref("");
-const icon = computed((): string => `http://openweathermap.org/img/w/${weather?.value?.weather[0]?.icon}.png`);
 const loadingStore = useLoadingStore();
 
 fetchWeather();
@@ -73,9 +69,12 @@ async function fetchWeather() {
 }
 
 async function getWeather() {
-  return await useOFetch(`${api_base_url}weather?q=${query.value}&units=metric&appid=${api_key}`, {
-    method: "GET",
-  });
+  return await useOFetch(
+    `${settingsStore.settings.weatherApiBaseUrl}weather?q=${query.value}&units=metric&appid=${settingsStore.settings.weatherApiKey}`,
+    {
+      method: "GET",
+    },
+  );
 }
 
 function dateBuilder() {

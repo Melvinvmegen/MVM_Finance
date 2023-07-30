@@ -1,10 +1,10 @@
-import { validateBelongsToBank, validateBelongsToUser, validateCustomerBelongsToUser } from "./util/rights.js";
+import { validateBelongsToBank, validateBelongsToUser, validateCustomerBelongsToUser } from "./utils/rights.js";
 import { green, yellow, red, magenta, gray } from "colorette";
-import UnauthorizedError from "./util/unauthorizedError.js";
+import UnauthorizedError from "./utils/unauthorizedError.js";
 import clientWrapper from "./apiClient/wrapper.js";
-import { settings } from "./util/settings.js";
+import { settings } from "./utils/settings.js";
 import multipart from "@fastify/multipart";
-import { prisma } from "./util/prisma.js";
+import { prisma } from "./utils/prisma.js";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { logout } from "@/utils/generated/api-auth";
 const route = useRoute();
 

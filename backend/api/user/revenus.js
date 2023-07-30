@@ -1,10 +1,10 @@
-import { updateCreateOrDestroyChildItems } from "../../util/childItemsHandler.js";
-import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
-import { setFilters } from "../../util/filter.js";
-import { AppError } from "../../util/AppError.js";
+import { updateCreateOrDestroyChildItems } from "../../utils/childItemsHandler.js";
+import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
+import { setFilters } from "../../utils/filter.js";
+import { AppError } from "../../utils/AppError.js";
 import fs from "fs";
 import { parse } from "csv-parse";
-import { prisma, Models } from "../../util/prisma.js";
+import { prisma, Models } from "../../utils/prisma.js";
 
 /**
  * @param {API.ServerInstance} app

@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import { AppError } from "../../util/AppError.js";
-import { prisma, Models } from "../../util/prisma.js";
+import { AppError } from "../../utils/AppError.js";
+import { prisma, Models } from "../../utils/prisma.js";
 import { randomUUID } from "crypto";
 
 /**

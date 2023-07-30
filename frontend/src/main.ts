@@ -20,6 +20,9 @@ function createVueApp() {
   const validator = createValidator(i18n);
   app.use(validator);
 
+  const settingsStore = useSettingsStore();
+  settingsStore.initializeSettings();
+
   return {
     app,
     router,

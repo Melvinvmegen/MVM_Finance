@@ -53,6 +53,7 @@ const getDate = computed(() => {
   let date = input.value ? new Date(input.value) : new Date();
   return [date];
 });
+
 function updateDate(val) {
   menu.value = false;
   input.value = val;

@@ -1,4 +1,4 @@
-import stripe from "../../util/stripe.js";
+import stripe from "../../utils/stripe.js";
 
 /**
  * @param {API.ServerInstance} app

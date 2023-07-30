@@ -1,6 +1,6 @@
-import { prisma, Models } from "../../util/prisma.js";
-import { AppError } from "../../util/AppError.js";
-import stripe from "../../util/stripe.js";
+import { prisma, Models } from "../../utils/prisma.js";
+import { AppError } from "../../utils/AppError.js";
+import stripe from "../../utils/stripe.js";
 
 /**
  * @param {API.ServerInstance} app

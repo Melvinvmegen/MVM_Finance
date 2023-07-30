@@ -1,7 +1,7 @@
-import { getOrSetCache, invalidateCache } from "../../util/cacheManager.js";
-import { updateCreateOrDestroyChildItems } from "../../util/childItemsHandler.js";
-import { prisma, Models } from "../../util/prisma.js";
-import { AppError } from "../../util/AppError.js";
+import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
+import { updateCreateOrDestroyChildItems } from "../../utils/childItemsHandler.js";
+import { prisma, Models } from "../../utils/prisma.js";
+import { AppError } from "../../utils/AppError.js";
 import axios from "axios";
 
 /**

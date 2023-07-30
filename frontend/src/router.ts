@@ -90,7 +90,7 @@ export function createRouter() {
     } else {
       return next({
         name: "Login",
-        query: { redirectUrl: import.meta.env?.BASE_URL + to.fullPath.slice(1) },
+        query: { redirectUrl: window.location.origin + to.fullPath.slice(1) },
       });
     }
   });

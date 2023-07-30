@@ -4,7 +4,7 @@ import AppError from "../utils/appError";
 export function createOFetch(options) {
   const _ofetch = ofetch.create({
     ...(options || {}),
-    headers: options?.headers,
+    headers: options?.headers || { Sid: useSettingsStore().sid },
     credentials: "include",
     async onRequestError({ error }) {
       return Promise.reject(error);

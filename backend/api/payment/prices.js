@@ -1,5 +1,5 @@
-import { AppError } from "../../util/AppError.js";
-import stripe, { StripeTypes } from "../../util/stripe.js";
+import { AppError } from "../../utils/AppError.js";
+import stripe, { StripeTypes } from "../../utils/stripe.js";
 
 /**
  * @param {API.ServerInstance} app

@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
-import { prisma } from "../../util/prisma.js";
-import stripe from "../../util/stripe.js";
-import { AppError } from "../../util/AppError.js";
-import { settings } from "../../util/settings.js";
+import { prisma } from "../../utils/prisma.js";
+import stripe from "../../utils/stripe.js";
+import { AppError } from "../../utils/AppError.js";
+import { settings } from "../../utils/settings.js";
 import axios from "axios";
 
 /**

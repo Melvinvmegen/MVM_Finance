@@ -31,3 +31,10 @@ export async function logout(query = undefined) {
 export async function whoAmI(query = undefined) {
   return await useOFetch(`/who-am-i`, { method: "GET", query });
 }
+/**
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/public/settings.js").getSettings>>}
+**/
+export async function getSettings(query = undefined) {
+  return await useOFetch(`/settings`, { method: "GET", query });
+}

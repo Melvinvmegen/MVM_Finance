@@ -33,7 +33,7 @@ v-row
 </template>
 
 <script setup lang="ts">
-import { getCustomers, deleteCustomer } from "../../utils/generated/api-user";
+import { getCustomers } from "../../utils/generated/api-user";
 
 const customers = ref([]);
 onBeforeMount(async () => {

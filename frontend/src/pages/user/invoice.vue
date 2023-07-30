@@ -145,7 +145,7 @@ async function handleSubmit(): Promise<void> {
   loadingStore.setLoading(true);
   try {
     if (invoice.value.id) {
-      updateInvoice(invoice.value);
+      updateInvoice(invoice.value.id, invoice.value);
     } else {
       createInvoice(invoice.value);
     }

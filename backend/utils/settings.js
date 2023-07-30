@@ -1,6 +1,6 @@
 import { isColorSupported } from "colorette";
 
-const settings = {
+export const settings = {
   database: {
     dbConnectionUri:
       process.env.DATABASE_URL ||
@@ -51,6 +51,9 @@ const settings = {
     webhookSecret:
       process.env.STRIPE_WEBHOOK_SECRET || "whsec_c8073d61c36abab4d488d068f065d7a84c468de780722c8e90ad3d9cf1f0b340",
   },
+  weather: {
+    apiKey: process.env.WEATHER_API_KEY || "1c2e74ddb4456f75a4a48d61a368203b",
+    apiBaseUrl: process.env.WEATHER_API_BASE_URL || "https://api.openweathermap.org/data/2.5",
+    iconUrl: process.env.WEATHER_API_BASE_URL || "http://openweathermap.org/img/w",
+  },
 };
-
-export { settings };
