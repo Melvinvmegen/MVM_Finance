@@ -3,7 +3,6 @@ import { green, yellow, red, magenta, gray } from "colorette";
 import UnauthorizedError from "./util/unauthorizedError.js";
 import clientWrapper from "./apiClient/wrapper.js";
 import { settings } from "./util/settings.js";
-import basicAuth from "@fastify/basic-auth";
 import multipart from "@fastify/multipart";
 import { prisma } from "./util/prisma.js";
 import cookie from "@fastify/cookie";
@@ -99,16 +98,6 @@ app.register(cors, {
 // TODO: handle formData
 // app.use(bodyParser.urlencoded({ extended: false }));
 
-app.register(basicAuth, {
-  validate(username, password, req, reply, done) {
-    if (username === settings.basicAuth.user && password === settings.basicAuth.password) {
-      done();
-    } else {
-      throw new UnauthorizedError("errors.server.unauthorized");
-    }
-  },
-});
-
 app.addHook("onRequest", async (request) => {
   const level = request.url !== "/n/health" && request.method !== "OPTIONS" ? "info" : "debug";
   const requestMethod = settings.logger.colorize
@@ -130,21 +119,32 @@ app.addHook("onRequest", async (request) => {
 });
 
 app.addHook("preHandler", async (req, reply) => {
-  // if (req.url.includes("/api/user")) {
-  //   await req.jwtVerify();
-  // }
-  // if (req.url.includes("/api/payment")) {
-  //   app.basicAuth(req, reply, done);
-  // }
-  // if (/^\/api\/user\/[a-zA-Z0-9]+\/(?:customers|cryptos|banks)$/.test(req.url)) {
-  //   if (!validateBelongsToUser(req)) throw new UnauthorizedError("errors.server.unauthorized");
-  // }
-  // if (/^\/api\/user\/[a-zA-Z0-9]+\/customers\/[a-zA-Z0-9]+\/(?:invoices|quotations)$/.test(req.url)) {
-  //   if (!validateCustomerBelongsToUser(req)) throw new UnauthorizedError("errors.server.unauthorized");
-  // }
-  // if (/^\/api\/user\/[a-zA-Z0-9]+\/banks\/[a-zA-Z0-9]+\/(?:revenus)$/.test(req.url)) {
-  //   if (!validateBelongsToBank(req)) throw new UnauthorizedError("errors.server.unauthorized");
-  // }
+  if (req.url.includes("/api/user")) {
+    await req.jwtVerify();
+  }
+  if (req.url.includes("/api/payment")) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader && !req.user) {
+      throw new UnauthorizedError("errors.server.missingCredentials");
+    }
+    if (authHeader) {
+      const encodedCreds = authHeader.split(" ")[1];
+      const decodedCreds = Buffer.from(encodedCreds, "base64").toString();
+      const [username, password] = decodedCreds.split(":");
+      if (username !== settings.basicAuth.username || password !== settings.basicAuth.password) {
+        throw new UnauthorizedError("errors.server.unauthorized");
+      }
+    }
+  }
+  if (/^\/api\/user\/[a-zA-Z0-9]+\/(?:customers|cryptos|banks)$/.test(req.url)) {
+    if (!validateBelongsToUser(req)) throw new UnauthorizedError("errors.server.unauthorized");
+  }
+  if (/^\/api\/user\/[a-zA-Z0-9]+\/customers\/[a-zA-Z0-9]+\/(?:invoices|quotations)$/.test(req.url)) {
+    if (!validateCustomerBelongsToUser(req)) throw new UnauthorizedError("errors.server.unauthorized");
+  }
+  if (/^\/api\/user\/[a-zA-Z0-9]+\/banks\/[a-zA-Z0-9]+\/(?:revenus)$/.test(req.url)) {
+    if (!validateBelongsToBank(req)) throw new UnauthorizedError("errors.server.unauthorized");
+  }
 });
 
 app.addHook("onResponse", async (request, reply) => {
