@@ -11,12 +11,12 @@ const updateCreateOrDestroyChildItems = async function (model, old_child_items, 
     return;
   }
 
-  for (let old of old_child_items) {
-    const is_kept = new_child_items.find((child) => old.id === child.id);
+  for (let old_child of old_child_items) {
+    const is_kept = new_child_items.find((new_child) => old_child.id === new_child.id);
     if (!is_kept) {
       // @ts-ignore
       await prisma[model].delete({
-        where: { id: old.id },
+        where: { id: old_child.id },
       });
     }
   }

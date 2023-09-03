@@ -32,7 +32,7 @@
     "@fastify/cors": "^8.3.0",
     "@fastify/jwt": "^7.2.0",
     "@fastify/multipart": "^7.6.1",
-    "@prisma/client": "5.0.0",
+    "@prisma/client": "5.1.1",
     "@sendinblue/client": "^3.2.2",
     "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
@@ -59,7 +59,7 @@
     "eslint-config-prettier": "^8.8.0",
     "nodemon": "^2.0.12",
     "prettier": "^2.8.8",
-    "prisma": "^4.16.1",
+    "prisma": "^5.1.1",
     "typescript": "^4.8.4"
   }
 }

@@ -53,7 +53,11 @@ export const settings = {
   },
   weather: {
     apiKey: process.env.WEATHER_API_KEY || "1c2e74ddb4456f75a4a48d61a368203b",
-    apiBaseUrl: process.env.WEATHER_API_BASE_URL || "https://api.openweathermap.org/data/2.5",
+    apiBaseUrl: process.env.WEATHER_API_BASE_URL || "https://api.openweathermap.org/data/2.5/",
     iconUrl: process.env.WEATHER_API_BASE_URL || "http://openweathermap.org/img/w",
+  },
+  coinmarketcap: {
+    apiBaseUrl: process.env.COINMARKETCAP_URL || "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
+    apiKey: process.env.COINMARKETCAP_KEY || "9a874839-5e36-4cec-bcbe-ac2f7927c74f",
   },
 };

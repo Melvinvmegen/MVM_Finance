@@ -21,12 +21,13 @@ export default async function (app) {
 
 /**
  * @this {API.This}
+ * @param {string} CustomerId
  * @param {{ per_page: number, offset: number, force: string, options: any }} params
  * @returns {Promise<{ count: number, rows:Models.Invoices[] & { Revenus: Models.Revenus} }>}
  */
-export async function getInvoices(params) {
-  const { CustomerId } = params.options;
-  const { per_page, offset, options } = setFilters(params);
+export async function getInvoices(CustomerId, params) {
+  if (!Number(CustomerId)) throw new AppError("Customer not found");
+  const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
 
   const customer = await prisma.customers.findFirst({
@@ -35,7 +36,7 @@ export async function getInvoices(params) {
       UserId: this.request?.user?.id,
     },
   });
-  if (!customer) throw new AppError(404, "Customer not found");
+  if (!customer) throw new AppError("Customer not found");
   const invoices_data = await getOrSetCache(
     `invoices_customer_${CustomerId}`,
     async () => {
@@ -48,9 +49,7 @@ export async function getInvoices(params) {
         where: options,
         skip: offset,
         take: per_page,
-        orderBy: {
-          id: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         include: {
           Revenus: true,
         },
@@ -66,14 +65,16 @@ export async function getInvoices(params) {
 
 /**
  * @this {API.This}
- * @param {number} invoiceId
+ * @param {string} customerId
+ * @param {string} invoiceId
  * @returns {Promise<Models.Invoices[] & { InvoiceItems: Models.InvoiceItems}>}
  */
-export async function getInvoice(invoiceId) {
+export async function getInvoice(customerId, invoiceId) {
   const invoice = await getOrSetCache(`invoice_${invoiceId}`, async () => {
     const data = await prisma.invoices.findFirstOrThrow({
       where: {
         id: +invoiceId,
+        CustomerId: +customerId,
       },
       include: {
         InvoiceItems: true,
@@ -82,21 +83,23 @@ export async function getInvoice(invoiceId) {
     return data;
   });
 
-  if (!invoice) throw new AppError(404, "Invoice not found!");
+  if (!invoice) throw new AppError("Invoice not found!");
 
   return invoice;
 }
 
 /**
  * @this {API.This}
- * @param {number} invoiceId
+ * @param {string} customerId
+ * @param {string} invoiceId
  * @returns {Promise<API.DownloadReturns>}>}
  */
-export async function downloadInvoice(invoiceId) {
+export async function downloadInvoice(customerId, invoiceId) {
   const invoice = await getOrSetCache(`invoice_${invoiceId}`, async () => {
     const data = await prisma.invoices.findFirstOrThrow({
       where: {
         id: +invoiceId,
+        CustomerId: +customerId,
       },
       include: {
         InvoiceItems: true,
@@ -105,10 +108,10 @@ export async function downloadInvoice(invoiceId) {
     return data;
   });
 
-  if (!invoice) throw new AppError(404, "Invoice not found!");
+  if (!invoice) throw new AppError("Invoice not found!");
 
   return {
-    filename: "invoice-" + invoiceId + ".pdf",
+    filename: "mvm-invoice-" + invoiceId + ".pdf",
     type: "application/pdf",
     stream: pdfGenerator(invoice),
   };
@@ -116,15 +119,38 @@ export async function downloadInvoice(invoiceId) {
 
 /**
  * @this {API.This}
- * @param {Models.Prisma.InvoicesCreateInput & { InvoiceItems: Models.Prisma.InvoiceItemsCreateInput }} body
+ * @param {string} customerId
+ * @param {Models.Prisma.InvoicesCreateInput & { RevenuId: number, InvoiceItems: Models.Prisma.InvoiceItemsCreateInput }} body
  * @returns {Promise<Models.Invoices & {InvoiceItems: Models.InvoiceItems[]}>}
  */
-export async function createInvoice(body) {
+export async function createInvoice(customerId, body) {
   const { InvoiceItems, ...invoiceBody } = body;
-
   const invoice = await prisma.invoices.create({
     data: {
-      ...invoiceBody,
+      firstName: invoiceBody.firstName,
+      lastName: invoiceBody.lastName,
+      company: invoiceBody.company,
+      address: invoiceBody.address,
+      city: invoiceBody.city,
+      paymentDate: invoiceBody.paymentDate,
+      total: invoiceBody.total,
+      totalDue: invoiceBody.totalDue,
+      totalTTC: invoiceBody.totalTTC,
+      tvaAmount: invoiceBody.tvaAmount,
+      tvaApplicable: invoiceBody.tvaApplicable,
+      paid: invoiceBody.paid,
+      Customers: {
+        connect: {
+          id: +customerId,
+        },
+      },
+      ...(invoiceBody.RevenuId && {
+        Revenus: {
+          connect: {
+            id: +invoiceBody.RevenuId,
+          },
+        },
+      }),
       InvoiceItems: {
         create: InvoiceItems,
       },
@@ -140,29 +166,40 @@ export async function createInvoice(body) {
 
 /**
  * @this {API.This}
- * @param {number} invoiceId
- * @param {Models.Prisma.InvoicesUpdateInput & {InvoiceItems: Models.Prisma.InvoiceItemsUpdateInput}} body
+ * @param {string} customerId
+ * @param {string} invoiceId
+ * @param {Models.Prisma.InvoicesUpdateInput & {RevenuId: string, InvoiceItems: Models.Prisma.InvoiceItemsUpdateInput}} body
  * @returns {Promise<Models.Invoices & {Revenus: Models.Revenus}>}
  */
-export async function updateInvoice(invoiceId, body) {
+export async function updateInvoice(customerId, invoiceId, body) {
   const { InvoiceItems, ...invoiceBody } = body;
 
   const invoice = await prisma.invoices.update({
     where: {
-      id: invoiceId,
+      id: +invoiceId,
+      CustomerId: +customerId,
     },
-    data: invoiceBody,
+    data: {
+      total: invoiceBody.total,
+      totalTTC: invoiceBody.totalTTC,
+      totalDue: invoiceBody.totalDue,
+      tvaApplicable: invoiceBody.tvaApplicable,
+      tvaAmount: invoiceBody.tvaAmount,
+      paymentDate: invoiceBody.paymentDate,
+      paid: invoiceBody.paid,
+      ...(invoiceBody.RevenuId && { RevenuId: +invoiceBody.RevenuId }),
+    },
     include: {
       Revenus: true,
     },
   });
-  const existing_invoice_items = await prisma.invoiceItems.findMany({
+  const existingInvoiceItems = await prisma.invoiceItems.findMany({
     where: {
-      InvoiceId: invoiceId,
+      InvoiceId: +invoiceId,
     },
   });
 
-  if (InvoiceItems) await updateCreateOrDestroyChildItems("InvoiceItems", existing_invoice_items, InvoiceItems);
+  if (InvoiceItems) await updateCreateOrDestroyChildItems("InvoiceItems", existingInvoiceItems, InvoiceItems);
 
   await invalidateCache(`invoices_customer_${invoice.CustomerId}`);
   await invalidateCache(`invoice_${invoice.id}`);
@@ -172,11 +209,12 @@ export async function updateInvoice(invoiceId, body) {
 // TODO: this should use an email service
 /**
  * @this {API.This}
- * @param {number} invoiceId
+ * @param {string} customerId
+ * @param {string} invoiceId
  */
-export async function sendInvoice(invoiceId) {
+export async function sendInvoice(customerId, invoiceId) {
   const invoice = await prisma.invoices.findFirstOrThrow({
-    where: { id: +invoiceId },
+    where: { id: +invoiceId, CustomerId: +customerId },
     include: {
       InvoiceItems: true,
       Customers: true,
@@ -189,11 +227,12 @@ export async function sendInvoice(invoiceId) {
 
 /**
  * @this {API.This}
- * @param {number} invoiceId
+ * @param {string} customerId
+ * @param {string} invoiceId
  */
-export async function deleteInvoice(invoiceId) {
+export async function deleteInvoice(customerId, invoiceId) {
   const invoice = await prisma.invoices.delete({
-    where: { id: +invoiceId },
+    where: { id: +invoiceId, CustomerId: +customerId },
     select: {
       CustomerId: true,
     },

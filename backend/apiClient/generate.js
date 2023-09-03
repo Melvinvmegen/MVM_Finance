@@ -8,7 +8,7 @@ export async function generateClient(options) {
     Object.assign(
       {
         headerTemplate: `/* eslint-disable no-unused-vars */
-import { useOFetch, useOFetchRaw } from "../plugins/ofetch";
+import { useOFetch, useOFetchRaw } from "../../plugins/ofetch";
 
 `,
         indentString: "  ",

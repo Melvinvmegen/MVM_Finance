@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
-import { useOFetch, useOFetchRaw } from "@/plugins/ofetch";
+import { useOFetch, useOFetchRaw } from "../../plugins/ofetch";
 
 /**
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").getBanks>>}
 **/
 export async function getBanks(query = undefined) {
-  return await useOFetch(`/banks`, { method: "GET", query });
+  return await useOFetch(`/api/user/banks`, { method: "GET", query });
 }
 /**
  * @param {string|string[]|number} id
@@ -14,7 +14,7 @@ export async function getBanks(query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").getBank>>}
 **/
 export async function getBank(id, query = undefined) {
-  return await useOFetch(`/banks/${id}`, { method: "GET", query });
+  return await useOFetch(`/api/user/banks/${id}`, { method: "GET", query });
 }
 /**
  * @param {Parameters<import("../../../../backend/api/user/banks.js").createBank>[0]} body
@@ -22,7 +22,7 @@ export async function getBank(id, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").createBank>>}
 **/
 export async function createBank(body = undefined, query = undefined) {
-  return await useOFetch(`/banks`, { method: "POST", body, query });
+  return await useOFetch(`/api/user/banks`, { method: "POST", body, query });
 }
 /**
  * @param {string|string[]|number} id
@@ -31,14 +31,14 @@ export async function createBank(body = undefined, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").updateBank>>}
 **/
 export async function updateBank(id, body = undefined, query = undefined) {
-  return await useOFetch(`/banks/${id}`, { method: "PUT", body, query });
+  return await useOFetch(`/api/user/banks/${id}`, { method: "PUT", body, query });
 }
 /**
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/cryptos.js").getCryptos>>}
 **/
 export async function getCryptos(query = undefined) {
-  return await useOFetch(`/cryptos`, { method: "GET", query });
+  return await useOFetch(`/api/user/cryptos`, { method: "GET", query });
 }
 /**
  * @param {Parameters<import("../../../../backend/api/user/cryptos.js").createCrypto>[0]} body
@@ -46,7 +46,7 @@ export async function getCryptos(query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/cryptos.js").createCrypto>>}
 **/
 export async function createCrypto(body = undefined, query = undefined) {
-  return await useOFetch(`/cryptos`, { method: "POST", body, query });
+  return await useOFetch(`/api/user/cryptos`, { method: "POST", body, query });
 }
 /**
  * @param {string|string[]|number} id
@@ -55,21 +55,21 @@ export async function createCrypto(body = undefined, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/cryptos.js").updateCrypto>>}
 **/
 export async function updateCrypto(id, body = undefined, query = undefined) {
-  return await useOFetch(`/cryptos/${id}`, { method: "PUT", body, query });
+  return await useOFetch(`/api/user/cryptos/${id}`, { method: "PUT", body, query });
 }
 /**
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/cryptos.js").refreshCryptos>>}
 **/
 export async function refreshCryptos(query = undefined) {
-  return await useOFetch(`/cryptos/refresh-cryptos`, { method: "GET", query });
+  return await useOFetch(`/api/user/cryptos/refresh-cryptos`, { method: "GET", query });
 }
 /**
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/customers.js").getCustomers>>}
 **/
 export async function getCustomers(query = undefined) {
-  return await useOFetch(`/customers`, { method: "GET", query });
+  return await useOFetch(`/api/user/customers`, { method: "GET", query });
 }
 /**
  * @param {string|string[]|number} id
@@ -77,7 +77,7 @@ export async function getCustomers(query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/customers.js").getCustomer>>}
 **/
 export async function getCustomer(id, query = undefined) {
-  return await useOFetch(`/customers/${id}`, { method: "GET", query });
+  return await useOFetch(`/api/user/customers/${id}`, { method: "GET", query });
 }
 /**
  * @param {Parameters<import("../../../../backend/api/user/customers.js").createCustomer>[0]} body
@@ -85,7 +85,7 @@ export async function getCustomer(id, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/customers.js").createCustomer>>}
 **/
 export async function createCustomer(body = undefined, query = undefined) {
-  return await useOFetch(`/customers`, { method: "POST", body, query });
+  return await useOFetch(`/api/user/customers`, { method: "POST", body, query });
 }
 /**
  * @param {string|string[]|number} id
@@ -94,7 +94,7 @@ export async function createCustomer(body = undefined, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/customers.js").updateCustomer>>}
 **/
 export async function updateCustomer(id, body = undefined, query = undefined) {
-  return await useOFetch(`/customers/${id}`, { method: "PUT", body, query });
+  return await useOFetch(`/api/user/customers/${id}`, { method: "PUT", body, query });
 }
 /**
  * @param {string|string[]|number} id
@@ -102,7 +102,7 @@ export async function updateCustomer(id, body = undefined, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/customers.js").deleteCustomer>>}
 **/
 export async function deleteCustomer(id, query = undefined) {
-  return await useOFetch(`/customers/${id}`, { method: "DELETE", query });
+  return await useOFetch(`/api/user/customers/${id}`, { method: "DELETE", query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -110,7 +110,7 @@ export async function deleteCustomer(id, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").getInvoices>>}
 **/
 export async function getInvoices(CustomerId, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/invoices`, { method: "GET", query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/invoices`, { method: "GET", query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -119,7 +119,7 @@ export async function getInvoices(CustomerId, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").getInvoice>>}
 **/
 export async function getInvoice(CustomerId, id, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/invoices/${id}`, { method: "GET", query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/invoices/${id}`, { method: "GET", query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -128,7 +128,7 @@ export async function getInvoice(CustomerId, id, query = undefined) {
  * @returns {void}
 **/
 export async function downloadInvoice(CustomerId, id, query = undefined) {
-  const response = await useOFetchRaw(`/customers/${CustomerId}/invoices/${id}/download`, { responseType: "blob", query });
+  const response = await useOFetchRaw(`/api/user/customers/${CustomerId}/invoices/${id}/download`, { responseType: "blob", query });
   const href = URL.createObjectURL(response._data);
   const a = document.createElement("a");
   a.href = href;
@@ -146,7 +146,7 @@ export async function downloadInvoice(CustomerId, id, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").createInvoice>>}
 **/
 export async function createInvoice(CustomerId, body = undefined, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/invoices`, { method: "POST", body, query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/invoices`, { method: "POST", body, query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -156,7 +156,7 @@ export async function createInvoice(CustomerId, body = undefined, query = undefi
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").updateInvoice>>}
 **/
 export async function updateInvoice(CustomerId, id, body = undefined, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/invoices/${id}`, { method: "PUT", body, query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/invoices/${id}`, { method: "PUT", body, query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -165,7 +165,7 @@ export async function updateInvoice(CustomerId, id, body = undefined, query = un
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").sendInvoice>>}
 **/
 export async function sendInvoice(CustomerId, id, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/invoices/${id}/send-invoice`, { method: "GET", query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/invoices/${id}/send-invoice`, { method: "GET", query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -174,7 +174,7 @@ export async function sendInvoice(CustomerId, id, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").deleteInvoice>>}
 **/
 export async function deleteInvoice(CustomerId, id, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/invoices/${id}`, { method: "DELETE", query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/invoices/${id}`, { method: "DELETE", query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -182,7 +182,7 @@ export async function deleteInvoice(CustomerId, id, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").getQuotations>>}
 **/
 export async function getQuotations(CustomerId, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/quotations`, { method: "GET", query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/quotations`, { method: "GET", query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -191,7 +191,7 @@ export async function getQuotations(CustomerId, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").getQuotation>>}
 **/
 export async function getQuotation(CustomerId, id, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/quotations/${id}`, { method: "GET", query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/quotations/${id}`, { method: "GET", query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -200,7 +200,7 @@ export async function getQuotation(CustomerId, id, query = undefined) {
  * @returns {void}
 **/
 export async function downloadQuotation(CustomerId, id, query = undefined) {
-  const response = await useOFetchRaw(`/customers/${CustomerId}/quotations/${id}/download`, { responseType: "blob", query });
+  const response = await useOFetchRaw(`/api/user/customers/${CustomerId}/quotations/${id}/download`, { responseType: "blob", query });
   const href = URL.createObjectURL(response._data);
   const a = document.createElement("a");
   a.href = href;
@@ -218,7 +218,7 @@ export async function downloadQuotation(CustomerId, id, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").createQuotation>>}
 **/
 export async function createQuotation(CustomerId, body = undefined, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/quotations`, { method: "POST", body, query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/quotations`, { method: "POST", body, query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -228,7 +228,7 @@ export async function createQuotation(CustomerId, body = undefined, query = unde
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").updateQuotation>>}
 **/
 export async function updateQuotation(CustomerId, id, body = undefined, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/quotations/${id}`, { method: "PUT", body, query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/quotations/${id}`, { method: "PUT", body, query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -238,7 +238,7 @@ export async function updateQuotation(CustomerId, id, body = undefined, query = 
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").convertQuotationToInvoice>>}
 **/
 export async function convertQuotationToInvoice(CustomerId, id, body = undefined, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/quotations/convert-quotation/${id}`, { method: "POST", body, query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/quotations/convert-quotation/${id}`, { method: "POST", body, query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -247,7 +247,7 @@ export async function convertQuotationToInvoice(CustomerId, id, body = undefined
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").sendQuotation>>}
 **/
 export async function sendQuotation(CustomerId, id, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/quotations/${id}/send-quotation`, { method: "GET", query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/quotations/${id}/send-quotation`, { method: "GET", query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -256,14 +256,21 @@ export async function sendQuotation(CustomerId, id, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").deleteQuotation>>}
 **/
 export async function deleteQuotation(CustomerId, id, query = undefined) {
-  return await useOFetch(`/customers/${CustomerId}/quotations/${id}`, { method: "DELETE", query });
+  return await useOFetch(`/api/user/customers/${CustomerId}/quotations/${id}`, { method: "DELETE", query });
 }
 /**
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").getRevenus>>}
 **/
 export async function getRevenus(query = undefined) {
-  return await useOFetch(`revenus`, { method: "GET", query });
+  return await useOFetch(`/api/user/revenus`, { method: "GET", query });
+}
+/**
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").getRevenuIds>>}
+**/
+export async function getRevenuIds(query = undefined) {
+  return await useOFetch(`/api/user/revenus/ids`, { method: "GET", query });
 }
 /**
  * @param {string|string[]|number} id
@@ -271,7 +278,7 @@ export async function getRevenus(query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").getRevenu>>}
 **/
 export async function getRevenu(id, query = undefined) {
-  return await useOFetch(`revenus/${id}`, { method: "GET", query });
+  return await useOFetch(`/api/user/revenus/${id}`, { method: "GET", query });
 }
 /**
  * @param {Record<string, any>} body
@@ -298,7 +305,7 @@ export async function createRevenu(body = undefined, query = undefined) {
       formData.append(key, body[key]);
     }
   }
-  return await useOFetch(`revenus`, { method: "POST", query, body: formData });
+  return await useOFetch(`/api/user/revenus`, { method: "POST", query, body: formData });
 }
 /**
  * @param {string|string[]|number} id
@@ -307,5 +314,5 @@ export async function createRevenu(body = undefined, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").updateRevenu>>}
 **/
 export async function updateRevenu(id, body = undefined, query = undefined) {
-  return await useOFetch(`revenus/${id}`, { method: "PUT", body, query });
+  return await useOFetch(`/api/user/revenus/${id}`, { method: "PUT", body, query });
 }

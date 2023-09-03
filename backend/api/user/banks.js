@@ -7,9 +7,9 @@ import { prisma, Models } from "../../utils/prisma.js";
  */
 export default async function (app) {
   app.$get("/banks", getBanks);
-  app.$get("/banks/:id", getBank);
+  app.$get("/banks/:bankId", getBank);
   app.$post("/banks", createBank);
-  app.$put("/banks/:id", updateBank);
+  app.$put("/banks/:bankId", updateBank);
 }
 
 /**
@@ -48,7 +48,7 @@ export async function getBank(bankId) {
         UserId: this.request?.user?.id,
       },
     });
-    if (!bank) throw new AppError(404, "Bank not found!");
+    if (!bank) throw new AppError("Bank not found!");
     return bank;
   });
 
@@ -85,7 +85,7 @@ export async function updateBank(bankId, body) {
     },
   });
 
-  if (!bank) throw new AppError(404, "Bank not found!");
+  if (!bank) throw new AppError("Bank not found!");
 
   bank = await prisma.banks.update({
     where: {

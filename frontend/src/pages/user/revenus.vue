@@ -1,5 +1,5 @@
 <template lang="pug">
-v-row
+v-row(v-if="items.rows")
   v-col(cols="12" md="8")
     v-card(elevation="3")
       v-card-title
@@ -8,44 +8,44 @@ v-row
           v-spacer
           v-col(cols="1")
             v-btn(icon="mdi-plus" @click="triggerUpload" color="primary")
-            input.mr-2(type="file" id="csv" name="csv" accept=".csv" style="display:none;" @change="uploadFile")
+            input.mr-2(type="file" id="fileInput" name="fileInput" accept=".csv" style="display:none;" @change="uploadFile")
 
       v-card-text
-        revenu-table
+        RevenuTable(:items="items" @filter="refreshRevenus")
     v-card(elevation="3" class="mt-4")
       v-card-text
         v-row(justify="space-around" align="center")
           v-col(cols="12" md="6")
-            v-row(justify="space-around" align="center")       
-              v-col(cols="12" md="6")
+            v-row(justify="space-around" align="center")   
+              v-col(v-if="expensesAverage" cols="12" md="6")
                 v-card-subtitle {{ $t("revenus.averageMonthlySpending") }}
-                v-card-title {{ $n(returnExpenseAverage(), "currency") }}
-              v-col(cols="12" md="6")
+                v-card-title {{ $n(expensesAverage, "currency") }}
+              v-col(v-if="recurrentCosts" cols="12" md="6")
                 v-card-subtitle {{ $t("revenus.averageRecurrentSpending") }}
-                v-card-title {{ $n(returnRecurrentCost, "currency") }}
-            bar(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
+                v-card-title {{ $n(recurrentCosts, "currency") }}
+            BarChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
           v-col(cols="12" md="6")
-            v-row(justify="space-around" align="start")
+            v-row(v-if="revenusAverage" justify="space-around" align="start")
               v-card-subtitle {{ $t("revenus.averageRevenu") }}
-              v-card-title.pt-0.mb-4 {{ $n(returnRevenuAverage(), "currency") }}
-            bar(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
+              v-card-title.pt-0.mb-4 {{ $n(revenusAverage, "currency") }}
+            BarChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
 
   v-col(cols="12" md="4")
     v-card
-      v-card-text
+      v-card-text(v-if="items.rows")
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.turnover") }}
-          v-card-title {{ $n(returnRevenuTotal(), "currency") }}
+          v-card-title {{ $n(revenusTotal, "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.totalSpending") }}
-          v-card-title {{ $n(returnRevenusCostTotal(), "currency") }}
+          v-card-title {{ $n(revenusCostTotal, "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.taxes") }}
-          v-card-title {{ $n(- returnTaxAmount(), "currency") }}
+          v-card-title {{ $n(- taxAmount, "currency") }}
         hr.mx-2.my-4
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.netResult") }}
-          v-card-title {{ $n(Math.round(returnRevenuTotal() + returnRevenusCostTotal()), "currency") }}
+          v-card-title {{ $n(Math.round(revenusTotal + revenusCostTotal), "currency") }}
       hr.mx-2.my-4
       v-card-text
         v-row(justify="center" align="center")
@@ -64,16 +64,22 @@ v-row
 
 <script setup lang="ts">
 import { getBanks, getRevenus, createRevenu } from "../../utils/generated/api-user";
+import type { Banks } from "../../../types/models";
 const loadingStore = useLoadingStore();
-const banks = ref([]);
-const revenus = ref([]);
+const banks = ref<Banks[]>([]);
+const { filterAll, items } = useFilter(getRevenus);
 
 onMounted(async () => {
   banks.value = await getBanks();
-  revenus.value = await getRevenus();
+  await filterAll();
 });
 
+async function refreshRevenus(value) {
+  await filterAll(value);
+}
+
 const costPieChartData = computed(() => {
+  if (!items.value.count) return;
   const costCategories = [
     "GENERAL",
     "TAX",
@@ -85,7 +91,7 @@ const costPieChartData = computed(() => {
     "INVESTMENT",
     "TODEFINE",
   ];
-  const costs = revenus.value.flatMap((revenu) => revenu.Costs);
+  const costs = items.value.rows.flatMap((revenu) => revenu.Costs);
   const groupedModel = costs.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = {
@@ -120,8 +126,9 @@ const costPieChartData = computed(() => {
 });
 
 const creditPieChartData = computed(() => {
+  if (!items.value.count) return;
   const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER"];
-  const credits = revenus.value.flatMap((revenu) => revenu.Credits);
+  const credits = items.value.rows.flatMap((revenu) => revenu.Credits);
   const groupedModel = credits.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = {
@@ -170,7 +177,8 @@ const pieChartOptions = {
 };
 
 const costChartData = computed(() => {
-  const reversed_revenus = revenus.value.slice().reverse();
+  if (!items.value.count) return;
+  const reversed_revenus = items.value.rows.slice().reverse();
   const chartData = {
     labels: reversed_revenus.map((revenu) => {
       const date = new Date(revenu.createdAt);
@@ -192,7 +200,8 @@ const costChartData = computed(() => {
 });
 
 const creditChartData = computed(() => {
-  const reversed_revenus = revenus.value.slice().reverse();
+  if (!items.value.count) return;
+  const reversed_revenus = items.value.rows.slice().reverse();
   const chartData = {
     labels: reversed_revenus.map((revenu) => {
       const date = new Date(revenu.createdAt);
@@ -217,41 +226,39 @@ const chartOptions = {
 };
 
 function triggerUpload() {
-  document.getElementById("csv")?.click();
+  document.getElementById("fileInput")?.click();
 }
 
 async function uploadFile(event) {
+  if (!banks.value.length) return;
   loadingStore.setLoading(true);
   try {
-    await createRevenu(banks.value?.[0]?.id || 1, { file: event.target.files[0] });
+    await createRevenu(banks.value?.[0].id, { file: event.target.files[0] });
   } finally {
     loadingStore.setLoading(false);
   }
 }
 
-function returnRevenuTotal() {
-  if (revenus.value) {
-    const totals = revenus.value.reduce((sum: number, revenu) => sum + revenu.total, 0);
-    return Math.round(totals);
-  } else {
-    return 0;
-  }
-}
+const revenusTotal = computed(() => {
+  if (!items.value.count) return 0;
+  const totals = items.value.rows.reduce((sum: number, revenu) => sum + revenu.total, 0);
+  return Math.round(totals);
+});
 
-function returnRevenusCostTotal() {
-  if (!revenus.value.length) return 0;
+const revenusCostTotal = computed(() => {
+  if (!items.value.count) return 0;
   let total = 0;
-  for (let revenu of revenus.value) {
+  for (let revenu of items.value.rows) {
     if (revenu.Costs) {
       total += revenu.Costs.reduce((sum, cost) => sum + cost.total, 0);
     }
   }
   return Math.round(total);
-}
+});
 
-function returnTaxAmount() {
+const taxAmount = computed(() => {
   // Abattement de 30% avant impots sur le CA
-  const taxable_income = returnRevenuTotal() / 1.3;
+  const taxable_income = revenusTotal.value / 1.3;
   // Pas d'impôts jusqu'à 10 225€
   const first_cap = 10226;
   // 11% entre 10 226€ & 26 070€
@@ -268,19 +275,24 @@ function returnTaxAmount() {
     tax_total = tax_first_batch + tax_second_batch;
   }
   return Math.round(tax_total);
-}
+});
 
-function returnExpenseAverage() {
-  const total_expense = revenus.value.reduce((sum: number, revenu) => sum - revenu.expense, 0);
-  return Math.round(total_expense / revenus.value.length);
-}
+const expensesAverage = computed(() => {
+  // TODO: exclude internal transfer
+  if (!items.value.count) return 0;
+  const total_expense = items.value.rows.reduce((sum: number, revenu) => sum - revenu.expense, 0);
+  return Math.round(total_expense / items.value.rows.length);
+});
 
-function returnRevenuAverage() {
-  const total_revenu = revenus.value.reduce((sum: number, revenu) => sum + revenu.total, 0);
-  return Math.round(total_revenu / revenus.value.length);
-}
+const revenusAverage = computed(() => {
+  // TODO: exclude internal transfer
+  if (!items.value.count) return 0;
+  const total_revenu = items.value.rows.reduce((sum: number, revenu) => sum + revenu.total, 0);
+  return Math.round(total_revenu / items.value.rows.length);
+});
 
-const returnRecurrentCost = computed(() => {
-  return revenus.value[1]?.Costs?.filter((c) => c.recurrent).reduce((sum, cost) => sum + cost.total, 0) || 0;
+const recurrentCosts = computed(() => {
+  if (!items.value.count) return 0;
+  return items.value.rows[0]?.Costs?.filter((c) => c.recurrent).reduce((sum, cost) => sum + cost.total, 0) || 0;
 });
 </script>

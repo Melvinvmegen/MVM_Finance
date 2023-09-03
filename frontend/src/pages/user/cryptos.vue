@@ -7,14 +7,14 @@ v-row
           v-col.text-uppercase(cols="11") {{ $t("cryptos.title") }}
 
       v-card-text
-        CryptoTable
+        CryptoTable(:cryptos="cryptos" @refresh-cryptos="fetchPriceUpdate")
     .mt-4
   v-col(cols="12" md="4")
     v-card(elevation="3")
       v-card-text.py-0
         v-container
           v-row
-            CryptoCard
+            CryptoCard(:elevation="0")
               template(#header)
                 v-row
                   v-col(cols="3").d-flex.justify-center.align-center
@@ -42,12 +42,16 @@ import { getCryptos, refreshCryptos } from "../../utils/generated/api-user";
 type CryptoCurrencyWithTransactions = CryptoCurrencies & { Transactions: Transactions[] };
 
 const loadingStore = useLoadingStore();
-const { compute } = useFilter([], () => getCryptos);
-const { items } = compute;
+const cryptos = ref<CryptoCurrencyWithTransactions[]>([]);
+onMounted(async () => {
+  loadingStore.setLoading(true);
+  await fetchPriceUpdate();
+  loadingStore.setLoading(false);
+});
 
 const chartData = computed(() => {
   const chartData = {
-    labels: items.value.filter((c) => !c.sold).map((crypto) => crypto.name),
+    labels: cryptos.value.filter((c) => !c.sold).map((crypto) => crypto.name),
     datasets: [
       {
         label: "",
@@ -56,7 +60,7 @@ const chartData = computed(() => {
       },
     ],
   };
-  for (let crypto of items.value.filter((c) => !c.sold)) {
+  for (let crypto of cryptos.value.filter((c) => !c.sold)) {
     if (crypto.Transactions) {
       const totals = crypto.Transactions.reduce((sum, transaction) => sum + transaction.total, 0);
       const value = (totals / +returnTotalInvestment.value) * 100;
@@ -82,63 +86,59 @@ const chartOptions = {
   },
 };
 
-fetchPriceUpdate();
-
 const returnTotalInvestmentProfit = computed(() => {
-  const arr = items.value
-    .filter((c) => !c.sold)
-    .map((crypto) => {
-      if (crypto.profit) return crypto.profit;
-      else if (crypto.Transactions.length > 0) {
+  const totalProfit = cryptos.value.reduce((sum, crypto) => {
+    if (!crypto.sold) {
+      if (crypto.profit) {
+        return sum + crypto.profit;
+      } else if (crypto.Transactions.length > 0) {
         const quantityPurchased = crypto.Transactions.reduce(
-          (sum: number, transaction: Transactions) => sum + transaction.quantity,
+          (quantitySum, transaction) => quantitySum + transaction.quantity,
           0,
         );
-        return crypto.price * quantityPurchased;
+        return sum + crypto.price * quantityPurchased;
       }
-    });
-  return (
-    Math.round(arr.filter((t) => t).reduce((sum: number, cryptoTotal: number) => sum + cryptoTotal, 0) * 100) / 100
-  );
+    }
+    return sum;
+  }, 0);
+
+  return Math.round(totalProfit * 100) / 100;
 });
 
 const returnTotalInvestment = computed(() => {
-  const cryptos = items.value;
-  const arr = cryptos.filter((c) => !c.sold).map((crypto) => returnTotalPricePurchased(crypto));
-
-  return (
-    Math.round(arr.filter((t) => t).reduce((sum: number, cryptoTotal: number) => sum + +cryptoTotal, 0) * 100) / 100
-  );
+  const totalInvestment = cryptos.value.reduce((sum, crypto) => {
+    if (!crypto.sold) {
+      return sum + returnTotalPricePurchased(crypto);
+    }
+    return sum;
+  }, 0);
+  return Math.round(totalInvestment * 100) / 100;
 });
 
 const returnGlobalCryptoPercentageGain = computed(() => {
   const total_investment = returnTotalInvestment.value;
   const total_investment_profit = returnTotalInvestmentProfit.value;
-
   return Math.round(((total_investment_profit - total_investment) / total_investment) * 100);
 });
 
 const returnInvestmentCurrentValue = computed(() => {
-  const cryptos = items.value;
-  const arr = cryptos
-    .filter((c) => !c.sold)
-    .map((crypto) => {
-      if (crypto.Transactions.length > 0) {
-        const quantityPurchased = crypto.Transactions.reduce(
-          (sum: number, transaction: Transactions) => sum + transaction.quantity,
-          0,
-        );
-        return +crypto.price * +quantityPurchased;
-      }
-    });
+  const investmentCurrentValue = cryptos.value.reduce((sum, crypto) => {
+    if (!crypto.sold && crypto.Transactions.length > 0) {
+      const quantityPurchased = crypto.Transactions.reduce(
+        (sum: number, transaction: Transactions) => sum + transaction.quantity,
+        0,
+      );
+      return sum + +crypto.price * +quantityPurchased;
+    }
 
-  return (
-    Math.round(arr.filter((t) => t).reduce((sum: number, cryptoTotal: number) => sum + +cryptoTotal, 0) * 100) / 100
-  );
+    return sum;
+  }, 0);
+
+  return Math.round(investmentCurrentValue * 100) / 100;
 });
 
 function returnTotalPricePurchased(crypto: CryptoCurrencyWithTransactions) {
-  if (crypto?.Transactions?.length < 1) return;
+  if (crypto?.Transactions?.length < 1) return 0;
   return (
     Math.round(
       crypto.Transactions.reduce(
@@ -153,6 +153,7 @@ async function fetchPriceUpdate(): Promise<void> {
   loadingStore.setLoading(true);
   try {
     await refreshCryptos();
+    cryptos.value = await getCryptos();
   } finally {
     loadingStore.setLoading(false);
   }

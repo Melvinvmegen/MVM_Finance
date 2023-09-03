@@ -1,52 +1,51 @@
 <template lang="pug">
 v-container
-  v-row
+  v-row(v-if="invoice")
     v-col(cols='9')
-      v-card
+      v-card.pa-4
         v-form(@submit.prevent="handleSubmit")
           v-card-title 
-            v-row
-              a(@click='router.go(-1)')
-                v-icon mdi-arrow-left
+            v-row.mb-4(align="center")
+              v-btn(icon="mdi-arrow-left" variant="text" @click='router.go(-1)')
               span {{ invoice?.id ? $t("invoice.editInvoice") : $t("invoice.createInvoice") }}
           
           v-card-text
             v-row(dense)
-              v-col(cols="2")
-                v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="invoice.RevenuId" :label='$t("invoice.revenu")'  )
-              v-col(cols="2")
-                DateInput(:value="invoice.paymentDate")
-                v-icon mdi-calendar
-              v-col(cols="2")
-                v-switch(name='paid' :label='$t("invoice.paid")' v-model="invoice.paid" color="secondary" )
-              v-col(cols="2")
-                v-switch(name='tvaApplicable' :label='$t("invoice.vatApplicable")' v-model="invoice.tvaApplicable" @change="updateTotal(invoice)" color="secondary" )
-            v-row
+              v-col(cols="3" lg="2")
+                v-switch(name='tvaApplicable' hide-details :label='$t("invoice.vatApplicable")' v-model="invoice.tvaApplicable" @change="updateTotal(invoice)" color="secondary" )
+              v-col(cols="3" lg="2")
+                v-switch(name='paid' hide-details :label='$t("invoice.paid")' v-model="invoice.paid" color="secondary" )
+              template(v-if="invoice.paid")
+                v-col(cols="3" lg="2")
+                  v-select(:items="revenus" hide-details item-title="createdAt" item-value="id" name='revenuId' v-model="invoice.RevenuId" :label='$t("invoice.revenu")'  )
+                v-col(cols="3" lg="2")
+                  DateInput(v-model="invoice.paymentDate")
+            v-row(v-if="invoice.InvoiceItems.length")
               v-col(cols="3") {{ $t("invoice.reference") }}
-              v-col(cols="2") {{ $t("invoice.priceUnit") }}
-              v-col(cols="2") {{ $t("invoice.quantity") }}
-              v-col(cols="1") {{ $t("invoice.total") }}
+              v-col(cols="3") {{ $t("invoice.priceUnit") }}
+              v-col(cols="3") {{ $t("invoice.quantity") }}
+              v-col(cols="2") {{ $t("invoice.total") }}
               v-col(cols="1")
             br
             transition-group(name='slide-up')
               div(v-for='(item, index) in invoice.InvoiceItems' :key="item.id || index")
                 v-row(v-if="item?.markedForDestruction !== true")
                   v-col(cols="3")
-                    v-text-field(:label='$t("invoice.reference")' v-model="item.name" :rules="[$v.required()]")
+                    v-text-field(v-model="item.name" :rules="[$v.required()]")
                   v-col(cols="3")
-                    v-text-field(:label='$t("invoice.priceUnit")' v-model.number="item.unit" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
+                    v-text-field(v-model.number="item.unit" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
                   v-col(cols="3")
-                    v-text-field(:label='$t("invoice.quantity")' v-model.number="item.quantity" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
+                    v-text-field(v-model.number="item.quantity" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
                   v-col(cols="2")
-                    v-text-field(:label='$t("invoice.total")' v-model="item.total" :disabled='true')
+                    v-text-field(v-model="item.total" :disabled='true')
                   v-col(cols="1")
-                    v-btn(color="error" href='#' @click.prevent='removeItem(item)')
+                    v-btn(color="error" @click.prevent='removeItem(index, item)')
                       v-icon mdi-delete
 
               v-row
                 v-col(cols="12" justify="end")
                   v-btn(color="primary" @click.prevent='addItem')
-                    span + {{ $t("invoice.addLigne") }}
+                    span {{ $t("invoice.addLigne") }}
 
 
           v-card-actions
@@ -64,92 +63,102 @@ v-container
 </template>
 
 <script setup lang="ts">
-import { getCustomer, getInvoice, createInvoice, updateInvoice, getRevenus } from "../../utils/generated/api-user";
-import type { Customers, Invoices, Revenus } from "../../../types/models";
+import { getCustomer, getInvoice, createInvoice, updateInvoice, getRevenuIds } from "../../utils/generated/api-user";
+import type { Customers, Revenus, Prisma } from "../../../types/models";
 
-const props = defineProps({
-  id: [Number, String],
-});
+type InvoiceWithInvoiceItems = Prisma.InvoicesUncheckedCreateInput & {
+  InvoiceItems: Prisma.InvoiceItemsCreateInput[];
+};
 const loadingStore = useLoadingStore();
 const route = useRoute();
 const router = useRouter();
-const invoice = ref<Invoices | any>({
-  firstName: "",
-  lastName: "",
-  company: "",
-  address: "",
-  city: "",
-  CustomerId: null,
-  total: 0,
-  tvaAmount: 0,
-  tvaApplicable: false,
-  totalTTC: 0,
-});
-const customer = ref<Customers | any>({});
-const revenus = ref<Revenus | any>([]);
-const customerId = route.query.customerId;
+const invoice = ref<InvoiceWithInvoiceItems>();
+const customer = ref<Customers>();
+const revenus = ref<Revenus[]>([]);
+const customerId = route.params.customerId;
 const { itemsTotal, totalTTC, tvaAmount } = useTotal();
-const invoiceItemTemplate = {
+const invoiceItemTemplate: Prisma.InvoiceItemsUncheckedCreateInput = {
   quantity: 0,
   name: "",
   unit: 0,
   total: 0,
-  InvoiceId: null,
 };
-const setupPromises = [getCustomer(customerId), getRevenus({ BankId: 1 })];
-if (props.id) setupPromises.push(getInvoice(customerId, props.id));
 
-loadingStore.setLoading(true);
+onMounted(async () => {
+  const setupPromises = [getCustomer(customerId), getRevenuIds({ BankId: 1 })];
+  if (route.params.id) setupPromises.push(getInvoice(customerId, route.params.id));
 
-Promise.all(setupPromises).then((data) => {
-  customer.value = data[0];
-  revenus.value = data[1];
+  loadingStore.setLoading(true);
+  await Promise.all(setupPromises).then((data) => {
+    customer.value = data[0];
+    if (!customer.value) return;
+    revenus.value = data[1];
 
-  if (data.length > 2) {
-    invoice.value = <Invoices>{ ...data[2] };
-    invoice.value.paymentDate = new Date(invoice.value.paymentDate);
-    invoiceItemTemplate.InvoiceId = invoice.value.id;
-  } else {
-    invoice.value.firstName = customer.value.firstName;
-    invoice.value.lastName = customer.value.lastName;
-    invoice.value.company = customer.value.company;
-    invoice.value.address = customer.value.address;
-    invoice.value.city = customer.value.city;
-    invoice.value.CustomerId = customer.value.id;
-  }
+    if (data.length > 2) {
+      invoice.value = data[2];
+      if (invoice.value) {
+        invoice.value.paymentDate = invoice.value.paymentDate ? new Date(invoice.value.paymentDate) : new Date();
+        invoiceItemTemplate.InvoiceId = invoice.value.id;
+      }
+    } else {
+      invoice.value = {
+        firstName: customer.value.firstName,
+        lastName: customer.value.lastName,
+        company: customer.value.company,
+        address: customer.value.address,
+        city: customer.value.city,
+        paymentDate: null,
+        total: 0,
+        totalDue: 0,
+        totalTTC: 0,
+        tvaAmount: 0,
+        tvaApplicable: false,
+        paid: false,
+        CustomerId: customer.value.id,
+        RevenuId: null,
+        InvoiceItems: [],
+      };
+    }
+  });
+
   loadingStore.setLoading(false);
 });
 
 function updateTotal(item) {
+  if (!invoice.value) return;
   item.total = item.quantity * item.unit;
-  invoice.value.total = invoice.value.InvoiceItems?.reduce((sum, invoice) => sum + invoice.total, 0);
+  invoice.value.total = invoice.value.InvoiceItems?.reduce((sum, invoice) => sum + (invoice.total || 0), 0);
   if (invoice.value.tvaApplicable) {
     invoice.value.tvaAmount = invoice.value.total * 0.2;
   }
-  invoice.value.totalTTC = invoice.value.total + invoice.value.tvaAmount;
+  invoice.value.totalTTC = invoice.value.total + (invoice.value.tvaAmount || 0);
 }
 
 function addItem() {
+  if (!invoice.value) return;
   if (!invoice.value.InvoiceItems) invoice.value.InvoiceItems = [];
   invoice.value.InvoiceItems.push({ ...invoiceItemTemplate });
 }
 
-function removeItem(item) {
-  const index = invoice.value.InvoiceItems.findIndex((invoice_item) => invoice_item.id === item.id);
+function removeItem(index, item) {
+  if (!invoice.value) return;
   invoice.value.InvoiceItems.splice(index, 1);
-  invoice.value.InvoiceItems?.reduce((sum, invoice) => sum + invoice.total, 0);
+  invoice.value.InvoiceItems?.reduce((sum, invoice) => sum + (invoice.total || 0), 0);
   updateTotal(item);
 }
 
 async function handleSubmit(): Promise<void> {
+  if (!invoice.value) return;
   loadingStore.setLoading(true);
   try {
     if (invoice.value.id) {
-      updateInvoice(invoice.value.id, invoice.value);
+      await updateInvoice(invoice.value.CustomerId, invoice.value.id, invoice.value);
+      useMessageStore().i18nMessage("success", "invoices.updated");
     } else {
-      createInvoice(invoice.value);
+      await createInvoice(invoice.value.CustomerId, invoice.value);
+      useMessageStore().i18nMessage("success", "invoices.created");
     }
-    router.push({ path: `/customers/edit/${customerId}` });
+    router.push({ path: `/customers/${customerId}` });
   } finally {
     loadingStore.setLoading(false);
   }

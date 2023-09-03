@@ -4,13 +4,13 @@ div
     v-col(cols="12" md="4")
       v-card(elevation="3")
         v-card-title
-          v-col.text-uppercase(cols="11") {{ $t("dashboard.costs") }} ({{ revenuDate(revenu) }})
+          v-col.text-uppercase(cols="11") {{ $t("dashboard.costs") }} ({{ revenuDate }})
         v-card-text
           BarChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
     v-col(cols="12" md="4")
       v-card(elevation="3")
         v-card-title
-          v-col.text-uppercase(cols="11") {{ $t("dashboard.revenus") }} ({{ revenuDate(revenu) }})
+          v-col.text-uppercase(cols="11") {{ $t("dashboard.revenus") }} ({{ revenuDate }})
         v-card-text
           BarChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
     v-col(cols="12" md="4")
@@ -20,7 +20,7 @@ div
     v-col(cols="12" md="8")
       v-card(elevation="3")
         v-card-title
-          v-col.text-uppercase(cols="11") {{ $t("dashboard.evolution") }} ({{ revenuDate(revenu) }})
+          v-col.text-uppercase(cols="11") {{ $t("dashboard.evolution") }} ({{ revenuDate }})
         v-card-text
           LineChart(v-if="lineChartData" :chart-data='lineChartData' :chart-options='chartOptions')
     v-col(cols="12" md="4")
@@ -45,18 +45,18 @@ div
             v-card-subtitle {{ $t("dashboard.costs") }}
             v-card-title {{ $n(revenu?.expense, "currency") }}
           hr.mx-2.my-4
-          v-row(justify="space-around" align="center")
+          v-row(justify="space-around" align="center" v-if="revenuBalance")
             v-card-subtitle {{ $t("dashboard.balance") }}
-            v-card-title {{ $n(revenu?.total + revenu?.expense, "currency") }}
-      v-card(class="v-col mt-4")
+            v-card-title {{ $n(revenuBalance, "currency") }}
+      v-card(class="v-col mt-4" v-if="revenuBalance")
         v-card-text(v-for="bank in banks" :key="bank.id")
           v-card-subtitle.text-h6 {{ bank.name }}
           br
           v-card-title
             .d-flex.justify-center.align-center
-              .text-h4.mr-2 {{ $n(bank.amount + (revenu?.total + revenu?.expense), "currency") }}
-              v-icon(:class="[(revenu?.total + revenu?.expense) > 0 ? 'text-success' : 'text-red']") mdi-chart-line-variant 
-              .text-subtitle-1.mr-2 {{ +(((revenu?.total + revenu?.expense) / bank.amount) * 100).toFixed(2) }}%
+              .text-h4.mr-2 {{ $n(bank.amount + (revenuBalance), "currency") }}
+              v-icon(:class="[(revenuBalance) > 0 ? 'text-success' : 'text-red']") mdi-chart-line-variant 
+              .text-subtitle-1.mr-2 {{ +(((revenuBalance) / bank.amount) * 100).toFixed(2) }}%
           br
           p.text-overline.text-decoration-underline.text-right(@click="show_modal = true") {{ $t("dashboard.editBank") }}
         v-card-text(v-if="!banks.length")
@@ -69,51 +69,58 @@ div
   v-dialog(v-model='show_modal' width='600')
     v-card
       v-form(@submit.prevent="handleSubmit")
-        v-card-title.text-center {{ mutable_bank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
+        v-card-title.text-center {{ mutableBank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
         v-card-text.mt-4
           v-row(dense justify="center")
             v-col(cols="10")
-              v-text-field(name='name' :label='$t("dashboard.name")' v-model='mutable_bank.name' :rules="[$v.required()]")
+              v-text-field(name='name' :label='$t("dashboard.name")' v-model='mutableBank.name' :rules="[$v.required()]")
             v-col(cols="10")
-              v-text-field(name='amount' :label='$t("dashboard.amount")' v-model.number='mutable_bank.amount' :rules="[$v.required(), $v.number()]")
+              v-text-field(name='amount' :label='$t("dashboard.amount")' v-model.number='mutableBank.amount' :rules="[$v.required(), $v.number()]")
 
         v-card-actions.mb-2
           v-row(dense justify="center")
             v-col.d-flex.justify-center(cols="12" lg="8")
-              v-btn.bg-secondary.text-white(type="submit") {{ mutable_bank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
+              v-btn.bg-secondary.text-white(type="submit") {{ mutableBank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
 
 </template>
 
 <script setup lang="ts">
-import type { Revenus, Costs, Banks } from "../../../types/models";
 import { getBanks, createBank, updateBank, getRevenus } from "../../utils/generated/api-user";
+import type { Revenus, Costs, Credits, Banks } from "../../../types/models";
 
 const loadingStore = useLoadingStore();
 let banks: Banks[] = reactive([]);
-const { compute, filterAll } = useFilter([], () => getRevenus());
-const { items } = compute;
+const { filterAll, items } = useFilter(getRevenus);
 const show_modal = ref(false);
-let mutable_bank = ref({
-  id: null,
+let mutableBank: Ref<Banks> = ref({
+  id: 1,
   createdAt: new Date(),
   updatedAt: new Date(),
   name: "",
   amount: 0,
+  UserId: null,
 });
-let costChartData = ref(null);
-let creditChartData = ref(null);
-let lineChartData = ref(null);
 const dates: string[] = [];
-let revenu: Ref<(Revenus & { Costs: Costs }) | unknown> = ref(null);
+let revenu: Ref<(Revenus & { Costs: Costs[]; Credits: Credits[] }) | null> = ref(null);
+const chartOptions = {
+  responsive: true,
+};
+const revenuDate = computed(() => {
+  if (!revenu.value) return;
+  const date = new Date(revenu.value.createdAt);
+  return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+});
 
-onBeforeMount(async () => {
+const revenuBalance = computed(() => (revenu.value ? revenu.value?.total + revenu.value?.expense : 0));
+
+onMounted(async () => {
   banks = await getBanks();
-  mutable_bank.value = banks[0];
-  await filterAll(true, {
-    BankId: mutable_bank.value.id,
+  mutableBank.value = banks[0];
+  await filterAll({
+    BankId: mutableBank.value.id,
   });
 
-  revenu.value = items.value[0];
+  revenu.value = items.value.rows[0];
   const today = new Date(revenu.value?.Costs?.at(0)?.createdAt);
   const month = today.getMonth();
   const year = today.getFullYear();
@@ -123,14 +130,10 @@ onBeforeMount(async () => {
     const dateString = date.toLocaleDateString("fr-FR", { timeZone: "UTC" });
     dates.push(dateString);
   }
-
-  costChartData.value = getCostChartData(revenu.value);
-  creditChartData.value = getCreditChartData(revenu.value);
-  lineChartData.value = getLineChartData(revenu.value);
 });
 
-function getCostChartData(revenuData) {
-  const groupedCosts = revenuData?.Costs.reduce((groupedCosts, cost) => {
+const costChartData = computed(() => {
+  const groupedCosts = revenu.value?.Costs.reduce((groupedCosts, cost) => {
     const date = new Date(cost.createdAt).toLocaleDateString("fr-FR", { timeZone: "UTC" });
     if (!groupedCosts[date]) {
       groupedCosts[date] = [];
@@ -163,10 +166,10 @@ function getCostChartData(revenuData) {
   }
 
   return chartData;
-}
+});
 
-function getCreditChartData(revenuData) {
-  const groupedCredits = revenuData?.Credits.reduce((groupedCredits, credit) => {
+const creditChartData = computed(() => {
+  const groupedCredits = revenu.value?.Credits.reduce((groupedCredits, credit) => {
     const date = new Date(credit.createdAt).toLocaleDateString("fr-FR", { timeZone: "UTC" });
     if (!groupedCredits[date]) {
       groupedCredits[date] = [];
@@ -199,10 +202,10 @@ function getCreditChartData(revenuData) {
   }
 
   return chartData;
-}
+});
 
-function getLineChartData(revenuData) {
-  const groupedCredits = revenuData?.Credits.reduce((groupedCredits, credit) => {
+const lineChartData = computed(() => {
+  const groupedCredits = revenu.value?.Credits.reduce((groupedCredits, credit) => {
     const date = new Date(credit.createdAt).toLocaleDateString("fr-FR", { timeZone: "UTC" });
     if (!groupedCredits[date]) {
       groupedCredits[date] = [];
@@ -211,7 +214,7 @@ function getLineChartData(revenuData) {
     return groupedCredits;
   }, {});
 
-  const groupedCosts = revenuData?.Costs.reduce((groupedCosts, cost) => {
+  const groupedCosts = revenu.value?.Costs.reduce((groupedCosts, cost) => {
     const date = new Date(cost.createdAt).toLocaleDateString("fr-FR", { timeZone: "UTC" });
     if (!groupedCosts[date]) {
       groupedCosts[date] = [];
@@ -267,26 +270,17 @@ function getLineChartData(revenuData) {
   }
 
   return chartData;
-}
-
-const chartOptions = {
-  responsive: true,
-};
-
-function revenuDate(revenu: Revenus) {
-  const date = new Date(revenu?.createdAt);
-  return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
-}
+});
 
 async function handleSubmit(): Promise<void> {
   loadingStore.setLoading(true);
   try {
-    if (mutable_bank.value.id) {
-      await updateBank(mutable_bank.value);
+    if (mutableBank.value.id) {
+      await updateBank(mutableBank.value.id, mutableBank.value);
     } else {
-      await createBank(mutable_bank.value);
+      await createBank(mutableBank.value);
     }
-    show_modal.value = false;
+    window.location.reload();
   } finally {
     loadingStore.setLoading(false);
   }

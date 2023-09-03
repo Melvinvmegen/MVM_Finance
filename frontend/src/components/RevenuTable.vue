@@ -1,78 +1,137 @@
 <template lang="pug">
 v-form(@submit.prevent ref="searchFrom")
-  v-row
-    v-col(cols="12" sm="3" md="2")
-      v-select(:items="items"  clearable item-title="createdAt" item-value="id" name='revenuId' v-model="query.id" :label='$t("revenu.search")'  @blur='filterAll(true)')
+  v-row(align="center")
+    v-col(cols="12" sm="3" md="3")
+      v-select(hide-details :items="props.items?.rows"  clearable item-title="createdAt" item-value="id" name='revenuId' :label='$t("revenu.search")' @blur='getByRevenuId')
 
-    v-col(cols="12" sm="3" md="2")
-      v-btn.bg-secondary {{ $t("revenus.search") }}
+    v-btn.bg-secondary {{ $t("revenus.search") }}
 
 v-col(cols="12")
-  v-table(v-if="!loadingStore.loading")
-    thead
-      tr
-        th.text-left
-          | {{ $t("revenus.month") }}
-        th.text-left
-          | {{ $t("revenus.revenuPro") }}
-        th.text-left
-          | {{ $t("revenus.revenuNet") }}
-        th.text-left
-          | {{ $t("revenus.revenuPerso") }}
-        th.text-left
-          | {{ $t("revenus.title") }}
-        th.text-left
-          | {{ $t("revenus.investments") }}
-        th.text-left
-          | {{ $t("revenus.expenses") }}
-        th.text-left
-          | {{ $t("revenus.vatCollected") }}
-        th.text-left
-          | {{ $t("revenus.balance") }}
-
-    tbody
-      tr(v-for='revenu in items' :key='revenu.id' @click='pushToShow($event, revenu)')
-        td {{ revenuDate(revenu) }}
-        td {{ $n(Math.round(revenu.pro), "currency") }}
-        td {{ $n(returnRevenuNet(revenu), "currency") }}
-        td {{ $n(Math.round(revenu.perso), "currency") }}
-        td {{ $n(Math.round(revenu.total), "currency") }}
-        td {{ $n(returnInvestmentTotal(revenu), "currency") }}
-        td {{ $n(Math.round(revenu.expense), "currency") }}
-        td {{ $n(returnTVABalance(revenu), "currency") }}
-        td {{ $n(Math.round((returnRevenuNet(revenu) + revenu.perso)- Math.abs(revenu.expense)), "currency") }}
-
-v-pagination(v-model="query.currentPage" :total-visible='query.perPage' :length='pages')
+  v-data-table-server.elevation-1(
+    :headers="dataTable.headers"
+    :items-length="props.items?.count"
+    :items="props.items?.rows"
+    :items-per-page="dataTable.perPage"
+    :loading="loadingStore.loading"
+    @update:options="getRevenus"
+    item-value="name"
+    )
+    template( v-slot:[`item.createdAt`]="{ item }")
+      span {{ revenuDate(item.raw) }}
+    template( v-slot:[`item.pro`]="{ item }")
+      span {{ $n(Math.round(item.raw.pro), "currency") }}
+    template( v-slot:[`item.revenuNet`]="{ item }")
+      span {{ $n(returnRevenuNet(item.raw), "currency") }}
+    template( v-slot:[`item.perso`]="{ item }")
+      span {{ $n(Math.round(item.raw.perso), "currency") }}
+    template( v-slot:[`item.total`]="{ item }")
+      span {{ $n(Math.round(item.raw.total), "currency") }}
+    template( v-slot:[`item.investments`]="{ item }")
+      span {{ $n(returnInvestmentTotal(item.raw), "currency") }}
+    template( v-slot:[`item.expense`]="{ item }")
+      span {{ $n(Math.round(item.raw.expense), "currency") }}
+    template( v-slot:[`item.vatCollected`]="{ item }")
+      span {{ $n(returnTVABalance(item.raw), "currency") }}
+    template( v-slot:[`item.balance`]="{ item }")
+      span {{ $n(Math.round((returnRevenuNet(item.raw) + item.raw.perso)- Math.abs(item.raw.expense)), "currency") }}
+    template(v-slot:item.actions="{ item }")
+      v-btn(icon="mdi-pencil" variant="plain" size="small" :to="`/revenus/${item.raw.id}?bankId=${item.raw.BankId}`")
 </template>
 
 <script setup lang="ts">
-import type { Revenus, Invoices, Costs, Transactions, Banks } from "../../types/models";
-import { getBanks, getRevenus } from "../utils/generated/api-user";
+import type { Revenus, Invoices, Costs, Transactions } from "../../types/models";
+
 type RevenuWithCostsInvoicesTransactions = Revenus & {
   Invoices: Invoices[];
   Costs: Costs[];
   Transactions: Transactions[];
 };
 
-let banks: Banks[] = reactive([]);
 const loadingStore = useLoadingStore();
-const { compute, filterAll, query } = useFilter([], () => getRevenus());
-query.id = undefined;
 
-const router = useRouter();
-const { items, pages } = compute;
-const searchFrom = ref(null);
+const props = defineProps<{
+  items: {
+    rows: Array<RevenuWithCostsInvoicesTransactions>;
+    count: number;
+  };
+}>();
 
-onBeforeMount(async () => {
-  banks = await getBanks();
-  await filterAll(true, {
-    BankId: banks[0]?.id,
+const { t: $t } = useI18n();
+const dataTable = {
+  perPage: 12,
+  headers: [
+    {
+      key: "createdAt",
+      value: "createdAt",
+      title: $t("revenus.month"),
+    },
+    {
+      key: "pro",
+      value: "pro",
+      title: $t("revenus.revenuPro"),
+    },
+    {
+      key: "revenuNet",
+      value: "revenuNet",
+      title: $t("revenus.revenuNet"),
+      sortable: false,
+    },
+    {
+      key: "perso",
+      value: "perso",
+      title: $t("revenus.revenuPerso"),
+    },
+    {
+      key: "total",
+      value: "total",
+      title: $t("revenus.revenuTotal"),
+    },
+    {
+      key: "investments",
+      value: "investments",
+      title: $t("revenus.investments"),
+      sortable: false,
+    },
+    {
+      key: "expense",
+      value: "expense",
+      title: $t("revenus.expenses"),
+    },
+    {
+      key: "vatCollected",
+      value: "vatCollected",
+      title: $t("revenus.vatCollected"),
+      sortable: false,
+    },
+    {
+      key: "balance",
+      value: "balance",
+      title: $t("revenus.balance"),
+      sortable: false,
+    },
+    {
+      key: "actions",
+      value: "actions",
+      title: "",
+      sortable: false,
+    },
+  ],
+};
+
+const emit = defineEmits(["filter"]);
+function getByRevenuId(event) {
+  emit("filter", {
+    id: event.target.value,
+    force: true,
   });
-});
-
-function pushToShow(event, revenu: RevenuWithCostsInvoicesTransactions) {
-  if (event.target.nodeName !== "TD") return;
-  router.push(`/revenus/edit/${revenu.id}?bankId=${revenu.BankId}`);
+}
+function getRevenus({ page, itemsPerPage, sortBy }) {
+  emit("filter", {
+    currentPage: page,
+    perPage: itemsPerPage,
+    force: true,
+    sortBy,
+  });
 }
 
 function revenuDate(revenu: RevenuWithCostsInvoicesTransactions) {
@@ -91,18 +150,18 @@ function returnRevenuNet(revenu: RevenuWithCostsInvoicesTransactions) {
 function returnInvestmentTotal(revenu: RevenuWithCostsInvoicesTransactions) {
   if (revenu.Transactions) {
     const total = revenu.Transactions.reduce((sum, investment) => sum + investment.total, 0);
-    return total.toFixed(2);
+    return +total.toFixed(2);
   } else {
     return 0;
   }
 }
 
 function returnTVABalance(revenu: RevenuWithCostsInvoicesTransactions) {
-  const tvaDispatched = revenu.Costs?.reduce((sum, cost) => sum + cost.tvaAmount, 0);
+  const tvaDispatched = revenu.Costs?.reduce((sum, cost) => sum + (cost.tvaAmount || 0), 0);
   const tvaCollected = revenu.Invoices?.reduce((sum, invoice) => sum + invoice.tvaAmount, 0);
 
   if (revenu.Invoices) {
-    return (tvaDispatched - tvaCollected).toFixed(2);
+    return +(tvaDispatched - tvaCollected).toFixed(2);
   } else {
     return 0;
   }

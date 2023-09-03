@@ -20,7 +20,7 @@ export default async function (app) {
  * @returns {Promise<{count: number, rows: Models.Customers[]}>}
  */
 export async function getCustomers(params) {
-  const { per_page, offset, options } = setFilters(params);
+  const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
   options.UserId = this.request?.user?.id;
 
@@ -30,6 +30,7 @@ export async function getCustomers(params) {
       const count = await prisma.customers.count();
       const rows = await prisma.customers.findMany({
         where: options,
+        orderBy: orderBy || { createdAt: "desc" },
         include: {
           Invoices: true,
         },
@@ -59,7 +60,7 @@ export async function getCustomer(customerId) {
       },
     });
 
-    if (!customer) throw new AppError(404, "Customer not found!");
+    if (!customer) throw new AppError("Customer not found!");
     return customer;
   });
 
@@ -101,7 +102,7 @@ export async function updateCustomer(customerId, body) {
     },
   });
 
-  if (!customer) throw new AppError(404, "Customer not found!");
+  if (!customer) throw new AppError("Customer not found!");
 
   customer = await prisma.customers.update({
     where: {

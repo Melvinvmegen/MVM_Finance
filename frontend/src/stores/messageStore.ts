@@ -35,7 +35,7 @@ export const useMessageStore = defineStore("message", () => {
       timeout: 6000,
     });
   }
-  function i18nMessage(type: string, key: string, params: string, timeout: number) {
+  function i18nMessage(type: string, key: string, params: string = "", timeout: number = 4000) {
     messages.push({
       type,
       key,

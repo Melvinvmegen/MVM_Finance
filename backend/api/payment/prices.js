@@ -19,7 +19,7 @@ async function getPrice(productId) {
     limit: 100,
   });
 
-  if (!prices.data.length) throw new AppError(404, "Not found");
+  if (!prices.data.length) throw new AppError("Not found");
 
   return prices.data.map((price) => ({
     ...price,

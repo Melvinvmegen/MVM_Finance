@@ -1,6 +1,6 @@
 <template lang="pug">
-v-card(width="100%" :disabled="sold")
-  v-card-title.justify-center
+v-card(width="100%" :disabled="sold" :elevation="sold ? 1 : 6")
+  v-card-title.mb-4
     slot(name="header") {{ $t("cryptos.title") }}
   v-card-text.justify-center
 

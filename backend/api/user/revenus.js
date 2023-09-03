@@ -2,7 +2,6 @@ import { updateCreateOrDestroyChildItems } from "../../utils/childItemsHandler.j
 import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
 import { setFilters } from "../../utils/filter.js";
 import { AppError } from "../../utils/AppError.js";
-import fs from "fs";
 import { parse } from "csv-parse";
 import { prisma, Models } from "../../utils/prisma.js";
 
@@ -10,10 +9,11 @@ import { prisma, Models } from "../../utils/prisma.js";
  * @param {API.ServerInstance} app
  */
 export default async function (app) {
-  app.$get("revenus", getRevenus);
-  app.$get("revenus/:id", getRevenu);
-  app.$upload("revenus", createRevenu);
-  app.$put("revenus/:id", updateRevenu);
+  app.$get("/revenus", getRevenus);
+  app.$get("/revenus/ids", getRevenuIds);
+  app.$get("/revenus/:id", getRevenu);
+  app.$upload("/revenus/:bankId", createRevenu);
+  app.$put("/revenus/:id", updateRevenu);
 }
 
 /**
@@ -22,7 +22,7 @@ export default async function (app) {
  * @returns {Promise<{ count: number, rows:Models.Revenus[] & { Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions, Banks: Models.Banks} }>}
  */
 export async function getRevenus(params) {
-  const { per_page, offset, options } = setFilters(params);
+  const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
   options.Banks = {
     UserId: this.request?.user?.id,
@@ -36,7 +36,7 @@ export async function getRevenus(params) {
         where: options,
         take: per_page,
         skip: offset,
-        orderBy: { createdAt: "desc" },
+        orderBy: orderBy || { createdAt: "desc" },
         include: {
           Invoices: true,
           Credits: true,
@@ -58,9 +58,35 @@ export async function getRevenus(params) {
 
   return revenus;
 }
+
 /**
  * @this {API.This}
- * @param {number} revenuId
+ * @param {{ BankId: string }} params
+ * @returns {Promise<Models.Revenus[]>}
+ */
+export async function getRevenuIds(params) {
+  const revenus = await getOrSetCache(`revenuIds`, async () => {
+    return await prisma.revenus.findMany({
+      where: {
+        Banks: {
+          id: +params.BankId,
+          UserId: this.request?.user?.id,
+        },
+      },
+      select: {
+        id: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  });
+
+  return revenus;
+}
+
+/**
+ * @this {API.This}
+ * @param {string} revenuId
  * @returns {Promise<Models.Revenus[] & { Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions, Banks: Models.Banks}>}
  */
 export async function getRevenu(revenuId) {
@@ -98,13 +124,15 @@ export async function getRevenu(revenuId) {
 }
 
 let cost_category_cache = {};
+let credit_category_cache = {};
+
 /**
  * @this {API.This}
  * @param {string} bankId
  * @param {API.UploadData} upload
  */
 export async function createRevenu(bankId, upload) {
-  if (!upload.mimetype.includes("csv")) throw new AppError(400, "Please upload a CSV file!");
+  if (!upload.mimetype.includes("csv")) throw new AppError("Please upload a CSV file!");
   let revenu;
   const costs = [];
   const credits = [];
@@ -113,15 +141,15 @@ export async function createRevenu(bankId, upload) {
     .pipe(parse({ delimiter: ",", from_line: 5 }))
     .on("data", (row) => {
       const total = +row[4];
-      const [day, month, year] = row[0].split("/revenu/");
+      const [day, month, year] = row[0].split("/");
       const date = `${month}-${day}-${year}`;
       const name = row[2];
       if (total < 0) {
         costs.push({
           createdAt: new Date(date),
           updatedAt: new Date(date),
-          name: name,
-          total: total,
+          name,
+          total,
         });
       } else {
         credits.push({
@@ -129,7 +157,7 @@ export async function createRevenu(bankId, upload) {
           updatedAt: new Date(date),
           reason: name,
           creditor: name,
-          total: total,
+          total,
         });
       }
     })
@@ -154,7 +182,7 @@ export async function createRevenu(bankId, upload) {
           },
         });
 
-        if (revenu?.Banks?.UserId !== this.request?.user?.id) {
+        if (!revenu) {
           revenu = await prisma.revenus.create({
             data: {
               createdAt: new Date(beginning_of_month.setHours(beginning_of_month.getHours() + 4)),
@@ -168,16 +196,19 @@ export async function createRevenu(bankId, upload) {
           });
         }
 
+        const name = (obj.name || obj.reason).replace(/[\d+/+]/g, "").trim();
         const newObj = {
           ...obj,
-          RevenuId: revenu?.id,
+          RevenuId: revenu.id,
         };
 
         if (obj.total < 0) {
-          const name = obj.name.replace(/[\d+/+]/g, "").trim();
-          let cost_category = cost_category_cache[name];
-          if (!cost_category) {
-            cost_category = await prisma.costs.findFirst({
+          const cost_category = cost_category_cache[name];
+          if (cost_category) {
+            newObj.category = cost_category.category;
+            newObj.recurrent = cost_category.recurrent;
+          } else {
+            const previousCost = await prisma.costs.findFirst({
               orderBy: { createdAt: "desc" },
               select: {
                 category: true,
@@ -189,10 +220,11 @@ export async function createRevenu(bankId, upload) {
                 },
               },
             });
-            if (cost_category) {
+
+            if (previousCost) {
               cost_category_cache[name] = {
-                category: cost_category.category,
-                recurrent: cost_category.recurrent,
+                category: previousCost.category,
+                recurrent: previousCost.recurrent,
               };
             }
           }
@@ -205,26 +237,43 @@ export async function createRevenu(bankId, upload) {
             },
           });
 
-          if (cost_category_cache[name]) {
-            newObj.category = cost_category_cache[name].category;
-            newObj.recurrent = cost_category_cache[name].recurrent;
-          }
-
-          if (!cost) {
-            cost = await prisma.costs.create({
-              data: newObj,
-            });
-          } else {
+          if (cost) {
             cost = await prisma.costs.update({
               where: {
                 id: cost.id,
               },
               data: newObj,
             });
+          } else {
+            cost = await prisma.costs.create({
+              data: newObj,
+            });
           }
-          if (revenu && !revenu.Costs.length) revenu.Costs = [];
           revenu.Costs.push(cost);
         } else {
+          let credit_category = credit_category_cache[name];
+          if (credit_category) {
+            newObj.category = credit_category.category;
+            newObj.recurrent = credit_category.recurrent;
+          } else {
+            const previousCredit = await prisma.credits.findFirst({
+              orderBy: { createdAt: "desc" },
+              select: {
+                category: true,
+              },
+              where: {
+                creditor: {
+                  contains: name,
+                },
+              },
+            });
+            if (previousCredit) {
+              credit_category = {
+                category: previousCredit.category,
+              };
+            }
+          }
+
           let credit = await prisma.credits.findFirst({
             where: {
               creditor: obj.creditor,
@@ -232,57 +281,46 @@ export async function createRevenu(bankId, upload) {
               RevenuId: revenu.id,
             },
           });
-
-          if (!credit) {
-            credit = await prisma.credits.create({
-              data: newObj,
-            });
-          } else {
+          if (credit) {
             credit = await prisma.credits.update({
               where: {
                 id: credit.id,
               },
               data: newObj,
             });
+          } else {
+            credit = await prisma.credits.create({
+              data: newObj,
+            });
           }
-          if (revenu && !revenu.Credits.length) revenu.Credits = [];
           revenu.Credits.push(credit);
         }
 
-        if (!revenus.find((r) => r.id === revenu?.id)) revenus.push(revenu);
+        const revenuIndex = revenus.findIndex((i) => i.id === 2);
+        if (revenuIndex > -1) {
+          revenus[revenuIndex] = revenu;
+        } else {
+          revenus.push(revenu);
+        }
       }
 
       for (let revenu of revenus) {
-        let expense = 0;
-        for (let cost of revenu.Costs) {
-          expense += Math.abs(cost.total);
-        }
-
-        let pro = 0;
-        let perso = 0;
-        for (let credit of revenu.Credits) {
-          if (credit.total == 2690 || credit.total == 2765) {
-            pro += credit.total;
-          } else {
-            perso += credit.total;
-          }
-        }
-
+        const totalCredits = revenu.Credits.reduce((sum, credit) => sum + +credit.total, 0);
+        const expense = revenu.Costs.reduce((sum, cost) => sum + Number(cost.total), 0);
         revenu = await prisma.revenus.update({
           where: {
             id: revenu.id,
           },
           data: {
-            pro,
-            perso,
-            total: perso + pro,
-            expense: -expense,
+            pro: 0,
+            perso: 0,
+            total: totalCredits,
+            expense: expense,
           },
         });
       }
 
       await invalidateCache("revenus");
-      return revenu;
     })
     .on("error", (error) => {
       throw error;

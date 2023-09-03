@@ -8,7 +8,7 @@ export function createRouter() {
       {
         path: "",
         component: () => import("./pages/user/_layout.user.vue"),
-        redirect: "customers",
+        redirect: "dashboard",
         children: [
           {
             path: "/login",
@@ -38,23 +38,23 @@ export function createRouter() {
             component: () => import("./pages/user/customer.vue"),
           },
           {
-            path: "/customers/edit/:id",
+            path: "/customers/:customerId",
             component: () => import("./pages/user/customer.vue"),
           },
           {
-            path: "/invoices/new",
+            path: "/customers/:customerId/invoices/new",
             component: () => import("./pages/user/invoice.vue"),
           },
           {
-            path: "/invoices/edit/:id",
+            path: "/customers/:customerId/invoices/:id",
             component: () => import("./pages/user/invoice.vue"),
           },
           {
-            path: "/quotations/new",
+            path: "/customers/:customerId/quotations/new",
             component: () => import("./pages/user/quotation.vue"),
           },
           {
-            path: "/quotations/edit/:id",
+            path: "/customers/:customerId/quotations/:id",
             component: () => import("./pages/user/quotation.vue"),
           },
           {
@@ -62,7 +62,7 @@ export function createRouter() {
             component: () => import("./pages/user/revenus.vue"),
           },
           {
-            path: "/revenus/edit/:id",
+            path: "/revenus/:id",
             component: () => import("./pages/user/revenu.vue"),
           },
           {
@@ -89,8 +89,8 @@ export function createRouter() {
       return next();
     } else {
       return next({
-        name: "Login",
-        query: { redirectUrl: window.location.origin + to.fullPath.slice(1) },
+        path: "/login",
+        query: { redirectUrl: window.location.origin + to.fullPath },
       });
     }
   });

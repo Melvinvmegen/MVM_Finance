@@ -7,9 +7,14 @@ export function setFilters(query) {
   Object.keys(query).forEach(function (key) {
     const value = query[key];
     if (!value) return;
-    if (key === "currentPage" || key === "perPage" || key === "force") return;
+    if (key === "currentPage" || key === "perPage" || key === "force" || key === "sortBy") return;
     options[`${key}`] = Number.isInteger(+value) ? +value : value;
   });
 
-  return { per_page, offset, options };
+  let orderBy;
+  if (query.sortBy) {
+    orderBy = Object.fromEntries([Object.values(JSON.parse(query.sortBy))]);
+  }
+
+  return { per_page, offset, orderBy, options };
 }

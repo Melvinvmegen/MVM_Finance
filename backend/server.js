@@ -1,4 +1,4 @@
-import { validateBelongsToBank, validateBelongsToUser, validateCustomerBelongsToUser } from "./utils/rights.js";
+import { validateBanksBelongsToUser, validateCustomerBelongsToUser } from "./utils/rights.js";
 import { green, yellow, red, magenta, gray } from "colorette";
 import UnauthorizedError from "./utils/unauthorizedError.js";
 import clientWrapper from "./apiClient/wrapper.js";
@@ -118,9 +118,11 @@ app.addHook("onRequest", async (request) => {
   });
 });
 
-app.addHook("preHandler", async (req, reply) => {
-  if (req.url.includes("/api/user")) {
+app.addHook("preHandler", async (req) => {
+  try {
     await req.jwtVerify();
+  } catch (err) {
+    req.log.debug(err);
   }
   if (req.url.includes("/api/payment")) {
     const authHeader = req.headers.authorization;
@@ -136,14 +138,13 @@ app.addHook("preHandler", async (req, reply) => {
       }
     }
   }
-  if (/^\/api\/user\/[a-zA-Z0-9]+\/(?:customers|cryptos|banks)$/.test(req.url)) {
-    if (!validateBelongsToUser(req)) throw new UnauthorizedError("errors.server.unauthorized");
+
+  if (/\/api\/banks\/[0-9]+\/(?:revenus)/.test(req.url)) {
+    if (!validateBanksBelongsToUser) throw new UnauthorizedError("errors.server.unauthorized");
   }
-  if (/^\/api\/user\/[a-zA-Z0-9]+\/customers\/[a-zA-Z0-9]+\/(?:invoices|quotations)$/.test(req.url)) {
+
+  if (/\/api\/customers\/[a-zA-Z0-9]+\/(?:invoices|quotations)/.test(req.url)) {
     if (!validateCustomerBelongsToUser(req)) throw new UnauthorizedError("errors.server.unauthorized");
-  }
-  if (/^\/api\/user\/[a-zA-Z0-9]+\/banks\/[a-zA-Z0-9]+\/(?:revenus)$/.test(req.url)) {
-    if (!validateBelongsToBank(req)) throw new UnauthorizedError("errors.server.unauthorized");
   }
 });
 

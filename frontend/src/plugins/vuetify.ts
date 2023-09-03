@@ -3,9 +3,13 @@ import "vuetify/styles";
 import { createVuetify as _createVuetify } from "vuetify";
 import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
 import { useI18n } from "vue-i18n";
+import { VDataTableServer } from "vuetify/labs/VDataTable";
 
 export function createVuetify(i18n) {
   return _createVuetify({
+    components: {
+      VDataTableServer,
+    },
     locale: {
       adapter: createVueI18nAdapter({ i18n, useI18n }),
     },
@@ -34,16 +38,22 @@ export function createVuetify(i18n) {
         density: "compact",
         variant: "outlined",
       },
+      VSelect: {
+        density: "compact",
+        variant: "outlined",
+      },
+      VAutocomplete: {
+        density: "compact",
+        variant: "outlined",
+      },
       VBtn: {
-        color: "secondary",
+        color: "white",
         variant: "flat",
-        rounded: "xl",
       },
       VCardActions: {
         VBtn: {
           color: "secondary",
           variant: "flat",
-          rounded: "xl",
         },
       },
       VCard: {
@@ -52,6 +62,9 @@ export function createVuetify(i18n) {
       VList: {
         density: "compact",
         lines: "one",
+      },
+      VIcon: {
+        size: "large",
       },
     },
   });

@@ -22,12 +22,13 @@ export default async function (app) {
 
 /**
  * @this {API.This}
+ * @param {string} CustomerId
  * @param {{ per_page: number, offset: number, force: string, options: any }} params
  * @returns {Promise<{ count: number, rows:Models.Quotations[] & { Revenus: Models.Revenus} }>}
  */
-export async function getQuotations(params) {
-  const { CustomerId } = params.options;
-  const { per_page, offset, options } = setFilters(params);
+export async function getQuotations(CustomerId, params) {
+  if (!Number(CustomerId)) throw new AppError("Customer not found");
+  const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
 
   const customer = await prisma.customers.findFirst({
@@ -36,7 +37,7 @@ export async function getQuotations(params) {
       UserId: this.request?.user?.id,
     },
   });
-  if (!customer) throw new AppError(404, "Customer not found");
+  if (!customer) throw new AppError("Customer not found");
   const quotations_data = await getOrSetCache(
     `quotations_customer_${CustomerId}`,
     async () => {
@@ -49,9 +50,7 @@ export async function getQuotations(params) {
         where: options,
         skip: offset,
         take: per_page,
-        orderBy: {
-          id: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         include: {
           Revenus: true,
         },
@@ -67,14 +66,16 @@ export async function getQuotations(params) {
 
 /**
  * @this {API.This}
- * @param {number} quotationId
+ * @param {string} customerId
+ * @param {string} quotationId
  * @returns {Promise<Models.Quotations[] & { InvoiceItems: Models.InvoiceItems}>}
  */
-export async function getQuotation(quotationId) {
+export async function getQuotation(customerId, quotationId) {
   const quotation = await getOrSetCache(`quotation_${quotationId}`, async () => {
     const data = await prisma.quotations.findUnique({
       where: {
         id: +quotationId,
+        CustomerId: +customerId,
       },
       include: {
         InvoiceItems: true,
@@ -83,21 +84,23 @@ export async function getQuotation(quotationId) {
     return data;
   });
 
-  if (!quotation) throw new AppError(404, "Quotation not found!");
+  if (!quotation) throw new AppError("Quotation not found!");
 
   return quotation;
 }
 
 /**
  * @this {API.This}
- * @param { number } quotationId
+ * @param {string} customerId
+ * @param { string } quotationId
  * @returns {Promise<API.DownloadReturns>}
  */
-export async function downloadQuotation(quotationId) {
+export async function downloadQuotation(customerId, quotationId) {
   const quotation = await getOrSetCache(`quotation_${quotationId}`, async () => {
     const data = await prisma.quotations.findUnique({
       where: {
         id: +quotationId,
+        CustomerId: +customerId,
       },
       include: {
         InvoiceItems: true,
@@ -106,10 +109,10 @@ export async function downloadQuotation(quotationId) {
     return data;
   });
 
-  if (!quotation) throw new AppError(404, "Quotation not found!");
+  if (!quotation) throw new AppError("Quotation not found!");
 
   return {
-    filename: "invoice-" + quotationId + ".pdf",
+    filename: "mvm-quotation-" + quotationId + ".pdf",
     type: "application/pdf",
     stream: pdfGenerator(quotation),
   };
@@ -117,15 +120,38 @@ export async function downloadQuotation(quotationId) {
 
 /**
  * @this {API.This}
- * @param {Models.Prisma.QuotationsCreateInput & { InvoiceItems: Models.Prisma.InvoiceItemsCreateInput }} body
+ * @param {string} customerId
+ * @param {Models.Prisma.QuotationsCreateInput & { RevenuId: number, InvoiceItems: Models.Prisma.InvoiceItemsCreateInput }} body
  * @returns {Promise<Models.Quotations & {InvoiceItems: Models.InvoiceItems[]}>}
  */
-export async function createQuotation(body) {
+export async function createQuotation(customerId, body) {
   const { InvoiceItems, ...quotationBody } = body;
 
   const quotation = await prisma.quotations.create({
     data: {
-      ...quotationBody,
+      firstName: quotationBody.firstName,
+      lastName: quotationBody.lastName,
+      company: quotationBody.company,
+      address: quotationBody.address,
+      city: quotationBody.city,
+      paymentDate: quotationBody.paymentDate,
+      total: quotationBody.total,
+      totalTTC: quotationBody.totalTTC,
+      tvaAmount: quotationBody.tvaAmount,
+      tvaApplicable: quotationBody.tvaApplicable,
+      cautionPaid: quotationBody.cautionPaid,
+      Customers: {
+        connect: {
+          id: +customerId,
+        },
+      },
+      ...(quotationBody.RevenuId && {
+        Revenus: {
+          connect: {
+            id: +quotationBody.RevenuId,
+          },
+        },
+      }),
       InvoiceItems: {
         create: InvoiceItems,
       },
@@ -141,25 +167,35 @@ export async function createQuotation(body) {
 
 /**
  * @this {API.This}
- * @param {number} quotationId
- * @param {Models.Prisma.QuotationsUpdateInput & {InvoiceItems: Models.Prisma.InvoiceItemsUpdateInput}} body
+ * @param {string} customerId
+ * @param {string} quotationId
+ * @param {Models.Prisma.QuotationsUpdateInput & {RevenuId: string, InvoiceItems: Models.Prisma.InvoiceItemsUpdateInput}} body
  * @returns {Promise<Models.Quotations & {Revenus: Models.Revenus}>}
  */
-export async function updateQuotation(quotationId, body) {
+export async function updateQuotation(customerId, quotationId, body) {
   const { InvoiceItems, ...quotationBody } = body;
 
   const quotation = await prisma.quotations.update({
     where: {
-      id: quotationId,
+      id: +quotationId,
+      CustomerId: +customerId,
     },
-    data: quotationBody,
+    data: {
+      total: quotationBody.total,
+      totalTTC: quotationBody.totalTTC,
+      cautionPaid: quotationBody.cautionPaid,
+      tvaApplicable: quotationBody.tvaApplicable,
+      tvaAmount: quotationBody.tvaAmount,
+      paymentDate: quotationBody.paymentDate,
+      ...(quotationBody.RevenuId && { RevenuId: +quotationBody.RevenuId }),
+    },
     include: {
       Revenus: true,
     },
   });
   const existing_invoice_items = await prisma.invoiceItems.findMany({
     where: {
-      QuotationId: quotationId,
+      QuotationId: +quotationId,
     },
   });
 
@@ -174,11 +210,16 @@ export async function updateQuotation(quotationId, body) {
 
 /**
  * @this {API.This}
- * @param {number} quotationId
+ * @param {string} customerId
+ * @param {string} quotationId
  * @returns {Promise<Models.Invoices & {InvoiceItems: Models.InvoiceItems[]}>}
  */
-export async function convertQuotationToInvoice(quotationId) {
+export async function convertQuotationToInvoice(customerId, quotationId) {
   const quotation = await prisma.quotations.findUnique({
+    where: {
+      id: +quotationId,
+      CustomerId: +customerId,
+    },
     select: {
       id: true,
       firstName: true,
@@ -200,11 +241,8 @@ export async function convertQuotationToInvoice(quotationId) {
         },
       },
     },
-    where: {
-      id: +quotationId,
-    },
   });
-  if (!quotation) throw new AppError(404, "Quotation not found!");
+  if (!quotation) throw new AppError("Quotation not found!");
   if (quotation.InvoiceId) throw new AppError(403, "Quotation already converted.");
 
   const quotation_values = Object.fromEntries(
@@ -241,11 +279,12 @@ export async function convertQuotationToInvoice(quotationId) {
 // TODO: this should use an email service
 /**
  * @this {API.This}
- * @param {number} quotationId
+ * @param {string} customerId
+ * @param {string} quotationId
  */
-export async function sendQuotation(quotationId) {
+export async function sendQuotation(customerId, quotationId) {
   const quotation = await prisma.quotations.findFirstOrThrow({
-    where: { id: +quotationId },
+    where: { id: +quotationId, CustomerId: +customerId },
     include: {
       InvoiceItems: true,
       Customers: true,
@@ -258,11 +297,12 @@ export async function sendQuotation(quotationId) {
 
 /**
  * @this {API.This}
- * @param {number} quotationId
+ * @param {string} customerId
+ * @param {string} quotationId
  */
-export async function deleteQuotation(quotationId) {
+export async function deleteQuotation(customerId, quotationId) {
   const quotation = await prisma.quotations.delete({
-    where: { id: +quotationId },
+    where: { id: +quotationId, CustomerId: +customerId },
     select: {
       CustomerId: true,
     },

@@ -1,6 +1,6 @@
 <template lang="pug">
-v-card
-  v-card-text#weather(:class="weather.value && weather.value.main.temp > 16 ? $t('weather.warm') : $t('weather.cold')")
+v-card(v-if="weather")
+  v-card-text#weather(:class="weather.value?.main?.temp > 16 ? $t('weather.warm') : $t('weather.cold')")
     v-text-field.text-white(
       color="white"
       shaped
@@ -10,21 +10,17 @@ v-card
       v-model="query"
       @keyup.enter="fetchWeather"
     )
-    .weather-wrap(v-if="weather.value")
+    .weather-wrap
       .location-box
         .location {{ weather.value.name }}, {{ weather.value.sys.country }}
         br
-        .date {{ dateBuilder() }}
+        .date {{ currentDate }}
       .weather-box(v-if="weather.value.main.temp")
         .temp {{ Math.round(weather.value.main.temp) }}&deg;c
         br
-        .weather
+        .weather(v-if="settingsStore.settings")
           img(:src='`${settingsStore.settings.weatherIconUrl}${weather?.value?.weather[0]?.icon}.png`')
           span {{ weather.value.weather[0].description }}
-
-    .weather-wrap(v-if="errorMessage")
-      .location-box
-        .location {{ errorMessage }}
 
 </template>
 <script setup lang="ts">
@@ -32,7 +28,7 @@ import { useOFetch } from "../plugins/ofetch";
 
 interface Weather {
   value: {
-    weather: [{ description: string }];
+    weather: [{ description: string; icon: string }];
     sys: {
       country: string;
     };
@@ -43,28 +39,24 @@ interface Weather {
   };
 }
 const settingsStore = useSettingsStore();
+const messageStore = useMessageStore();
 const query = ref("Paris");
-const weather = reactive<Weather | any>({});
-const errorMessage = ref("");
-const loadingStore = useLoadingStore();
+const weather = ref<Weather | null>(null);
 
-fetchWeather();
+onMounted(() => {
+  fetchWeather();
+});
 
 async function fetchWeather() {
-  loadingStore.setLoading(true);
   try {
     const response = await getWeather();
     weather.value = response.data;
-  } catch (error: any) {
+  } catch (error) {
     if (error.status === "404") {
-      errorMessage.value = "Aucun résultat trouvé";
+      messageStore.i18nMessage("error", "errors.server.notFound");
     } else {
-      errorMessage.value = "Une erreur s'est produite";
+      messageStore.i18nMessage("error", "errors.server.unexpected");
     }
-    weather.value = {};
-  } finally {
-    loadingStore.setLoading(false);
-    errorMessage.value = "";
   }
 }
 
@@ -77,24 +69,16 @@ async function getWeather() {
   );
 }
 
-function dateBuilder() {
+const currentDate = computed(() => {
   const date = new Date();
   return new Intl.DateTimeFormat("fr", {
     dateStyle: "full",
     timeStyle: "short",
   }).format(date);
-}
+});
 </script>
 
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-body {
-  font-family: "montserrat", sans-serif;
-}
+<style scoped>
 #weather {
   background-size: cover;
   background-position: bottom;

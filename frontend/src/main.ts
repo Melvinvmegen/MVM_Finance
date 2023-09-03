@@ -3,6 +3,7 @@ import { createApp } from "vue";
 import { createRouter } from "./router";
 import { createI18n } from "./plugins/i18n";
 import { createPinia } from "./plugins/pinia";
+import { createOFetch } from "./plugins/ofetch";
 import { createVuetify } from "./plugins/vuetify";
 import { createValidator } from "./plugins/validator";
 import App from "./App.vue";
@@ -19,6 +20,8 @@ function createVueApp() {
   app.use(vuetify);
   const validator = createValidator(i18n);
   app.use(validator);
+  const ofetch = createOFetch();
+  app.use(ofetch);
 
   const settingsStore = useSettingsStore();
   settingsStore.initializeSettings();

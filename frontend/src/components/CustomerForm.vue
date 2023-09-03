@@ -1,7 +1,7 @@
 <template lang="pug">
 v-card
   v-form(@submit.prevent="handleSubmit")
-    v-card-title {{ props.initialCustomer?.id ? $t("customers.editCustomer") : $t("customers.createCustomer") }}
+    v-card-title.mb-4.text-center {{ props.initialCustomer?.id ? $t("customers.editCustomer") : $t("customers.createCustomer") }}
     v-card-text
       v-row(dense justify="center")
         v-col(cols="12")
@@ -35,18 +35,15 @@ v-card
 </template>
 
 <script setup lang="ts">
-import type { Customers } from "../../types/models";
+import type { Customers, Prisma } from "../../types/models";
 import { createCustomer, updateCustomer } from "../utils/generated/api-user";
 const props = defineProps({
   initialCustomer: {
     type: Object as PropType<Customers>,
-    required: true,
   },
 });
-const router = useRouter();
 const loadingStore = useLoadingStore();
-let mutableCustomer = ref<Customers>({
-  id: 1,
+let mutableCustomer = ref<Prisma.CustomersUncheckedCreateInput>({
   firstName: "",
   lastName: "",
   email: "",
@@ -61,7 +58,7 @@ let mutableCustomer = ref<Customers>({
   UserId: null,
 });
 
-if (Object.entries(props.initialCustomer).length) {
+if (props.initialCustomer) {
   mutableCustomer.value = { ...props.initialCustomer };
 }
 
@@ -69,11 +66,12 @@ async function handleSubmit(): Promise<void> {
   loadingStore.setLoading(true);
   try {
     if (props.initialCustomer?.id) {
-      updateCustomer(mutableCustomer.value);
+      await updateCustomer(mutableCustomer.value.id, mutableCustomer.value);
+      useMessageStore().i18nMessage("success", "customers.updated");
     } else {
-      createCustomer(mutableCustomer.value);
+      const newCustomer = await createCustomer(mutableCustomer.value);
+      window.location.pathname = `/customers/${newCustomer.id}`;
     }
-    router.push(`/customers`);
   } finally {
     loadingStore.setLoading(false);
   }

@@ -1,45 +1,47 @@
 <template lang="pug">
-template(v-if="model.InvoiceItems")
-  v-card-subtitle(v-if="quotationId")  {{ $t("totalField.quotationNumber", [quotationId]) }}
-  v-card-subtitle {{ $t("totalField.invoiceNumber", [model.id]) }}
-  v-card-subtitle.justify-end {{ model.company }}
-  v-card-subtitle.justify-end {{ $t("totalField.invoiceFor") }}
-  v-card-subtitle.justify-end {{ model.firstName }} {{ model.lastName }}
-  v-card-subtitle.justify-end {{ model.address }}  {{ model.zipcode }}  {{ model.city }}
-v-row(justify="space-around" align="center" v-if="model.pro")
-  v-card-subtitle {{ $t("totalField.totalPro") }}
-  v-card-title {{ $n(Math.round(model.pro), "currency") }}
-v-row(justify="space-around" align="center" v-if="model.perso")
-  v-card-subtitle {{ $t("totalField.totalPerso") }}
-  v-card-title {{ $n(Math.round(model.perso), "currency") }}
-hr.mx-2.my-4
-v-row(justify="space-around" align="center")
-  v-card-subtitle {{ $t("totalField.total") }}
-  v-card-title {{ $n(Math.round(model.total), "currency") }}
-v-row(justify="space-around" v-if='initialTvaApplicable' align="center")
-  v-card-subtitle {{ $t("totalField.withVAT") }}
-  v-card-title {{ $n(Math.round(initialTvaAmount), "currency") }}
-v-row(justify="space-around" align="center" v-if="model.expense")
-  v-card-subtitle {{ $t("totalField.expenses") }}
-  v-card-title(v-if="model.expense") {{ $n(Math.round(model.expense), "currency") }}
-  v-card-title(v-else) {{ $n(Math.round(model.expense), "currency") }}
-hr.mx-2.my-4
-v-row(justify="space-around" align="center" v-if='initialTvaApplicable')
-    v-card-subtitle {{ $t("totalField.totalVAT") }}
-    v-card-title {{ $n(Math.round(initialTotalTTC), "currency") }}
-v-row(justify="space-around" align="center" v-if="model.total && model.expense")
-  v-card-subtitle {{ $t("totalField.balance") }}
-  v-card-title {{ $n(Math.round(model.total - Math.abs(model.expense)), "currency") }}
-hr.mx-2.my-4
-v-row(justify="space-around" align="center" v-if='model.tva_collected')
-  v-card-subtitle {{ $t("totalField.vatCollected") }}
-  v-card-title -{{ $n(Math.round(model.tva_collected), "currency") }}
-v-row(justify="space-around" align="center" v-if='model.tva_dispatched')
-  v-card-subtitle {{ $t("totalField.vatDeductible") }}
-  v-card-title {{ $n(Math.round(model.tva_dispatched), "currency") }}
-v-row(justify="space-around" align="center" v-if='model.tva_collected')
-  v-card-subtitle {{ $t("totalField.vatTotal") }}
-  v-card-title {{ $n(Math.round(+model.tva_dispatched - +model.tva_collected), "currency") }}
+v-card.pa-4(v-if="props.model")
+  template(v-if="props.model.InvoiceItems")
+    v-card-subtitle(v-if="quotationId")  {{ $t("totalField.quotationNumber", [quotationId]) }}
+    v-card-subtitle.d-flex.justify-end {{ $t("totalField.invoiceNumber", [props.model.id]) }}
+    v-card-subtitle.d-flex.justify-end {{ props.model.company }}
+    v-card-subtitle.d-flex.justify-end {{ $t("totalField.invoiceFor") }}
+    v-card-subtitle.d-flex.justify-end {{ props.model.firstName }} {{ props.model.lastName }}
+    v-card-subtitle.d-flex.justify-end.mb-12 {{ props.model.address }}  {{ props.model.zipcode }}  {{ props.model.city }}
+  v-row.mx-1(justify="space-between" align="center" v-if="props.model.pro")
+    v-card-subtitle {{ $t("totalField.totalPro") }}
+    v-card-title {{ $n(Math.round(props.model.pro), "currency") }}
+  v-row.mx-1(justify="space-between" align="center" v-if="props.model.perso")
+    v-card-subtitle {{ $t("totalField.totalPerso") }}
+    v-card-title {{ $n(Math.round(props.model.perso), "currency") }}
+  hr.mx-2.my-4
+  v-row.mx-1(justify="space-between" align="center")
+    v-card-subtitle {{ $t("totalField.total") }}
+    v-card-title {{ $n(Math.round(props.model.total), "currency") }}
+  v-row.mx-1(justify="space-between" v-if='initialTvaApplicable' align="center")
+    v-card-subtitle {{ $t("totalField.withVAT") }}
+    v-card-title {{ $n(Math.round(initialTvaAmount), "currency") }}
+  v-row.mx-1(justify="space-between" align="center" v-if="props.model.expense")
+    v-card-subtitle {{ $t("totalField.expenses") }}
+    v-card-title(v-if="props.model.expense") {{ $n(Math.round(props.model.expense), "currency") }}
+    v-card-title(v-else) {{ $n(Math.round(props.model.expense), "currency") }}
+  div(v-if='initialTvaApplicable')
+    hr.mx-2.my-4
+    v-row.mx-1(justify="space-between" align="center")
+        v-card-subtitle {{ $t("totalField.totalVAT") }}
+        v-card-title {{ $n(Math.round(initialTotalTTC), "currency") }}
+  v-row.mx-1(justify="space-between" align="center" v-if="props.model.total && props.model.expense")
+    v-card-subtitle {{ $t("totalField.balance") }}
+    v-card-title {{ $n(Math.round(props.model.total - Math.abs(props.model.expense)), "currency") }}
+  hr.mx-2.my-4
+  v-row.mx-1(justify="space-between" align="center" v-if='props.model.tva_collected')
+    v-card-subtitle {{ $t("totalField.vatCollected") }}
+    v-card-title -{{ $n(Math.round(props.model.tva_collected), "currency") }}
+  v-row.mx-1(justify="space-between" align="center" v-if='props.model.tva_dispatched')
+    v-card-subtitle {{ $t("totalField.vatDeductible") }}
+    v-card-title {{ $n(Math.round(props.model.tva_dispatched), "currency") }}
+  v-row.mx-1(justify="space-between" align="center" v-if='props.model.tva_collected')
+    v-card-subtitle {{ $t("totalField.vatTotal") }}
+    v-card-title {{ $n(Math.round(+props.model.tva_dispatched - +props.model.tva_collected), "currency") }}
 </template>
 
 <script setup lang="ts">

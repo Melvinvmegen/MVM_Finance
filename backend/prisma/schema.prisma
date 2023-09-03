@@ -92,7 +92,7 @@ model Invoices {
   city          String?        @db.VarChar(255)
   paymentDate   DateTime?      @db.Timestamptz(6)
   total         Float          @default(0)
-  paid          Boolean?
+  paid          Boolean?       @default(false)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   CustomerId    Int
@@ -124,7 +124,7 @@ model Quotations {
   InvoiceId     Int?
   tvaApplicable Boolean        @default(false)
   totalTTC      Float          @default(0)
-  tvaAmount     Float?         @default(0)
+  tvaAmount     Float          @default(0)
   paymentDate   DateTime?      @db.Timestamptz(6)
   InvoiceItems  InvoiceItems[]
   Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade)

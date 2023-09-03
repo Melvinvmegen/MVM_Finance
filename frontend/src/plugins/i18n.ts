@@ -18,7 +18,7 @@ export function createI18n() {
         },
         percent: {
           style: "percent",
-          useGrouping: true,
+          useGrouping: false,
         },
       },
     },

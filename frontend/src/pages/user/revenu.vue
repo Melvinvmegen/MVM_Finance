@@ -2,18 +2,17 @@
 v-container
   v-row(v-if="revenu")
     v-col(cols='8')
-      v-card
+      v-card.pa-4
         v-form(@submit.prevent="handleSubmit")
-          v-card-title.my-4
-            .d-flex
+          v-card-title 
+            v-row.mb-4(align="center")
+              v-btn(icon="mdi-arrow-left" variant="text" @click='router.go(-1)')
               span {{ $t("revenu.editRevenu", [revenuMonth])  }}
-              v-spacer 
-              v-btn(icon="mdi-arrow-left" color="white"  @click='router.go(-1)')
 
           v-card-text
             v-row(dense)
               v-col(cols="2")
-                v-text-field(name='taxPercentage' :label='$t("revenu.tax")'  v-model="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
+                v-text-field(name='taxPercentage' :label='$t("revenu.tax")'  v-model.number="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
 
             div(v-if='revenu?.Invoices?.length')
               v-card-title {{ $t("revenu.invoices") }} 
@@ -25,72 +24,86 @@ v-container
                     v-text-field(:label='$t("revenu.total")' :model-value="invoice.total" disabled)
 
             div(v-if='revenu.Quotations?.length')
-              v-card-title {{ $t("revenu.quotations") }}
+              v-card-title.px-0.pb-8 {{ $t("revenu.quotations") }}
+              v-row
+                v-col(cols="3") {{ $t("revenu.name") }}
+                v-col(cols="2") {{ $t("revenu.total") }}
+                v-col(cols="1")
+              br
               transition-group(name='slide-up')
                 v-row(v-for='quotation in revenu.Quotations' :key="quotation.id")
                   v-col(cols="3")
-                    v-text-field(:label='$t("revenu.name")' v-model="quotation.company" :rules="[$v.required()]")
+                    v-text-field(v-model="quotation.company" :rules="[$v.required()]")
                   v-col(cols="2")
-                    v-text-field(:label='$t("revenu.total")' v-model="quotation.total" :disabled='true'  )
+                    v-text-field(v-model="quotation.total" :disabled='true'  )
 
             hr.my-8
-            v-card-title {{ $t("revenu.credits") }}
+            v-card-title.px-0.pb-8 {{ $t("revenu.credits") }}
+            v-row
+              v-col(cols="3") {{ $t("revenu.createdAt") }}
+              v-col(cols="3") {{ $t("revenu.creditor") }}
+              v-col(cols="3") {{ $t("revenu.category") }}
+              v-col(cols="2") {{ $t("revenu.total") }}
+              v-col(cols="1")
+            br
             transition-group(name='slide-up')
               v-row(v-for='(credit, index) in credits' :key="credit.id || index")
-                v-col(cols="2")
-                  DateInput(:value="credit.createdAt")
                 v-col(cols="3")
-                  v-text-field(:label='$t("revenu.creditor")' v-model="credit.creditor" :rules="[$v.required()]")
+                  DateInput(v-model="credit.createdAt")
+                v-col(cols="3")
+                  v-text-field(v-model="credit.creditor" :rules="[$v.required()]")
+                v-col(cols="3")
+                  v-select(v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal" )
                 v-col(cols="2")
-                  v-select(:label='$t("revenu.category")' v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal(credit)" )
-                v-col(cols="2")
-                  v-text-field(:label='$t("revenu.total")' v-model.number="credit.total" @change="updateTotal(credit)" :rules="[$v.required(), $v.number()]")
+                  v-text-field(v-model.number="credit.total" @change="updateTotal" :rules="[$v.required(), $v.number()]")
                 v-col(cols="1")
                   v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
                     v-icon mdi-delete
 
               v-row
                 v-col(cols="12" justify="end")
-                  v-btn(color="secondary" @click.prevent="addItem('Credit')")
+                  v-btn(@click.prevent="addItem('Credit')")
                     span {{ $t("revenu.addLine") }}
 
             hr.my-8
-            v-card-title {{ $t("revenu.costs") }}
-            v-spacer
-            v-autocomplete(
-              chips
-              :label='$t("revenu.watchers")'
-              :items="costsNames"
-              v-model="revenu.watchers"
-              multiple)
+            v-card-title.px-0.pb-8 {{ $t("revenu.costs") }}
+            v-row
+              v-col(cols="1") {{ $t("revenu.recurrent") }}
+              v-col(cols="2") {{ $t("revenu.createdAt") }}
+              v-col(cols="3") {{ $t("revenu.reference") }}
+              v-col(cols="2") {{ $t("revenu.category") }}
+              v-col(cols="1") {{ $t("revenu.vat") }}
+              v-col(cols="2") {{ $t("revenu.total") }}
+              v-col(cols="1")
+            br
             transition-group(name='slide-up')
               v-row(v-for='(cost, index) in costs' :key="cost.id || index" :class="{'bg-red-darken-4': cost.category === 'TODEFINE'}")
                 v-col(cols="1")
                   v-checkbox(v-model="cost.recurrent" color="secondary")
                 v-col(cols="2")
-                  DateInput(:value="cost.createdAt")
+                  DateInput(v-model="cost.createdAt")
                 v-col(cols="3")
-                  v-text-field(:label='$t("revenu.reference")' v-model="cost.name" :rules="[$v.required()]")
+                  v-text-field(v-model="cost.name" :rules="[$v.required()]")
                 v-col(cols="2")
-                  v-select(:label='$t("revenu.category")' v-model="cost.category" :items="costCategories")
+                  v-select(v-model="cost.category" :items="costCategories")
                 v-col(cols="1")
-                  v-text-field(:label='$t("revenu.vat")' v-model.number="cost.tvaAmount" @change="updateTotal(cost)" :rules="[$v.required(), $v.number()]")
+                  v-text-field(v-model.number="cost.tvaAmount" @change="updateTotal" :rules="[$v.number()]")
                 v-col(cols="2")
-                  v-text-field(:label='$t("revenu.total")' v-model.number="cost.total" @change="updateTotal(cost)" :rules="[$v.required(), $v.number()]")
+                  v-text-field(v-model.number="cost.total" @change="updateTotal" :rules="[$v.required(), $v.number()]")
                 v-col(cols="1")
                   v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
                     v-icon mdi-delete
 
               v-row
                 v-col(cols="12" justify="end")
-                  v-btn(color="secondary" @click.prevent="addItem('Cost')")
+                  v-btn(@click.prevent="addItem('Cost')")
                     span {{ $t("revenu.addLine") }}
 
           v-card-actions
             v-row(dense justify="center")
               v-col.d-flex.justify-center(cols="12" lg="8")
-                v-btn.bg-primary.text-white(@click='router.go(-1)') {{ "Retour" }}
-                v-btn.bg-secondary.text-white(type="submit") {{ "Editer un revenu" }}
+                v-btn(color="primary" @click='router.go(-1)') {{ "Retour" }}
+                v-btn(color="secondary" type="submit") {{ "Editer un revenu" }}
     v-col(cols='4')
       v-card
         v-card-text
@@ -105,22 +118,28 @@ v-container
           PieChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
           hr.mx-2.my-4
           v-card-title {{ $t("revenu.watchers") }}
+          v-autocomplete(
+            chips
+            :items="costsNames"
+            v-model="revenu.watchers"
+            multiple)
+
           v-row(align="center" class="ml-1 mt-1" v-for='watcher in splitedWatchers' closable-chips :key="watcher")
             v-card-subtitle - {{ watcher }}
-            v-card-title {{ revenu.Costs.filter((c) => c.name.includes(watcher)).reduce((sum, c) => sum + c.total, 0) }} €
+            v-card-title {{ $n(revenu.Costs.filter((c) => c.name.includes(watcher)).reduce((sum, c) => sum + c.total, 0), "currency") }}
 </template>
 
 <script setup lang="ts">
-import type { Revenus, Costs, Credits, Invoices } from "../../../types/models";
+import type { Revenus, Costs, Credits, Invoices, Prisma } from "../../../types/models";
 import { getRevenu, updateRevenu } from "../../utils/generated/api-user";
 type RevenuWithCostsCredits = Revenus & { Costs: Costs[]; Credits: Credits[]; Invoices: Invoices[] };
 
 const loadingStore = useLoadingStore();
 const route = useRoute();
 const router = useRouter();
-const revenu = ref<RevenuWithCostsCredits | null>(null);
-const costs = ref<Costs[]>([]);
-const credits = ref<Credits[]>([]);
+const revenu = ref<RevenuWithCostsCredits>();
+const costs = ref<Prisma.CostsUncheckedCreateInput[]>([]);
+const credits = ref<Prisma.CreditsUncheckedCreateInput[]>([]);
 const costCategories = [
   "GENERAL",
   "TAX",
@@ -134,46 +153,45 @@ const costCategories = [
 ];
 const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER"];
 const creditItemTemplate = {
-  id: 0,
   total: 0,
-  creditor: "SALARY",
+  creditor: "",
+  category: "SALARY",
   reason: "",
   RevenuId: 0,
-  createdAt: new Date(),
-  updatedAt: new Date(),
 };
 
-const costChartData = ref(null);
-const creditChartData = ref(null);
+const costChartData = ref();
+const creditChartData = ref();
 const chartOptions = {
   responsive: true,
 };
 
-const costItemTemplate = {
-  id: 0,
+const costItemTemplate: Prisma.CostsUncheckedCreateInput = {
   total: 0,
   name: "",
   category: "GENERAL",
   tvaAmount: 0,
   RevenuId: 0,
-  createdAt: new Date(),
-  updatedAt: new Date(),
   recurrent: false,
 };
 
-loadingStore.setLoading(true);
-getRevenu(route.query.bankId, route.params.id).then((data) => {
-  revenu.value = data;
-  if (!revenu.value) return;
-  revenu.value.watchers = data?.watchers?.split(",");
-  costs.value = data.Costs;
-  credits.value = data.Credits;
-  creditItemTemplate.RevenuId = revenu.value?.id;
-  costItemTemplate.RevenuId = revenu.value?.id;
-  groupModelByCategory(costs, "costs", costCategories);
-  groupModelByCategory(credits, "credits", creditCategories);
-
-  loadingStore.setLoading(false);
+onMounted(async () => {
+  try {
+    loadingStore.setLoading(true);
+    revenu.value = await getRevenu(route.params.id, {
+      BankId: route.query.bankId,
+    });
+    if (!revenu.value) return;
+    revenu.value.watchers = revenu.value?.watchers?.split(",");
+    costs.value = revenu.value.Costs;
+    credits.value = revenu.value.Credits;
+    creditItemTemplate.RevenuId = revenu.value?.id;
+    costItemTemplate.RevenuId = revenu.value?.id;
+    groupModelByCategory(costs, "costs", costCategories);
+    groupModelByCategory(credits, "credits", creditCategories);
+  } finally {
+    loadingStore.setLoading(false);
+  }
 });
 
 function addItem(itemName) {
@@ -219,7 +237,7 @@ async function handleSubmit() {
   loadingStore.setLoading(true);
 
   try {
-    const res = await updateRevenu(revenu.value);
+    const res = await updateRevenu(revenu.value.id, revenu.value);
     if (res && res.id) {
       router.push(`/revenus`);
     }

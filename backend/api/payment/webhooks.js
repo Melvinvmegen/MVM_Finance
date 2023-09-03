@@ -13,7 +13,7 @@ async function routes(app) {
     let event;
 
     try {
-      if (!request.headers["stripe-signature"]) throw new AppError(400, "Unauthorized");
+      if (!request.headers["stripe-signature"]) throw new AppError("Unauthorized");
       event = stripe.webhooks.constructEvent(
         request.body,
         request.headers["stripe-signature"],
@@ -60,7 +60,7 @@ async function routes(app) {
               },
             });
 
-            if (!payment.stripePriceId) throw new AppError(404, "Not found");
+            if (!payment.stripePriceId) throw new AppError("Not found");
             const price = await stripe.prices.retrieve(payment.stripePriceId);
 
             if (payment?.CustomerId && price.nickname) {

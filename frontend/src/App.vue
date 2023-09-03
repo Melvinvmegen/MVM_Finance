@@ -30,6 +30,8 @@ v-app
 <script setup lang="ts">
 const loadingStore = useLoadingStore();
 const messageStore = useMessageStore();
+
+onBeforeMount(() => (document.documentElement.style.opacity = "1"));
 </script>
 
 <style>

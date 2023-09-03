@@ -7,7 +7,7 @@
     "build": "vite build",
     "test:unit": "vue-cli-service test:unit",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src",
-    "dev": "vite",
+    "start": "vite",
     "format": "prettier .  --write"
   },
   "dependencies": {
@@ -17,9 +17,11 @@
     "chart.js": "^4.3.0",
     "ofetch": "^1.1.1",
     "pinia": "^2.1.4",
+    "pug": "^3.0.2",
     "vue": "^3.3.4",
     "vue-chartjs": "^5.2.0",
     "vue-i18n": "^9.2.2",
+    "vue-pug": "^1.0.2",
     "vue-router": "4.2.4"
   },
   "devDependencies": {
@@ -35,6 +37,7 @@
     "eslint": "^8.44.0",
     "eslint-plugin-pug": "^1.2.3",
     "eslint-plugin-vue": "^9.15.1",
+    "eslint-plugin-vue-pug": "^0.6.0",
     "flush-promises": "^1.0.2",
     "prettier": "^3.0.0",
     "typescript": "^5.1.6",

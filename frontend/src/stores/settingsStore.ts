@@ -4,7 +4,11 @@ import { getSettings } from "../utils/generated/api-public";
 
 export const useSettingsStore = defineStore("settings", () => {
   /** @type {Ref<Awaited<ReturnType<typeof import("./utils/generated/api-public").getSettings>>>} */
-  const settings = ref(null);
+  const settings = ref({
+    weatherApiKey: "",
+    weatherApiBaseUrl: "",
+    weatherIconUrl: "",
+  });
   /** @type {Ref<string>} */
   const sid = ref(nanoid(5));
 

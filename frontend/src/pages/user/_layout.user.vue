@@ -11,23 +11,25 @@ v-app
   v-navigation-drawer(:permanent='!display.mobile.value' width='300' v-if="currentUser")
     v-list
       div(v-for='item in menuItems' :key='item.title')
-        v-list-item(v-if="item.active" active-color="secondary" dense :to='`/${item.link}`')
+        v-list-item(v-if="item.active" color="secondary" lines="two" density="comfortable" :to='`/${item.link}`')
           template(v-slot:prepend)
             v-icon(:icon="item.icon")
           v-list-item-title(v-text="item.title")
 
   v-main
-    v-container.pt-0(fluid)
-      router-view( v-slot="{ Component }")
-        transition(name='slide-fade' mode='out-in')
-          Component(:is="Component")
+    v-container.px-2.pb-5
+      v-row(justify='center' dense)
+        v-col.page-container(cols='12' xl='11')
+          router-view(v-slot='{ Component }')
+            v-fade-transition(mode='out-in')
+              component(:is='Component')
 </template>
 
 <script setup lang="ts">
+import { useDisplay } from "vuetify";
 const display = useDisplay();
-const userStore = useUserStore();
-const router = useRouter();
-const currentUser = computed(() => userStore.auth);
+const authStore = useAuthStore();
+const currentUser = computed(() => authStore.me);
 
 const menuItems = [
   { title: "Dashboard", link: "dashboard", icon: "mdi-view-dashboard", active: true },

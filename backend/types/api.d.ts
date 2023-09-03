@@ -23,7 +23,7 @@ declare global {
       | Buffer
       | { filename?: string; type?: string; stream?: Stream; buffer?: Buffer; body?: Buffer | Stream | any };
 
-    export type UploadData = MultipartFile;
+    export type UploadData = { file: import("@fastify/multipart").MultipartFile };
 
     export type ServerInstance = FastifyInstance & {
       $get: (path: string, handler: GetHandler) => void;

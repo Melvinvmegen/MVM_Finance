@@ -27,7 +27,7 @@ async function createSubscription(body) {
     },
   });
 
-  if (!customer || !customer.stripeId) throw new AppError(404, "Customer not found");
+  if (!customer || !customer.stripeId) throw new AppError("Customer not found");
 
   const stripePrice = await stripe.prices.retrieve(priceId);
   if (stripePrice && stripePrice.unit_amount) {
@@ -115,7 +115,7 @@ async function refundSubscription(subscriptionId) {
     },
   });
 
-  if (!subscription || !subscription.stripeId) throw new AppError(404, "Subscription not found");
+  if (!subscription || !subscription.stripeId) throw new AppError("Subscription not found");
 
   const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeId);
   if (stripeSubscription?.id) {
@@ -167,7 +167,7 @@ async function getSubscription(subscriptionId) {
     },
   });
 
-  if (!subscription) throw new AppError(404, "Not found");
+  if (!subscription) throw new AppError("Not found");
 
   return {
     ...subscription,

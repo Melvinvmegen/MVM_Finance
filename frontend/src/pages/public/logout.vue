@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { logout } from "@/utils/generated/api-auth";
-const route = useRoute();
+import { logout } from "../../utils/generated/api-public";
 
 onMounted(async () => {
   useLoadingStore().setLoading(true);

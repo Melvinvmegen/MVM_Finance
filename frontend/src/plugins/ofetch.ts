@@ -1,12 +1,14 @@
 import { ofetch } from "ofetch";
 import AppError from "../utils/appError";
+import { useMessageStore } from "../stores/messageStore";
 
-export function createOFetch(options) {
+export function createOFetch(options = { headers: [] }) {
   const _ofetch = ofetch.create({
     ...(options || {}),
     headers: options?.headers || { Sid: useSettingsStore().sid },
     credentials: "include",
     async onRequestError({ error }) {
+      useMessageStore().i18nMessage("error", "errors.server.notreachable");
       return Promise.reject(error);
     },
     async onResponseError({ response }) {
@@ -17,10 +19,17 @@ export function createOFetch(options) {
         window.location.href = "/login";
       } else if (status === 400) {
         console.log("Bad request", errorData);
+        if (errorData.name === "AppError") {
+          useMessageStore().i18nMessage("error", errorData.message, errorData.params);
+        } else {
+          useMessageStore().i18nMessage("error", "errors.server.validation");
+        }
       } else if (status === 500) {
-        console.log("Technical error", errorData);
+        if (console && console.log) console.log("Technical error", errorData);
+        useMessageStore().i18nMessage("error", "errors.server.technical");
       } else {
-        console.log("Unexpected error", status, errorData);
+        if (console && console.log) console.log("Unexpected error", status, errorData);
+        useMessageStore().i18nMessage("error", "errors.server.unexpected");
       }
 
       let returnedError = errorData;

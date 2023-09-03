@@ -27,7 +27,7 @@ async function getPaymentIntent(paymentIntentId) {
     },
   });
 
-  if (!paymentIntent) throw new AppError(404, "Not found");
+  if (!paymentIntent) throw new AppError("Not found");
 
   return {
     ...paymentIntent,
@@ -46,7 +46,7 @@ async function createPaymentIntent(body) {
     where: { id: Number(body.customerId) },
   });
 
-  if (!customer) throw new AppError(404, "Customer not found");
+  if (!customer) throw new AppError("Customer not found");
 
   const stripePaymentIntent = await stripe.paymentIntents.create({
     amount,

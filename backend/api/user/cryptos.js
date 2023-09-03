@@ -2,6 +2,7 @@ import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
 import { updateCreateOrDestroyChildItems } from "../../utils/childItemsHandler.js";
 import { prisma, Models } from "../../utils/prisma.js";
 import { AppError } from "../../utils/AppError.js";
+import { settings } from "../../utils/settings.js";
 import axios from "axios";
 
 /**
@@ -15,22 +16,28 @@ export default async function (app) {
 }
 /**
  * @this {API.This}
+ * @param {{ force: string }} params
  * @returns {Promise<Models.CryptoCurrencies>}
  */
-export async function getCryptos() {
-  const cryptos = await getOrSetCache(`cryptos`, async () => {
-    const data = await prisma.cryptoCurrencies.findMany({
-      where: {
-        UserId: this.request.user?.userId,
-      },
-      orderBy: [{ sold: "asc" }, { profit: "desc" }],
-      include: {
-        Transactions: true,
-      },
-    });
+export async function getCryptos(params) {
+  const force = params.force === "true";
+  const cryptos = await getOrSetCache(
+    `cryptos`,
+    async () => {
+      const data = await prisma.cryptoCurrencies.findMany({
+        where: {
+          UserId: this.request.user?.id,
+        },
+        orderBy: [{ sold: "asc" }, { profit: "desc" }],
+        include: {
+          Transactions: true,
+        },
+      });
 
-    return data;
-  });
+      return data;
+    },
+    force
+  );
 
   return cryptos;
 }
@@ -40,41 +47,14 @@ export async function getCryptos() {
  * @returns {Promise<Models.CryptoCurrencies & { Transactions: Models.Transactions[] }>}
  */
 export async function createCrypto(body) {
-  const { Transactions, ...cryptoBody } = body;
-  // @ts-ignore
   // TODO: replace this with ofetch
-  const response = await axios({
-    method: "GET",
-    url: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
-    params: {
-      start: "1",
-      limit: "5000",
-      convert: "EUR",
-    },
-    headers: {
-      "X-CMC_PRO_API_KEY": "9a874839-5e36-4cec-bcbe-ac2f7927c74f",
-    },
-    json: true,
-    gzip: true,
-  });
-
-  const fetchedCrypto = response.data.data.filter((element) => element.name === body.name);
-  const values = fetchedCrypto[0]?.quote?.EUR;
-  const totalTransactions = body.Transactions.map((transaction) => transaction.price * transaction.quantity).reduce(
-    (sum, quantiy) => sum + quantiy,
-    0
-  );
-  const totalQuantityTransactions = body.Transactions.map((transaction) => transaction.quantity).reduce(
-    (sum, quantiy) => sum + quantiy,
-    0
-  );
-
-  const transactions_created = Transactions.map(async (transaction) => {
+  // @ts-ignore
+  const response = await axios(coinMarketCapParams());
+  const transactionsToCreate = body.Transactions.map(async (transaction) => {
     const initialDate = new Date(transaction.buyingDate);
     const firstDay = new Date(initialDate.getFullYear(), initialDate.getMonth());
     const lastDay = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0);
-
-    let revenu = await prisma.revenus.findFirst({
+    const revenu = await prisma.revenus.findFirst({
       where: {
         createdAt: {
           lte: lastDay,
@@ -86,23 +66,33 @@ export async function createCrypto(body) {
       },
     });
 
-    if (revenu?.Banks?.UserId !== this.request.user?.userId) revenu = null;
-
     return {
       ...transaction,
       RevenuId: revenu?.id,
     };
   });
 
+  const fetchedCrypto = response.data.data.filter((element) => element.name === body.name);
+  const totalTransactions = body.Transactions.map((transaction) => transaction.price * transaction.quantity).reduce(
+    (sum, quantiy) => sum + quantiy,
+    0
+  );
+  const totalQuantityTransactions = body.Transactions.map((transaction) => transaction.quantity).reduce(
+    (sum, quantiy) => sum + quantiy,
+    0
+  );
+  const amounts = fetchedCrypto[0]?.quote?.EUR;
   const crypto = await prisma.cryptoCurrencies.create({
     data: {
-      ...cryptoBody,
+      name: body.name,
+      category: body.category,
+      profit: body.profit,
       pricePurchase: totalTransactions / totalQuantityTransactions,
-      price: body.price || values?.price || 0,
-      priceChange: values?.percent_change_30d || 0,
-      UserId: this.request.user?.userId,
+      price: body.price || amounts?.price || 0,
+      priceChange: amounts?.percent_change_30d || 0,
+      UserId: this.request.user?.id,
       Transactions: {
-        create: await Promise.all(transactions_created),
+        create: await Promise.all(transactionsToCreate),
       },
     },
     include: {
@@ -120,52 +110,37 @@ export async function createCrypto(body) {
  * @param {Models.Prisma.CryptoCurrenciesUncheckedUpdateInput & { Transactions: Models.Prisma.TransactionsUpdateInput[]}} body
  */
 export async function updateCrypto(cryptoId, body) {
-  const { Transactions, ...crypto_body } = body;
-
   let crypto = await prisma.cryptoCurrencies.findFirst({
     where: {
       id: +cryptoId,
-      UserId: this.request.user?.userId,
+      UserId: this.request.user?.id,
     },
   });
 
-  if (!crypto) throw new AppError(404, "Crypto not found!");
+  if (!crypto) throw new AppError("Crypto not found!");
 
   // @ts-ignore
-  const response = await axios({
-    method: "GET",
-    url: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
-    params: {
-      start: "1",
-      limit: "5000",
-      convert: "EUR",
-    },
-    headers: {
-      "X-CMC_PRO_API_KEY": "9a874839-5e36-4cec-bcbe-ac2f7927c74f",
-    },
-    json: true,
-    gzip: true,
-  });
+  const response = await axios(coinMarketCapParams());
   const fetchedCrypto = response.data.data.filter((element) => element.name === body.name);
-  const values = fetchedCrypto[0]?.quote?.EUR;
-  const totalTransactions = Transactions.map((transaction) => +transaction.price * +transaction.quantity).reduce(
+  const amounts = fetchedCrypto[0]?.quote?.EUR;
+  const totalTransactions = body.Transactions.map((transaction) => +transaction.price * +transaction.quantity).reduce(
     (sum, quantity) => sum + quantity,
     0
   );
-  const totalQuantityTransactions = Transactions.map((transaction) => transaction.quantity).reduce(
+  const totalQuantityTransactions = body.Transactions.map((transaction) => transaction.quantity).reduce(
     (sum, quantity) => +sum + +quantity,
     0
   );
 
-  if (Transactions.length) {
+  if (body.Transactions.length) {
     const existing_transactions = await prisma.transactions.findMany({
       where: {
-        CryptoCurrencyId: cryptoId,
+        CryptoCurrencyId: +cryptoId,
       },
     });
 
-    const new_transactions = Transactions.map(async (transaction) => {
-      const initialDate = new Date(`${transaction.buyingDate}`);
+    const newTransactions = body.Transactions.map(async (transaction) => {
+      const initialDate = new Date(transaction.buyingDate || transaction.createdAt);
       const firstDay = new Date(initialDate.getFullYear(), initialDate.getMonth());
       const lastDay = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0);
 
@@ -181,7 +156,7 @@ export async function updateCrypto(cryptoId, body) {
         },
       });
 
-      if (revenu?.Banks?.UserId !== this.request.user?.userId) revenu = null;
+      if (revenu?.Banks?.UserId !== this.request.user?.id) revenu = null;
 
       return {
         ...transaction,
@@ -189,17 +164,19 @@ export async function updateCrypto(cryptoId, body) {
       };
     });
 
-    await updateCreateOrDestroyChildItems("Transactions", existing_transactions, await Promise.all(new_transactions));
+    await updateCreateOrDestroyChildItems("Transactions", existing_transactions, await Promise.all(newTransactions));
   }
 
   crypto = await prisma.cryptoCurrencies.update({
     where: { id: +cryptoId },
     data: {
-      ...crypto_body,
+      name: `${body.name}`.trim(),
+      category: body.category,
+      profit: body.profit,
       pricePurchase: totalTransactions / (+totalQuantityTransactions || 1),
-      price: body.price || values?.price,
-      priceChange: values?.percent_change_30d || 0,
-      UserId: this.request.user?.userId,
+      price: body.price || amounts?.price,
+      priceChange: amounts?.percent_change_30d || 0,
+      sold: body.sold,
     },
   });
 
@@ -212,44 +189,48 @@ export async function updateCrypto(cryptoId, body) {
  * @returns {Promise<Models.CryptoCurrencies[]>}
  */
 export async function refreshCryptos() {
-  let requestOptions = {
-    method: "GET",
-    url: "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
-    params: {
-      start: "1",
-      limit: "5000",
-      convert: "EUR",
-    },
-    headers: {
-      "X-CMC_PRO_API_KEY": "9a874839-5e36-4cec-bcbe-ac2f7927c74f",
-    },
-    json: true,
-    gzip: true,
-  };
   // @ts-ignore
-  const response = await axios(requestOptions);
+  const response = await axios(coinMarketCapParams());
   const cryptos = await prisma.cryptoCurrencies.findMany({
     where: {
-      UserId: this.request.user?.userId,
+      UserId: this.request.user?.id,
     },
   });
   let updatedCryptos = [];
 
   for (let crypto of cryptos) {
     const foundCrypto = response.data.data.filter((element) => element.name === crypto.name)[0];
-
-    const updated_crypto = await prisma.cryptoCurrencies.update({
+    if (!foundCrypto) continue;
+    const currentPrice = foundCrypto?.quote?.EUR?.price;
+    const updatedCrypto = await prisma.cryptoCurrencies.update({
       where: {
         id: crypto.id,
       },
       data: {
-        price: foundCrypto?.quote?.EUR?.price,
-        priceChange: crypto.price - crypto.pricePurchase,
+        price: currentPrice,
+        priceChange: currentPrice - crypto.pricePurchase,
       },
     });
-    updatedCryptos.push(updated_crypto);
+    updatedCryptos.push(updatedCrypto);
   }
 
   await invalidateCache(`cryptos`);
   return updatedCryptos;
+}
+
+function coinMarketCapParams() {
+  return {
+    method: "GET",
+    url: settings.coinmarketcap.apiBaseUrl,
+    params: {
+      start: "1",
+      limit: "5000",
+      convert: "EUR",
+    },
+    headers: {
+      "X-CMC_PRO_API_KEY": settings.coinmarketcap.apiKey,
+    },
+    json: true,
+    gzip: true,
+  };
 }

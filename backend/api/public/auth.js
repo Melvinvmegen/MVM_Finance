@@ -23,7 +23,7 @@ export async function signUp(body) {
   let user = await prisma.users.findUnique({
     where: { email: email },
   });
-  if (user) throw new AppError(422, "A user with this email already exists !");
+  if (user) throw new AppError("A user with this email already exists !");
   const hashedPassword = await bcrypt.hash(password, 12);
   user = await prisma.users.create({
     data: {
@@ -44,11 +44,11 @@ export async function signIn({ email, password }) {
   const user = await prisma.users.findUnique({
     where: { email: email.trim() },
   });
-  if (!user) throw new AppError(404, "Incorrect credentials, please check your login and password");
+  if (!user) throw new AppError("errors.server.noUserFound");
 
   const passwordCheck = await bcrypt.compare(password, user.password);
   if (!passwordCheck) {
-    throw new AppError(404, "Email and password don't match!");
+    throw new AppError("errors.server.wrongCredentials");
   }
 
   const authTicket = randomUUID();

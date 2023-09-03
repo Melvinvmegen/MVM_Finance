@@ -22,13 +22,13 @@ ul.menu {
 
 a {
   text-decoration: none;
-  color: #3545ee;
+  color: #fff;
   cursor: pointer;
 }
 
 a:hover {
   opacity: 0.8;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 header a {

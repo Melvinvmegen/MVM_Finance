@@ -17,9 +17,11 @@
 </template>
 
 <script setup lang="ts">
+import { VDatePicker } from "vuetify/labs/VDatePicker";
+
 const props = defineProps({
-  value: {
-    type: String,
+  modelValue: {
+    type: Date,
     default() {
       return new Date();
     },
@@ -27,10 +29,12 @@ const props = defineProps({
 });
 const menu = ref(false);
 const input = ref(null);
+const emit = defineEmits(["update:modelValue"]);
 
 watch(
-  props.value,
+  () => props.modelValue,
   (newValue) => {
+    if (!newValue) return;
     input.value = newValue;
   },
   { immediate: true },
@@ -56,7 +60,7 @@ const getDate = computed(() => {
 
 function updateDate(val) {
   menu.value = false;
-  input.value = val;
-  console.error(val);
+  input.value = val[0];
+  emit("update:modelValue", val[0]);
 }
 </script>

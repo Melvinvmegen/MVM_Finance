@@ -11,7 +11,7 @@ v-row
               v-btn(icon="mdi-plus" color="primary")
 
       v-card-text
-        CustomerTable
+        CustomerTable(:items="items" @filter="refreshCustomers")
     .mt-4
   v-col(cols="12" md="4")
     v-card(position="absolute" class="v-col v-col-3")
@@ -21,7 +21,7 @@ v-row
           v-card-title {{ $n(returnTotals(true, "totalTTC"), "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("customers.unpaid") }}
-          v-card-title {{ $n(returnTotals((false || null), "totalTTC"), "currency") }}
+          v-card-title {{ $n(returnTotals(false, "totalTTC"), "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("customers.vatCollected") }}
           v-card-title {{ $n(returnTotals(true, "tvaAmount"), "currency") }} €
@@ -35,14 +35,18 @@ v-row
 <script setup lang="ts">
 import { getCustomers } from "../../utils/generated/api-user";
 
-const customers = ref([]);
-onBeforeMount(async () => {
-  customers.value = await getCustomers();
+const { filterAll, items } = useFilter(getCustomers);
+onMounted(async () => {
+  await filterAll();
 });
+
+async function refreshCustomers(value) {
+  await filterAll(value);
+}
 
 const chartData = computed(() => {
   const chartData = {
-    labels: customers.value.map((customer) => customer.company),
+    labels: items.value.rows.map((customer) => customer.company),
     datasets: [
       {
         label: "",
@@ -52,7 +56,7 @@ const chartData = computed(() => {
     ],
   };
   const total = returnTotals(true, "totalTTC");
-  for (let customer of customers.value) {
+  for (let customer of items.value.rows) {
     if (customer.Invoices) {
       const invoices_percentage_of_total = (
         (customer.Invoices.reduce((sum, invoice) => sum + invoice.totalTTC, 0) / total) *
@@ -82,7 +86,7 @@ const chartOptions = {
 
 function returnTotals(paid: boolean, field: string) {
   let total = 0;
-  for (let customer of customers.value) {
+  for (let customer of items.value.rows) {
     total += customer.Invoices.filter((invoice) => invoice.paid === paid).reduce(
       (sum, invoice) => sum + invoice[field],
       0,
