@@ -1,6 +1,7 @@
 import { Models, prisma } from "../../utils/prisma.js";
 import { AppError } from "../../utils/AppError.js";
 import stripe from "../../utils/stripe.js";
+import dayjs from "dayjs";
 
 /**
  * @param {API.ServerInstance} app
@@ -119,13 +120,10 @@ async function refundSubscription(subscriptionId) {
 
   const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeId);
   if (stripeSubscription?.id) {
-    const startDate = new Date(stripeSubscription.current_period_start * 1000);
-    const endDate = new Date(stripeSubscription.current_period_end * 1000);
-    const currentDate = new Date();
-    // @ts-ignore
-    const totalMinutes = Math.ceil((endDate - startDate) / (1000 * 60));
-    // @ts-ignore
-    const unusedMinutes = Math.ceil((endDate - currentDate) / (1000 * 60));
+    const startDate = dayjs.unix(stripeSubscription.current_period_start);
+    const endDate = dayjs.unix(stripeSubscription.current_period_end);
+    const totalMinutes = Math.ceil(endDate.diff(startDate, "minute"));
+    const unusedMinutes = Math.ceil(endDate.diff(dayjs(), "minute"));
     const refundPercentage = unusedMinutes / totalMinutes;
     const refundAmount = Math.round(refundPercentage * (stripeSubscription.items.data[0].price.unit_amount || 0));
 
@@ -145,7 +143,7 @@ async function refundSubscription(subscriptionId) {
       },
       data: {
         status: "CANCELLED",
-        endDate: new Date(),
+        endDate: dayjs().toDate(),
         proratedAmount: refundAmount / 100,
         refundId: refund?.id,
       },

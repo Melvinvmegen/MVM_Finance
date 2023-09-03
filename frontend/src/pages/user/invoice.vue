@@ -63,6 +63,7 @@ v-container
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
 import { getCustomer, getInvoice, createInvoice, updateInvoice, getRevenuIds } from "../../utils/generated/api-user";
 import type { Customers, Revenus, Prisma } from "../../../types/models";
 
@@ -97,7 +98,7 @@ onMounted(async () => {
     if (data.length > 2) {
       invoice.value = data[2];
       if (invoice.value) {
-        invoice.value.paymentDate = invoice.value.paymentDate ? new Date(invoice.value.paymentDate) : new Date();
+        invoice.value.paymentDate = dayjs(invoice.value.paymentDate || undefined).toDate();
         invoiceItemTemplate.InvoiceId = invoice.value.id;
       }
     } else {

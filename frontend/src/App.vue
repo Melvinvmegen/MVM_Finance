@@ -23,11 +23,12 @@ v-app
     v-card.text-center(elevation='0' rounded='0' color='primary' width='100%')
       v-divider(color='white')
       v-card-text.text-white
-        | {{ new Date().getFullYear() }} &mdash; 
+        | {{ dayjs().year() }} &mdash; 
         strong MVM
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
 const loadingStore = useLoadingStore();
 const messageStore = useMessageStore();
 

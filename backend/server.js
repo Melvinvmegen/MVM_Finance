@@ -11,8 +11,12 @@ import jwt from "@fastify/jwt";
 import pretty from "pino-pretty";
 import { nanoid } from "nanoid";
 import fastify from "fastify";
+import dayjs from "dayjs";
 import glob from "glob";
 import path from "path";
+
+await import("dayjs/locale/fr.js");
+dayjs.locale("fr");
 
 // Init web server
 const basePaths = [path.dirname(import.meta.url), process.cwd()];
@@ -36,7 +40,7 @@ const app = clientWrapper(
           return { level: label === "log" ? "INFO" : label.toUpperCase() };
         },
       },
-      timestamp: () => `,"timestamp":"${new Date(Date.now()).toISOString()}"`,
+      timestamp: () => `,"timestamp":"${dayjs().toISOString()}"`,
       hooks: {
         logMethod(_inputArgs, method) {
           const inputArgs = _inputArgs.map((arg) => {

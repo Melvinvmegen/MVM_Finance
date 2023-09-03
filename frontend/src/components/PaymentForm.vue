@@ -17,6 +17,7 @@ v-card(width="600")
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
 import { getRevenuIds, updateInvoice, updateQuotation } from "../utils/generated/api-user";
 import type { Quotations, Invoices, Revenus } from "../../types/models";
 type InvoiceWithRevenu = Invoices & { Revenus: Revenus | undefined };
@@ -35,7 +36,7 @@ const emit = defineEmits(["close"]);
 const revenus = ref();
 
 onMounted(async () => {
-  mutableModel.paymentDate = props.model.paymentDate ? new Date(props.model.paymentDate) : new Date();
+  mutableModel.paymentDate = dayjs(props.model.paymentDate || undefined).toDate();
   revenus.value = await getRevenuIds();
 });
 
@@ -64,7 +65,7 @@ watch(
   () => mutableModel.RevenuId,
   (revenuId) => {
     const revenu = revenus.value.find((item) => item.id === revenuId);
-    mutableModel.paymentDate = new Date(revenu.createdAt);
+    mutableModel.paymentDate = dayjs(revenu.createdAt).toDate();
   },
 );
 </script>

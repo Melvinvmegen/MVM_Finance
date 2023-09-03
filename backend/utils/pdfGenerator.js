@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+import dayjs from "dayjs";
 
 export const pdfGenerator = function (invoice) {
   let doc = new PDFDocument({ margin: 50 });
@@ -33,8 +34,7 @@ function generateHeader(doc, invoice) {
 }
 
 function generateTableHeader(doc, invoice) {
-  let today = new Date(invoice.createdAt);
-  const date = formatDate(today);
+  const date = dayjs(invoice.createdAt).format("MM - DD - YYYY");
   doc
     .fillColor("#444444")
     .fontSize(20)
@@ -110,13 +110,6 @@ function generateHr(doc, y) {
 
 function formatCurrency(cents) {
   return (cents / 100).toFixed(2) + " €";
-}
-
-function formatDate(date) {
-  const dd = String(date.getDate()).padStart(2, "0");
-  const mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
-  const yyyy = date.getFullYear();
-  return `${mm} - ${dd} - ${yyyy}`;
 }
 
 function generateFooter(doc, invoice) {

@@ -63,6 +63,7 @@ v-row(v-if="items.rows")
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
 import { getBanks, getRevenus, createRevenu } from "../../utils/generated/api-user";
 import type { Banks } from "../../../types/models";
 const loadingStore = useLoadingStore();
@@ -181,8 +182,7 @@ const costChartData = computed(() => {
   const reversed_revenus = items.value.rows.slice().reverse();
   const chartData = {
     labels: reversed_revenus.map((revenu) => {
-      const date = new Date(revenu.createdAt);
-      return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+      return dayjs(revenu.createdAt).format("MMMM YYYY");
     }),
     datasets: [
       {
@@ -204,8 +204,7 @@ const creditChartData = computed(() => {
   const reversed_revenus = items.value.rows.slice().reverse();
   const chartData = {
     labels: reversed_revenus.map((revenu) => {
-      const date = new Date(revenu.createdAt);
-      return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+      return dayjs(revenu.createdAt).format("MMMM YYYY");
     }),
     datasets: [
       {

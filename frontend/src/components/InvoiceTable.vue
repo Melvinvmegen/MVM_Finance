@@ -64,6 +64,7 @@ v-card.pa-4(elevation="3")
 <script setup lang="ts">
 import { getInvoices, deleteInvoice, downloadInvoice, sendInvoice } from "../utils/generated/api-user";
 import type { Revenus, Invoices, Query } from "../../types/models";
+import dayjs from "dayjs";
 
 const loadingStore = useLoadingStore();
 const { filterAll, items } = useFilter(getInvoices);
@@ -160,8 +161,7 @@ async function resetAll() {
 
 function revenuDate(revenu: Revenus) {
   if (!revenu) return;
-  const date = new Date(revenu.createdAt);
-  return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  return dayjs(revenu.createdAt).format("MMMM YYYY");
 }
 
 async function closePaymentForm() {

@@ -62,6 +62,7 @@ v-container
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
 import {
   getCustomer,
   getQuotation,
@@ -103,9 +104,7 @@ onMounted(async () => {
     if (data.length > 2) {
       quotation.value = { ...data[2] };
       if (quotation.value) {
-        quotation.value.paymentDate = quotation.value.paymentDate
-          ? new Date(quotation.value.paymentDate)
-          : quotation.value.paymentDate;
+        quotation.value.paymentDate = dayjs(quotation.value.paymentDate || undefined).toDate();
         quotationItemTemplate.QuotationId = quotation.value.id;
       }
     } else {

@@ -18,17 +18,18 @@
 
 <script setup lang="ts">
 import { VDatePicker } from "vuetify/labs/VDatePicker";
+import dayjs from "dayjs";
 
 const props = defineProps({
   modelValue: {
     type: Date,
     default() {
-      return new Date();
+      return dayjs().toDate();
     },
   },
 });
 const menu = ref(false);
-const input = ref(null);
+const input = ref();
 const emit = defineEmits(["update:modelValue"]);
 
 watch(
@@ -41,21 +42,11 @@ watch(
 );
 
 const dateFormatted = computed(() => {
-  const date = input.value ? new Date(input.value) : new Date();
-  let month = 1 + date.getMonth();
-  if (month < 10) {
-    month = `0${month}`;
-  }
-  let day = date.getDate();
-  if (day < 10) {
-    day = `0${day}`;
-  }
-  return [`${date.getFullYear()}-${month}-${day}`];
+  return dayjs(input.value || undefined).format("YYYY-MM-DD");
 });
 
 const getDate = computed(() => {
-  let date = input.value ? new Date(input.value) : new Date();
-  return [date];
+  return [dayjs(input.value || undefined).toDate()];
 });
 
 function updateDate(val) {

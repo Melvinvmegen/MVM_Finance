@@ -24,6 +24,7 @@ v-card(v-if="weather")
 
 </template>
 <script setup lang="ts">
+import dayjs from "dayjs";
 import { useOFetch } from "../plugins/ofetch";
 
 interface Weather {
@@ -70,11 +71,7 @@ async function getWeather() {
 }
 
 const currentDate = computed(() => {
-  const date = new Date();
-  return new Intl.DateTimeFormat("fr", {
-    dateStyle: "full",
-    timeStyle: "short",
-  }).format(date);
+  return dayjs().format("LLLL");
 });
 </script>
 

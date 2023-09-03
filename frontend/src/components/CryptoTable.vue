@@ -72,6 +72,7 @@ v-table.pt-3
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
 import type { CryptoCurrencies, Transactions } from "../../types/models";
 import { createCrypto, updateCrypto } from "../utils/generated/api-user";
 
@@ -112,13 +113,8 @@ const dialogTitle = computed(() => {
 
 function cryptoBuyingDate(crypto: CryptoCurrencyWithTransactions) {
   if (crypto?.Transactions?.length < 1) return;
-  const buyingDate = crypto.Transactions.slice(-1)[0].buyingDate || new Date();
-  const date = new Date(buyingDate);
-  return date.toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "numeric",
-    year: "numeric",
-  });
+  const buyingDate = dayjs(crypto.Transactions.slice(-1)[0].buyingDate || undefined);
+  return buyingDate.format("LL");
 }
 
 function returnCryptoPercentageDifference(crypto: CryptoCurrencyWithTransactions) {

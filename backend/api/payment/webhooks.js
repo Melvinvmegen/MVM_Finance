@@ -4,6 +4,7 @@ import stripe from "../../utils/stripe.js";
 import { AppError } from "../../utils/AppError.js";
 import { settings } from "../../utils/settings.js";
 import axios from "axios";
+import dayjs from "dayjs";
 
 /**
  * @param {API.ServerInstance} app
@@ -155,7 +156,7 @@ async function routes(app) {
             },
             data: {
               status: "VALIDATED",
-              startDate: subscription.startDate || new Date(),
+              startDate: subscription.startDate || dayjs().toDate(),
               // @ts-ignore
               amount: object.amount_due / 100,
             },
@@ -187,7 +188,7 @@ async function routes(app) {
             },
             data: {
               status: "FAILED",
-              endDate: new Date(),
+              endDate: dayjs().toDate(),
             },
           });
 

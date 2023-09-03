@@ -40,6 +40,7 @@ v-col(cols="12")
 
 <script setup lang="ts">
 import type { Revenus, Invoices, Costs, Transactions } from "../../types/models";
+import dayjs from "dayjs";
 
 type RevenuWithCostsInvoicesTransactions = Revenus & {
   Invoices: Invoices[];
@@ -135,8 +136,8 @@ function getRevenus({ page, itemsPerPage, sortBy }) {
 }
 
 function revenuDate(revenu: RevenuWithCostsInvoicesTransactions) {
-  const date = new Date(revenu.createdAt);
-  return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  if (!revenu) return;
+  return dayjs(revenu.createdAt).format("MMMM YYYY");
 }
 
 function returnRevenuNet(revenu: RevenuWithCostsInvoicesTransactions) {

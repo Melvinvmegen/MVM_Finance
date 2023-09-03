@@ -85,6 +85,7 @@ div
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
 import { getBanks, createBank, updateBank, getRevenus } from "../../utils/generated/api-user";
 import type { Revenus, Costs, Credits, Banks } from "../../../types/models";
 
@@ -92,14 +93,7 @@ const loadingStore = useLoadingStore();
 let banks: Banks[] = reactive([]);
 const { filterAll, items } = useFilter(getRevenus);
 const show_modal = ref(false);
-let mutableBank: Ref<Banks> = ref({
-  id: 1,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  name: "",
-  amount: 0,
-  UserId: null,
-});
+let mutableBank: Ref<Banks> = ref({});
 const dates: string[] = [];
 let revenu: Ref<(Revenus & { Costs: Costs[]; Credits: Credits[] }) | null> = ref(null);
 const chartOptions = {
@@ -107,8 +101,7 @@ const chartOptions = {
 };
 const revenuDate = computed(() => {
   if (!revenu.value) return;
-  const date = new Date(revenu.value.createdAt);
-  return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  return dayjs(revenu.value.createdAt).format("MMMM YYYY");
 });
 
 const revenuBalance = computed(() => (revenu.value ? revenu.value?.total + revenu.value?.expense : 0));
@@ -121,20 +114,17 @@ onMounted(async () => {
   });
 
   revenu.value = items.value.rows[0];
-  const today = new Date(revenu.value?.Costs?.at(0)?.createdAt);
-  const month = today.getMonth();
-  const year = today.getFullYear();
+  const today = dayjs(revenu?.value?.Costs?.at(0)?.createdAt);
 
-  for (let i = 2; i <= today.getDate() + 1; i++) {
-    const date = new Date(year, month, i);
-    const dateString = date.toLocaleDateString("fr-FR", { timeZone: "UTC" });
-    dates.push(dateString);
+  for (let i = 2; i <= today.date() + 1; i++) {
+    const date = dayjs().year(today.year()).month(today.month()).date(i).format("L");
+    dates.push(date);
   }
 });
 
 const costChartData = computed(() => {
   const groupedCosts = revenu.value?.Costs.reduce((groupedCosts, cost) => {
-    const date = new Date(cost.createdAt).toLocaleDateString("fr-FR", { timeZone: "UTC" });
+    const date = dayjs(cost.createdAt).format("L");
     if (!groupedCosts[date]) {
       groupedCosts[date] = [];
     }
@@ -170,7 +160,7 @@ const costChartData = computed(() => {
 
 const creditChartData = computed(() => {
   const groupedCredits = revenu.value?.Credits.reduce((groupedCredits, credit) => {
-    const date = new Date(credit.createdAt).toLocaleDateString("fr-FR", { timeZone: "UTC" });
+    const date = dayjs(credit.createdAt).format("L");
     if (!groupedCredits[date]) {
       groupedCredits[date] = [];
     }
@@ -206,7 +196,7 @@ const creditChartData = computed(() => {
 
 const lineChartData = computed(() => {
   const groupedCredits = revenu.value?.Credits.reduce((groupedCredits, credit) => {
-    const date = new Date(credit.createdAt).toLocaleDateString("fr-FR", { timeZone: "UTC" });
+    const date = dayjs(credit.createdAt).format("L");
     if (!groupedCredits[date]) {
       groupedCredits[date] = [];
     }
@@ -215,7 +205,7 @@ const lineChartData = computed(() => {
   }, {});
 
   const groupedCosts = revenu.value?.Costs.reduce((groupedCosts, cost) => {
-    const date = new Date(cost.createdAt).toLocaleDateString("fr-FR", { timeZone: "UTC" });
+    const date = dayjs(cost.createdAt).format("L");
     if (!groupedCosts[date]) {
       groupedCosts[date] = [];
     }

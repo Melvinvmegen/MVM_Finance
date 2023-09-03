@@ -2,8 +2,9 @@ import { updateCreateOrDestroyChildItems } from "../../utils/childItemsHandler.j
 import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
 import { setFilters } from "../../utils/filter.js";
 import { AppError } from "../../utils/AppError.js";
-import { parse } from "csv-parse";
 import { prisma, Models } from "../../utils/prisma.js";
+import { parse } from "csv-parse";
+import dayjs from "dayjs";
 
 /**
  * @param {API.ServerInstance} app
@@ -150,19 +151,19 @@ export async function createRevenu(bankId, upload) {
     .on("data", (row) => {
       const total = +row[4];
       const [day, month, year] = row[0].split("/");
-      const date = `${month}-${day}-${year}`;
+      const date = dayjs(`${year}-${month}-${day}`).toDate();
       const name = row[2];
       if (total < 0) {
         costs.push({
-          createdAt: new Date(date),
-          updatedAt: new Date(date),
+          createdAt: date,
+          updatedAt: date,
           name,
           total,
         });
       } else {
         credits.push({
-          createdAt: new Date(date),
-          updatedAt: new Date(date),
+          createdAt: date,
+          updatedAt: date,
           reason: name,
           creditor: name,
           total,
@@ -171,15 +172,14 @@ export async function createRevenu(bankId, upload) {
     })
     .on("end", async () => {
       for (let obj of [...costs, ...credits]) {
-        const year = obj.createdAt.getFullYear();
-        const month = obj.createdAt.getMonth();
-        const beginning_of_month = new Date(year, month, 1);
-        const end_of_month = new Date(year, month + 1, 0);
+        const createdAt = dayjs(obj.createdAt);
+        const beginningOfMonth = createdAt.startOf("month").toDate();
+        const endOfMonth = createdAt.endOf("month").toDate();
         revenu = await prisma.revenus.findFirst({
           where: {
             createdAt: {
-              gte: beginning_of_month,
-              lte: end_of_month,
+              gte: beginningOfMonth,
+              lte: endOfMonth,
             },
             BankId: +bankId,
           },
@@ -193,8 +193,8 @@ export async function createRevenu(bankId, upload) {
         if (!revenu) {
           revenu = await prisma.revenus.create({
             data: {
-              createdAt: new Date(beginning_of_month.setHours(beginning_of_month.getHours() + 4)),
-              updatedAt: new Date(beginning_of_month.setHours(beginning_of_month.getHours() + 4)),
+              createdAt: beginningOfMonth,
+              updatedAt: beginningOfMonth,
               BankId: +bankId,
             },
             include: {

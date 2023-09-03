@@ -7,6 +7,11 @@ import { createOFetch } from "./plugins/ofetch";
 import { createVuetify } from "./plugins/vuetify";
 import { createValidator } from "./plugins/validator";
 import App from "./App.vue";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import dayjs from "dayjs";
+import "dayjs/locale/fr";
+dayjs.locale("fr");
+dayjs.extend(localizedFormat);
 
 function createVueApp() {
   const app = createApp(App);

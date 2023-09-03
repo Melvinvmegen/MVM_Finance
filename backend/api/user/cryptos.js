@@ -4,6 +4,7 @@ import { prisma, Models } from "../../utils/prisma.js";
 import { AppError } from "../../utils/AppError.js";
 import { settings } from "../../utils/settings.js";
 import axios from "axios";
+import dayjs from "dayjs";
 
 /**
  * @param {API.ServerInstance} app
@@ -51,9 +52,9 @@ export async function createCrypto(body) {
   // @ts-ignore
   const response = await axios(coinMarketCapParams());
   const transactionsToCreate = body.Transactions.map(async (transaction) => {
-    const initialDate = new Date(transaction.buyingDate);
-    const firstDay = new Date(initialDate.getFullYear(), initialDate.getMonth());
-    const lastDay = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0);
+    const initialDate = dayjs(transaction.buyingDate || transaction.createdAt);
+    const firstDay = initialDate.startOf("month").toDate();
+    const lastDay = initialDate.endOf("month").toDate();
     const revenu = await prisma.revenus.findFirst({
       where: {
         createdAt: {
@@ -111,7 +112,7 @@ export async function createCrypto(body) {
 /**
  * @this {API.This}
  * @param {number} cryptoId
- * @param {Models.Prisma.CryptoCurrenciesUncheckedUpdateInput & { Transactions: Models.Prisma.TransactionsUpdateInput[]}} body
+ * @param {Models.Prisma.CryptoCurrenciesUncheckedUpdateInput & { Transactions: Models.Prisma.TransactionsCreateInput[]}} body
  */
 export async function updateCrypto(cryptoId, body) {
   let crypto = await prisma.cryptoCurrencies.findFirst({
@@ -144,9 +145,9 @@ export async function updateCrypto(cryptoId, body) {
     });
 
     const newTransactions = body.Transactions.map(async (transaction) => {
-      const initialDate = new Date(transaction.buyingDate || transaction.createdAt);
-      const firstDay = new Date(initialDate.getFullYear(), initialDate.getMonth());
-      const lastDay = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0);
+      const initialDate = dayjs(transaction.buyingDate || transaction.createdAt);
+      const firstDay = initialDate.startOf("month").toDate();
+      const lastDay = initialDate.endOf("month").toDate();
 
       let revenu = await prisma.revenus.findFirst({
         where: {

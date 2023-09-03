@@ -72,6 +72,7 @@ v-card.pa-4(elevation="3")
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
 import {
   getQuotations,
   deleteQuotation,
@@ -177,8 +178,7 @@ async function sendEmail(quotation: Quotations) {
 
 function revenuDate(revenu: Revenus) {
   if (!revenu) return;
-  const date = new Date(revenu.createdAt);
-  return date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  return dayjs(revenu.createdAt).format("MMMM YYYY");
 }
 
 async function closePaymentForm() {

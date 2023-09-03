@@ -130,6 +130,7 @@ v-container
 </template>
 
 <script setup lang="ts">
+import dayjs from "dayjs";
 import type { Revenus, Costs, Credits, Invoices, Prisma } from "../../../types/models";
 import { getRevenu, updateRevenu } from "../../utils/generated/api-user";
 type RevenuWithCostsCredits = Revenus & { Costs: Costs[]; Credits: Credits[]; Invoices: Invoices[] };
@@ -248,11 +249,7 @@ async function handleSubmit() {
 
 const revenuMonth = computed(() => {
   if (!revenu.value) return;
-  const date = new Date(revenu.value.createdAt);
-  return date.toLocaleDateString("fr-FR", {
-    month: "long",
-    year: "numeric",
-  });
+  return dayjs(revenu.value.createdAt).format("MMMM YYYY");
 });
 
 const computedCostCategories = computed(() => {

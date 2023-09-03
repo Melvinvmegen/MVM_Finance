@@ -1,8 +1,9 @@
 import SibApiV3Sdk from "@sendinblue/client";
-import fs from "fs";
 import { pdfGenerator } from "./pdfGenerator.js";
 import { settings } from "./settings.js";
 import { AppError } from "./AppError.js";
+import dayjs from "dayjs";
+import fs from "fs";
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, settings.email.sendinblueApiKey);
 
@@ -34,8 +35,7 @@ export const createInvoiceEmail = async function (invoice) {
 };
 
 async function getMessage(invoice, invoiceName) {
-  const createdAt = new Date(invoice.createdAt);
-  const month = createdAt.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const month = dayjs(invoice.createdAt).format("MMMM YYYY");
   const firstname = invoice.firstName;
   const doc = fs.readFileSync(invoiceName, { encoding: "base64" });
 

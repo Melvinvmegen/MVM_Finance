@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import dayjs from "dayjs";
 import { AppError } from "../../utils/AppError.js";
 import { prisma, Models } from "../../utils/prisma.js";
 import { randomUUID } from "crypto";
@@ -59,7 +60,7 @@ export async function signIn({ email, password }) {
     },
     data: {
       authTicket: authTicket,
-      lastLogin: new Date(),
+      lastLogin: dayjs().toDate(),
     },
   });
 

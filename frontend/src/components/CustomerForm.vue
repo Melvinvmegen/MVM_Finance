@@ -52,8 +52,6 @@ let mutableCustomer = ref<Prisma.CustomersUncheckedCreateInput>({
   address: "",
   city: "",
   siret: "",
-  createdAt: new Date(),
-  updatedAt: new Date(),
   stripeId: null,
   UserId: null,
 });
