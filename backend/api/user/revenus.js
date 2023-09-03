@@ -24,10 +24,6 @@ export default async function (app) {
 export async function getRevenus(params) {
   const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
-  options.Banks = {
-    UserId: this.request?.user?.id,
-  };
-
   const revenus = await getOrSetCache(
     `revenus`,
     async () => {
@@ -47,7 +43,11 @@ export async function getRevenus(params) {
           },
           Quotations: true,
           Transactions: true,
-          Banks: true,
+          Banks: {
+            where: {
+              UserId: this.request.user?.id,
+            },
+          },
         },
       });
 
@@ -70,7 +70,7 @@ export async function getRevenuIds(params) {
       where: {
         Banks: {
           id: +params.BankId,
-          UserId: this.request?.user?.id,
+          UserId: this.request.user?.id,
         },
       },
       select: {
@@ -109,13 +109,13 @@ export async function getRevenu(revenuId) {
         },
         Quotations: true,
         Transactions: true,
-        Banks: true,
+        Banks: {
+          where: {
+            UserId: this.request.user?.id,
+          },
+        },
       },
     });
-
-    if (revenu_fetched?.Banks?.UserId !== this.request?.user?.id) {
-      throw new AppError(401, "Revenu not found!");
-    }
 
     return revenu_fetched;
   });
@@ -132,6 +132,14 @@ let credit_category_cache = {};
  * @param {API.UploadData} upload
  */
 export async function createRevenu(bankId, upload) {
+  const bank = await prisma.banks.findFirst({
+    where: {
+      UserId: this.request.user?.id,
+      id: +bankId,
+    },
+  });
+
+  if (!bank) throw new AppError(401, "Bank not found!");
   if (!upload.mimetype.includes("csv")) throw new AppError("Please upload a CSV file!");
   let revenu;
   const costs = [];
@@ -173,7 +181,7 @@ export async function createRevenu(bankId, upload) {
               gte: beginning_of_month,
               lte: end_of_month,
             },
-            BankId: Number(bankId),
+            BankId: +bankId,
           },
           include: {
             Costs: true,
@@ -187,7 +195,7 @@ export async function createRevenu(bankId, upload) {
             data: {
               createdAt: new Date(beginning_of_month.setHours(beginning_of_month.getHours() + 4)),
               updatedAt: new Date(beginning_of_month.setHours(beginning_of_month.getHours() + 4)),
-              BankId: Number(bankId),
+              BankId: +bankId,
             },
             include: {
               Costs: true,
@@ -215,6 +223,9 @@ export async function createRevenu(bankId, upload) {
                 recurrent: true,
               },
               where: {
+                Revenus: {
+                  BankId: +bankId,
+                },
                 name: {
                   contains: name,
                 },
@@ -264,6 +275,9 @@ export async function createRevenu(bankId, upload) {
               where: {
                 creditor: {
                   contains: name,
+                },
+                Revenus: {
+                  BankId: +bankId,
                 },
               },
             });
@@ -342,13 +356,13 @@ export async function updateRevenu(revenuId, body) {
     include: {
       Credits: true,
       Costs: true,
-      Banks: true,
+      Banks: {
+        where: {
+          UserId: this.request.user?.id,
+        },
+      },
     },
   });
-
-  if (revenu?.Banks?.UserId !== this.request?.user?.id) {
-    throw new AppError(401, "Revenu not found!");
-  }
 
   if (revenu && Credits) {
     await updateCreateOrDestroyChildItems("Credits", revenu.Credits, Credits);
@@ -364,7 +378,7 @@ export async function updateRevenu(revenuId, body) {
     data: {
       ...revenuBody,
       watchers: [revenuBody.watchers].join(),
-      BankId: +this.request?.user?.id,
+      BankId: this.request.user?.id,
     },
     include: {
       Credits: true,

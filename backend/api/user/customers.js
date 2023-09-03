@@ -22,14 +22,16 @@ export default async function (app) {
 export async function getCustomers(params) {
   const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
-  options.UserId = this.request?.user?.id;
 
   const result = await getOrSetCache(
     "customers",
     async () => {
       const count = await prisma.customers.count();
       const rows = await prisma.customers.findMany({
-        where: options,
+        where: {
+          ...options,
+          UserId: this.request.user?.id,
+        },
         orderBy: orderBy || { createdAt: "desc" },
         include: {
           Invoices: true,
@@ -56,7 +58,7 @@ export async function getCustomer(customerId) {
     const customer = await prisma.customers.findFirst({
       where: {
         id: +customerId,
-        UserId: this.request?.user?.id,
+        UserId: this.request.user?.id,
       },
     });
 
@@ -76,7 +78,7 @@ export async function createCustomer(body) {
   const customer = await prisma.customers.create({
     data: {
       ...body,
-      UserId: this.request?.user?.id,
+      UserId: this.request.user?.id,
     },
     include: {
       Invoices: true,
@@ -98,7 +100,7 @@ export async function updateCustomer(customerId, body) {
   let customer = await prisma.customers.findFirst({
     where: {
       id: +customerId,
-      UserId: this.request?.user?.id,
+      UserId: this.request.user?.id,
     },
   });
 
@@ -110,7 +112,7 @@ export async function updateCustomer(customerId, body) {
     },
     data: {
       ...customerBody,
-      UserId: this.request?.user?.id,
+      UserId: this.request.user?.id,
     },
   });
 
@@ -127,6 +129,7 @@ export async function deleteCustomer(customerId) {
   await prisma.customers.delete({
     where: {
       id: +customerId,
+      UserId: this.request.user?.id,
     },
   });
   await invalidateCache("customers");

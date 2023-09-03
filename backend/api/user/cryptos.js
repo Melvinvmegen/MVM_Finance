@@ -62,7 +62,11 @@ export async function createCrypto(body) {
         },
       },
       include: {
-        Banks: true,
+        Banks: {
+          where: {
+            UserId: this.request.user?.id,
+          },
+        },
       },
     });
 
@@ -152,11 +156,13 @@ export async function updateCrypto(cryptoId, body) {
           },
         },
         include: {
-          Banks: true,
+          Banks: {
+            where: {
+              UserId: this.request.user?.id,
+            },
+          },
         },
       });
-
-      if (revenu?.Banks?.UserId !== this.request.user?.id) revenu = null;
 
       return {
         ...transaction,
@@ -168,7 +174,7 @@ export async function updateCrypto(cryptoId, body) {
   }
 
   crypto = await prisma.cryptoCurrencies.update({
-    where: { id: +cryptoId },
+    where: { id: +cryptoId, UserId: this.request.user?.id },
     data: {
       name: `${body.name}`.trim(),
       category: body.category,
@@ -205,6 +211,7 @@ export async function refreshCryptos() {
     const updatedCrypto = await prisma.cryptoCurrencies.update({
       where: {
         id: crypto.id,
+        UserId: this.request.user?.id,
       },
       data: {
         price: currentPrice,

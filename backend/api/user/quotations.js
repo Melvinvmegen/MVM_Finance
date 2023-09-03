@@ -31,13 +31,6 @@ export async function getQuotations(CustomerId, params) {
   const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
 
-  const customer = await prisma.customers.findFirst({
-    where: {
-      id: +CustomerId,
-      UserId: this.request?.user?.id,
-    },
-  });
-  if (!customer) throw new AppError("Customer not found");
   const quotations_data = await getOrSetCache(
     `quotations_customer_${CustomerId}`,
     async () => {

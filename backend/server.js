@@ -1,4 +1,4 @@
-import { validateBanksBelongsToUser, validateCustomerBelongsToUser } from "./utils/rights.js";
+import { validateCustomerBelongsToUser } from "./utils/rights.js";
 import { green, yellow, red, magenta, gray } from "colorette";
 import UnauthorizedError from "./utils/unauthorizedError.js";
 import clientWrapper from "./apiClient/wrapper.js";
@@ -139,11 +139,7 @@ app.addHook("preHandler", async (req) => {
     }
   }
 
-  if (/\/api\/banks\/[0-9]+\/(?:revenus)/.test(req.url)) {
-    if (!validateBanksBelongsToUser) throw new UnauthorizedError("errors.server.unauthorized");
-  }
-
-  if (/\/api\/customers\/[a-zA-Z0-9]+\/(?:invoices|quotations)/.test(req.url)) {
+  if (/\/api\/user\/customers\/[a-zA-Z0-9]+\/(?:invoices|quotations)/.test(req.url)) {
     if (!validateCustomerBelongsToUser(req)) throw new UnauthorizedError("errors.server.unauthorized");
   }
 });

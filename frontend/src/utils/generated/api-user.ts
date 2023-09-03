@@ -9,12 +9,12 @@ export async function getBanks(query = undefined) {
   return await useOFetch(`/api/user/banks`, { method: "GET", query });
 }
 /**
- * @param {string|string[]|number} id
+ * @param {string|string[]|number} bankId
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").getBank>>}
 **/
-export async function getBank(id, query = undefined) {
-  return await useOFetch(`/api/user/banks/${id}`, { method: "GET", query });
+export async function getBank(bankId, query = undefined) {
+  return await useOFetch(`/api/user/banks/${bankId}`, { method: "GET", query });
 }
 /**
  * @param {Parameters<import("../../../../backend/api/user/banks.js").createBank>[0]} body
@@ -25,13 +25,13 @@ export async function createBank(body = undefined, query = undefined) {
   return await useOFetch(`/api/user/banks`, { method: "POST", body, query });
 }
 /**
- * @param {string|string[]|number} id
+ * @param {string|string[]|number} bankId
  * @param {Parameters<import("../../../../backend/api/user/banks.js").updateBank>[1]} body
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").updateBank>>}
 **/
-export async function updateBank(id, body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/banks/${id}`, { method: "PUT", body, query });
+export async function updateBank(bankId, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/banks/${bankId}`, { method: "PUT", body, query });
 }
 /**
  * @param {Record<string,string|string[]|number>} [query]
@@ -281,11 +281,12 @@ export async function getRevenu(id, query = undefined) {
   return await useOFetch(`/api/user/revenus/${id}`, { method: "GET", query });
 }
 /**
+ * @param {string|string[]|number} bankId
  * @param {Record<string, any>} body
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").createRevenu>>}
 **/
-export async function createRevenu(body = undefined, query = undefined) {
+export async function createRevenu(bankId, body = undefined, query = undefined) {
   const formData = new FormData();
   for (const key in body) {
     if (body[key] instanceof Array && body[key][0] instanceof Blob) {
@@ -305,7 +306,7 @@ export async function createRevenu(body = undefined, query = undefined) {
       formData.append(key, body[key]);
     }
   }
-  return await useOFetch(`/api/user/revenus`, { method: "POST", query, body: formData });
+  return await useOFetch(`/api/user/revenus/${bankId}`, { method: "POST", query, body: formData });
 }
 /**
  * @param {string|string[]|number} id

@@ -24,7 +24,7 @@ export async function getBanks(params) {
     async () => {
       const banks = await prisma.banks.findMany({
         where: {
-          UserId: this.request?.user?.id,
+          UserId: this.request.user?.id,
         },
       });
 
@@ -45,7 +45,7 @@ export async function getBank(bankId) {
     const bank = await prisma.banks.findFirst({
       where: {
         id: +bankId,
-        UserId: this.request?.user?.id,
+        UserId: this.request.user?.id,
       },
     });
     if (!bank) throw new AppError("Bank not found!");
@@ -63,7 +63,7 @@ export async function createBank(body) {
   const bank = await prisma.banks.create({
     data: {
       ...body,
-      UserId: this.request?.user?.id,
+      UserId: this.request.user?.id,
     },
   });
   await invalidateCache("banks");
@@ -81,7 +81,7 @@ export async function updateBank(bankId, body) {
   let bank = await prisma.banks.findFirst({
     where: {
       id: +bankId,
-      UserId: this.request?.user?.id,
+      UserId: this.request.user?.id,
     },
   });
 
@@ -93,7 +93,7 @@ export async function updateBank(bankId, body) {
     },
     data: {
       ...body,
-      UserId: this.request?.user?.id,
+      UserId: this.request.user?.id,
     },
   });
 
