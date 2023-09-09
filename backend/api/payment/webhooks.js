@@ -3,7 +3,7 @@ import { prisma } from "../../utils/prisma.js";
 import stripe from "../../utils/stripe.js";
 import { AppError } from "../../utils/AppError.js";
 import { settings } from "../../utils/settings.js";
-import axios from "axios";
+import { ofetch } from "ofetch";
 import dayjs from "dayjs";
 
 /**
@@ -256,15 +256,16 @@ async function routes(app) {
   });
 }
 
-async function sendWebhook(object) {
-  // @ts-ignore
-  await axios.post(settings.webhooks.contentUrl, object, {
+async function sendWebhook(body) {
+  await ofetch(settings.webhooks.contentUrl, {
+    method: "POST",
     headers: {
       "content-type": "text/json",
       Authorization: `Basic ${Buffer.from(
         `${settings.webhooks.contentUser}:${settings.webhooks.contentPassword}`
       ).toString("base64")}`,
     },
+    body,
   });
 
   return;

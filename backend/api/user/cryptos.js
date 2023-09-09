@@ -3,7 +3,7 @@ import { updateCreateOrDestroyChildItems } from "../../utils/childItemsHandler.j
 import { prisma, Models } from "../../utils/prisma.js";
 import { AppError } from "../../utils/AppError.js";
 import { settings } from "../../utils/settings.js";
-import axios from "axios";
+import { ofetch } from "ofetch";
 import dayjs from "dayjs";
 
 /**
@@ -48,9 +48,10 @@ export async function getCryptos(params) {
  * @returns {Promise<Models.CryptoCurrencies & { Transactions: Models.Transactions[] }>}
  */
 export async function createCrypto(body) {
-  // TODO: replace this with ofetch
-  // @ts-ignore
-  const response = await axios(coinMarketCapParams());
+  const response = await ofetch(`${settings.coinmarketcap.apiBaseUrl}?start=1&limit=5000&convert=EUR`, {
+    method: "GET",
+    headers: { "X-CMC_PRO_API_KEY": settings.coinmarketcap.apiKey },
+  });
   const transactionsToCreate = body.Transactions.map(async (transaction) => {
     const initialDate = dayjs(transaction.buyingDate || transaction.createdAt);
     const firstDay = initialDate.startOf("month").toDate();
@@ -124,8 +125,10 @@ export async function updateCrypto(cryptoId, body) {
 
   if (!crypto) throw new AppError("Crypto not found!");
 
-  // @ts-ignore
-  const response = await axios(coinMarketCapParams());
+  const response = await ofetch(`${settings.coinmarketcap.apiBaseUrl}?start=1&limit=5000&convert=EUR`, {
+    method: "GET",
+    headers: { "X-CMC_PRO_API_KEY": settings.coinmarketcap.apiKey },
+  });
   const fetchedCrypto = response.data.data.filter((element) => element.name === body.name);
   const amounts = fetchedCrypto[0]?.quote?.EUR;
   const totalTransactions = body.Transactions.map((transaction) => +transaction.price * +transaction.quantity).reduce(
@@ -196,8 +199,10 @@ export async function updateCrypto(cryptoId, body) {
  * @returns {Promise<Models.CryptoCurrencies[]>}
  */
 export async function refreshCryptos() {
-  // @ts-ignore
-  const response = await axios(coinMarketCapParams());
+  const response = await ofetch(`${settings.coinmarketcap.apiBaseUrl}?start=1&limit=5000&convert=EUR`, {
+    method: "GET",
+    headers: { "X-CMC_PRO_API_KEY": settings.coinmarketcap.apiKey },
+  });
   const cryptos = await prisma.cryptoCurrencies.findMany({
     where: {
       UserId: this.request.user?.id,
