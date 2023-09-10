@@ -1,6 +1,6 @@
 <template lang="pug">
 v-card(width="600")
-  v-form(@submit.prevent="handleSubmit" class="my-8")
+  v-form(v-model="valid" @submit.prevent="handleSubmit" class="my-8")
     v-card-title.text-center {{ "paid" in mutableModel ? $t("invoice.editInvoice") : $t("quotation.editQuotation") }}
     v-card-text
       v-row.my-2(justify="center")
@@ -29,7 +29,7 @@ const props = defineProps({
     required: true,
   },
 });
-
+const valid = ref(false);
 const mutableModel = reactive<InvoiceWithRevenu | QuotationsWithRevenu>(props.model);
 const loadingStore = useLoadingStore();
 const emit = defineEmits(["close"]);
@@ -37,28 +37,27 @@ const revenus = ref();
 
 onMounted(async () => {
   mutableModel.paymentDate = dayjs(props.model.paymentDate || undefined).toDate();
-  revenus.value = await getRevenuIds();
+  // TODO: this should be made dynamic
+  revenus.value = await getRevenuIds({ BankId: 1 });
 });
 
 async function handleSubmit(): Promise<void> {
-  try {
-    if ("paid" in mutableModel) {
-      await updateInvoice(mutableModel.CustomerId, mutableModel.id, {
-        ...mutableModel,
-        paid: true,
-      });
-      useMessageStore().i18nMessage("success", "invoices.updated");
-    } else {
-      await updateQuotation(mutableModel.CustomerId, mutableModel.id, {
-        ...mutableModel,
-        cautionPaid: true,
-      });
-      useMessageStore().i18nMessage("success", "quotations.updated");
-    }
-    emit("close");
-  } finally {
-    loadingStore.setLoading(false);
+  if (!valid.value) return;
+  if ("paid" in mutableModel) {
+    await updateInvoice(mutableModel.CustomerId, mutableModel.id, {
+      ...mutableModel,
+      paid: true,
+    });
+    useMessageStore().i18nMessage("success", "invoices.updated");
+  } else {
+    await updateQuotation(mutableModel.CustomerId, mutableModel.id, {
+      ...mutableModel,
+      cautionPaid: true,
+    });
+    useMessageStore().i18nMessage("success", "quotations.updated");
   }
+  emit("close");
+  loadingStore.setLoading(false);
 }
 
 function itemProps(item) {

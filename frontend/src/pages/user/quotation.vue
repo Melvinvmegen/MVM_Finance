@@ -3,7 +3,7 @@ v-container
   v-row(v-if="quotation")
     v-col(cols='9')
       v-card.pa-4
-        v-form(@submit.prevent="handleSubmit")
+        v-form(v-model="valid" @submit.prevent="handleSubmit")
           v-card-title 
             v-row(align="center")
               v-btn(icon="mdi-arrow-left" variant="text" @click='router.go(-1)')
@@ -77,6 +77,7 @@ type QuotationWithInvoiceItems = Prisma.QuotationsUncheckedCreateInput & {
 };
 const loadingStore = useLoadingStore();
 const route = useRoute();
+const valid = ref(false);
 const router = useRouter();
 const quotation = ref<QuotationWithInvoiceItems>();
 const customer = ref<Customers>();
@@ -182,7 +183,7 @@ function removeItem(item) {
 }
 
 async function handleSubmit(): Promise<void> {
-  if (!quotation.value) return;
+  if (!valid.value || !quotation.value) return;
   loadingStore.setLoading(true);
   try {
     if (quotation.value.id) {

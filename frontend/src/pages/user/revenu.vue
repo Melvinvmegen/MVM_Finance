@@ -3,7 +3,7 @@ v-container
   v-row(v-if="revenu")
     v-col(cols='8')
       v-card.pa-4
-        v-form(@submit.prevent="handleSubmit")
+        v-form(v-model="valid" @submit.prevent="handleSubmit")
           v-card-title 
             v-row.mb-4(align="center")
               v-btn(icon="mdi-arrow-left" variant="text" @click='router.go(-1)')
@@ -143,6 +143,7 @@ type RevenuWithCostsCredits = Revenus & { Costs: Costs[]; Credits: Credits[]; In
 const loadingStore = useLoadingStore();
 const route = useRoute();
 const router = useRouter();
+const valid = ref(false);
 const revenu = ref<RevenuWithCostsCredits>();
 const costs = ref<Prisma.CostsUncheckedCreateInput[]>([]);
 const credits = ref<Prisma.CreditsUncheckedCreateInput[]>([]);

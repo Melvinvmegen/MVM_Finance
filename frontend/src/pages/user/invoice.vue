@@ -76,6 +76,7 @@ const router = useRouter();
 const invoice = ref<InvoiceWithInvoiceItems>();
 const customer = ref<Customers>();
 const revenus = ref<Revenus[]>([]);
+const valid = ref(false);
 const customerId = route.params.customerId;
 const { itemsTotal, totalTTC, tvaAmount } = useTotal();
 const invoiceItemTemplate: Prisma.InvoiceItemsUncheckedCreateInput = {
@@ -86,6 +87,7 @@ const invoiceItemTemplate: Prisma.InvoiceItemsUncheckedCreateInput = {
 };
 
 onMounted(async () => {
+  // TODO: this should be made dynamic
   const setupPromises = [getCustomer(customerId), getRevenuIds({ BankId: 1 })];
   if (route.params.id) setupPromises.push(getInvoice(customerId, route.params.id));
 
@@ -175,7 +177,7 @@ function removeItem(index, item) {
 }
 
 async function handleSubmit(): Promise<void> {
-  if (!invoice.value) return;
+  if (!valid.value || !invoice.value) return;
   loadingStore.setLoading(true);
   try {
     if (invoice.value.id) {

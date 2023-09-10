@@ -68,7 +68,7 @@ div
           br
   v-dialog(v-model='show_modal' width='600')
     v-card
-      v-form(@submit.prevent="handleSubmit")
+      v-form(v-model="valid" @submit.prevent="handleSubmit")
         v-card-title.text-center {{ mutableBank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
         v-card-text.mt-4
           v-row(dense justify="center")
@@ -93,6 +93,7 @@ const loadingStore = useLoadingStore();
 let banks: Banks[] = reactive([]);
 const { filterAll, items } = useFilter(getRevenus);
 const show_modal = ref(false);
+const valid = ref(false);
 let mutableBank: Ref<Banks> = ref({});
 const dates: string[] = [];
 let revenu: Ref<(Revenus & { Costs: Costs[]; Credits: Credits[] }) | null> = ref(null);
@@ -263,6 +264,7 @@ const lineChartData = computed(() => {
 });
 
 async function handleSubmit(): Promise<void> {
+  if (!valid.value) return;
   loadingStore.setLoading(true);
   try {
     if (mutableBank.value.id) {

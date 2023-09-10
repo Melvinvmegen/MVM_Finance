@@ -1,6 +1,6 @@
 <template lang="pug">
 v-card
-  v-form(@submit.prevent="handleSubmit")
+  v-form(v-model="valid" @submit.prevent="handleSubmit")
     v-card-title.mb-4.text-center {{ props.initialCustomer?.id ? $t("customers.editCustomer") : $t("customers.createCustomer") }}
     v-card-text
       v-row(dense justify="center")
@@ -17,7 +17,7 @@ v-card
           v-text-field(name='phone' :label='$t("customers.phone")' v-model="mutableCustomer.phone")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='company' :label='$t("customers.company")' v-model="mutableCustomer.company" :rules="[$v.required()]")
+          v-text-field(name='company' :label='$t("customers.company")' v-model="mutableCustomer.company")
       v-row(dense justify="center")
         v-col(cols="12")
           v-text-field(name='address' :label='$t("customers.address")' v-model="mutableCustomer.address")
@@ -43,6 +43,7 @@ const props = defineProps({
   },
 });
 const loadingStore = useLoadingStore();
+const valid = ref(false);
 let mutableCustomer = ref<Prisma.CustomersUncheckedCreateInput>({
   firstName: "",
   lastName: "",
@@ -61,6 +62,7 @@ if (props.initialCustomer) {
 }
 
 async function handleSubmit(): Promise<void> {
+  if (!valid.value) return;
   loadingStore.setLoading(true);
   try {
     if (props.initialCustomer?.id) {

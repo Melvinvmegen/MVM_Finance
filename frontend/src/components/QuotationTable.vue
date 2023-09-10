@@ -13,10 +13,10 @@ v-card.pa-4(elevation="3")
           v-btn(icon="mdi-plus" color="primary")
 
   v-card-text
-    v-form(@submit.prevent ref="searchFrom")
+    v-form(v-model="valid" @submit.prevent ref="searchFrom")
       v-row
         v-col.mr-2(cols="12" sm="5" md="4" lg="3")
-          v-text-field(hide-details :label='$t("quotations.searchByTotal")' name='by_total' v-model='query.total' @blur='searchQuotations')
+          v-text-field(hide-details :label='$t("quotations.searchByTotal")' name='by_total' v-model.number='query.total' @blur='searchQuotations' :rules="[$v.number()]")
 
         v-row(align="center")
           v-btn.bg-secondary(@click='searchQuotations') {{ $t("quotations.search") }}
@@ -91,6 +91,7 @@ const { deleteItem } = useDelete(deleteQuotation);
 const searchFrom = ref<HTMLFormElement | null>(null);
 const selectedQuotation = ref(null);
 const openQuotationModel = ref(false);
+const valid = ref(false);
 const { t: $t } = useI18n();
 const query = ref<Query>({});
 const route = useRoute();
@@ -140,6 +141,7 @@ onMounted(async () => {
 });
 
 async function searchQuotations() {
+  if (!valid.value) return;
   await filterAll({
     CustomerId: +route.params.customerId,
     ...query.value,

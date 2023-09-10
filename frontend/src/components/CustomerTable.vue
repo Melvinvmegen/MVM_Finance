@@ -2,13 +2,13 @@
 v-form(@submit.prevent ref="searchFrom")
   v-row(align="center")
     v-col(cols="12" sm="3" md="2")
-      v-text-field(hide-details :label='$t("customers.lastname")' name='by_name' v-model='query.lastName' @blur='filterCustomers')
+      v-text-field(hide-details :label='$t("customers.lastname")' name='by_name' v-model.trim='query.lastName' @blur='filterCustomers')
 
     v-col(cols="12" sm="3" md="2")
-      v-text-field(hide-details :label='$t("customers.email")' name='by_email' v-model='query.email' @blur='filterCustomers')
+      v-text-field(hide-details :label='$t("customers.email")' name='by_email' v-model.trim='query.email' @blur='filterCustomers')
 
     v-col.mr-2(cols="12" sm="3" md="2")
-      v-text-field(hide-details :label='$t("customers.phone")' name='by_phone' v-model='query.phone' @blur='filterCustomers')
+      v-text-field(hide-details :label='$t("customers.phone")' name='by_phone' v-model.trim='query.phone' @blur='filterCustomers')
 
     v-row(align="center" class="ml-2")
       v-btn.bg-secondary {{ $t("customers.search") }}

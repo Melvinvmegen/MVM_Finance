@@ -78,7 +78,7 @@ export async function createCrypto(body) {
     };
   });
 
-  const fetchedCrypto = response.data.data.filter((element) => element.name === body.name);
+  const fetchedCrypto = response.data.filter((element) => element.name === body.name);
   const totalTransactions = body.Transactions.map((transaction) => transaction.price * transaction.quantity).reduce(
     (sum, quantiy) => sum + quantiy,
     0
@@ -129,7 +129,7 @@ export async function updateCrypto(cryptoId, body) {
     method: "GET",
     headers: { "X-CMC_PRO_API_KEY": settings.coinmarketcap.apiKey },
   });
-  const fetchedCrypto = response.data.data.filter((element) => element.name === body.name);
+  const fetchedCrypto = response.data.filter((element) => element.name === body.name);
   const amounts = fetchedCrypto[0]?.quote?.EUR;
   const totalTransactions = body.Transactions.map((transaction) => +transaction.price * +transaction.quantity).reduce(
     (sum, quantity) => sum + quantity,
@@ -211,7 +211,7 @@ export async function refreshCryptos() {
   let updatedCryptos = [];
 
   for (let crypto of cryptos) {
-    const foundCrypto = response.data.data.filter((element) => element.name === crypto.name)[0];
+    const foundCrypto = response.data.filter((element) => element.name === crypto.name)[0];
     if (!foundCrypto) continue;
     const currentPrice = foundCrypto?.quote?.EUR?.price;
     const updatedCrypto = await prisma.cryptoCurrencies.update({
@@ -229,21 +229,4 @@ export async function refreshCryptos() {
 
   await invalidateCache(`cryptos`);
   return updatedCryptos;
-}
-
-function coinMarketCapParams() {
-  return {
-    method: "GET",
-    url: settings.coinmarketcap.apiBaseUrl,
-    params: {
-      start: "1",
-      limit: "5000",
-      convert: "EUR",
-    },
-    headers: {
-      "X-CMC_PRO_API_KEY": settings.coinmarketcap.apiKey,
-    },
-    json: true,
-    gzip: true,
-  };
 }

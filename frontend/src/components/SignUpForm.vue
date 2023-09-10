@@ -1,5 +1,5 @@
 <template lang="pug">
-v-form(@submit.prevent="handleSubmit" key="signUp")
+v-form(v-model="valid" @submit.prevent="handleSubmit" key="signUp")
   v-card-text
     v-row(dense justify="center")
       v-col(cols="12" md="8")
@@ -23,6 +23,7 @@ v-form(@submit.prevent="handleSubmit" key="signUp")
 </template>
 
 <script setup lang="ts">
+const valid = ref(false);
 const user = reactive({
   firstname: "",
   lastname: "",
@@ -33,6 +34,7 @@ const user = reactive({
 const emit = defineEmits(["submit"]);
 
 async function handleSubmit(): Promise<void> {
+  if (!valid.value) return;
   emit("submit", user);
 }
 </script>
