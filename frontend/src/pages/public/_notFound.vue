@@ -8,6 +8,6 @@ v-row(justify="center")
       v-card-actions
         v-spacer
         v-btn(raised color="primary" to="/")
-          v-icon(left)mdi-home {{ $t("notFound.backHome") }}
+          v-icon(left) mdi-home {{ $t("notFound.backHome") }}
         v-spacer
 </template>
