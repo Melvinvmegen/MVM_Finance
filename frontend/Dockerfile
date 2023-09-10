@@ -5,7 +5,7 @@ COPY package*.json ./
 ENV NODE_ENV=production
 RUN yarn install --immutable --immutable-cache --check-cache
 COPY . .
-RUN npm run build
+RUN yarn run build
 
 # RUN
 FROM nginx:stable-alpine
