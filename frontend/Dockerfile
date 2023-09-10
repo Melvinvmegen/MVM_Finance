@@ -1,13 +1,5 @@
-# BUILD
-FROM node:20.4-bullseye-slim as build
-WORKDIR /app
-COPY package*.json ./
-ENV NODE_ENV=production
-RUN yarn install --immutable --immutable-cache --check-cache
-COPY . .
-RUN yarn run build
-
-# RUN
-FROM nginx:stable-alpine
+FROM nginx:alpine
+EXPOSE 80
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY dist/index.html /usr/share/nginx/html/index.html
+COPY dist/assets /usr/share/nginx/html/assets
