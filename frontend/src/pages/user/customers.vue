@@ -14,7 +14,7 @@ v-row
         CustomerTable(:items="items" @filter="refreshCustomers")
     .mt-4
   v-col(cols="12" md="4")
-    v-card(position="absolute" class="v-col v-col-3")
+    v-card
       v-card-text
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("customers.turnover") }}
@@ -25,9 +25,9 @@ v-row
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("customers.vatCollected") }}
           v-card-title {{ $n(returnTotals(true, "tvaAmount"), "currency") }} €
-      hr.mx-2.my-4
+    v-card.mt-4
       v-card-text
-        v-card-title {{ $t("customers.turnoverByCustomer") }} 
+        v-card-title.text-center.mb-2 {{ $t("customers.turnoverByCustomer") }} 
         PieChart(v-if="chartData" :chart-data='chartData' :chart-options='chartOptions')
 
 </template>

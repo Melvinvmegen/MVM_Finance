@@ -9,7 +9,7 @@ v-app
         router-link.text-decoration-none(:to="'/login'" color='white' v-else)
           v-btn(icon="mdi-account" color='white')
   v-navigation-drawer(:permanent='!display.mobile.value' width='300' v-if="currentUser")
-    v-list
+    v-list(class="pt-0")
       div(v-for='item in menuItems' :key='item.title')
         v-list-item(v-if="item.active" color="secondary" lines="two" density="comfortable" :to='`/${item.link}`')
           template(v-slot:prepend)

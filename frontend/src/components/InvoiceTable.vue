@@ -23,7 +23,7 @@ v-card.pa-4(elevation="3")
           v-icon.ml-2(@click="resetAll") mdi-restore
 
     v-col(cols="12")
-      v-data-table-server.elevation-1(
+      v-data-table-server(
         :headers="dataTable.headers"
         :items-length="items?.count"
         :items="items?.rows"
@@ -32,14 +32,16 @@ v-card.pa-4(elevation="3")
         @update:options="getInvoicesData"
         item-value="name"
         )
+        template( v-slot:[`item.paid`]="{ item }")
+          v-chip(:color="item.raw.paid ? 'success' : 'error'") {{ $t(`invoices.paidStatus.${item.raw.paid}`)  }}
         template( v-slot:[`item.month`]="{ item }")
           span {{ revenuDate(item.raw.Revenus) }}
+        template( v-slot:[`item.date`]="{ item }")
+          span(v-if="item.raw.paymentDate") {{ dayjs(item.raw.paymentDate).format("DD/MM/YYYY") }}
         template( v-slot:[`item.total`]="{ item }")
           span {{ $n(item.raw.totalTTC, "currency") }}
         template( v-slot:[`item.tvaAmount`]="{ item }")
           span {{ $n(item.raw.tvaAmount, "currency") }}
-        template( v-slot:[`item.paid`]="{ item }")
-          span {{ $t(`invoices.paidStatus.${item.raw.paid}`)  }}
         template(v-slot:item.actions="{ item }")
           v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openInvoiceModel = true; selectedInvoice = item.raw" v-if='!item.raw.paid' )
           v-btn(variant="text" size="small" icon="mdi-receipt" @click.stop="download(item.raw)")
@@ -57,8 +59,8 @@ v-card.pa-4(elevation="3")
             @click.stop="deleteItem(item.raw, $t('invoices.confirmDelete', [item.raw.id]))",
           )
 
-  v-dialog(v-model="openInvoiceModel")
-    payment-form(:model='selectedInvoice' @close="closePaymentForm")
+v-dialog(v-model="openInvoiceModel")
+  PaymentForm(:model='selectedInvoice' @close="closePaymentForm")
 </template>
 
 <script setup lang="ts">
@@ -79,10 +81,20 @@ const dataTable = {
   perPage: 12,
   headers: [
     {
+      key: "paid",
+      value: "paid",
+      title: $t("invoices.paid"),
+    },
+    {
       key: "month",
       value: "month",
       title: $t("invoices.revenu"),
       sortable: false,
+    },
+    {
+      key: "date",
+      value: "date",
+      title: $t("invoices.paymentDate"),
     },
     {
       key: "total",
@@ -93,11 +105,6 @@ const dataTable = {
       key: "tvaAmount",
       value: "tvaAmount",
       title: $t("invoices.vatAmount"),
-    },
-    {
-      key: "paid",
-      value: "paid",
-      title: $t("invoices.paid"),
     },
     {
       key: "actions",

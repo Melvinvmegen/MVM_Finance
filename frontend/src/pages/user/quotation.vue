@@ -16,10 +16,10 @@ v-container
               v-col(cols="3" lg="2")
                 v-switch(name='cautionPaid' :label='$t("quotation.paid")' v-model="quotation.cautionPaid" color="secondary" )
               template(v-if="quotation.cautionPaid")
-                v-col(cols="3" lg="2")
-                  v-select(:items="revenus" item-title="createdAt" item-value="id" name='revenuId' v-model="quotation.RevenuId" :label='$t("quotation.revenu")')
-                v-col(cols="3" lg="2")
-                  DateInput(:value="quotation.paymentDate")
+                v-col(cols="4" lg="3" xl="2")
+                  v-select(:items="revenus" :item-props="itemProps" name='revenuId' v-model="quotation.RevenuId" :label='$t("quotation.revenu")' :rules="[$v.required()]")
+                v-col(cols="4" lg="3" xl="2")
+                  DateInput(v-model="quotation.paymentDate")
             v-row
               v-col(cols="3") {{ $t("quotation.reference") }}
               v-col(cols="3") {{ $t("quotation.priceUnit") }}
@@ -27,7 +27,7 @@ v-container
               v-col(cols="2") {{ $t("quotation.total") }}
               v-col(cols="1")
             br
-            transition-group(name='slide-up')
+            transition-group(name='slide-up' v-if="quotation.InvoiceItems.length")
               div(v-for='(item, index) in quotation.InvoiceItems' :key="item.id || index")
                 v-row(v-if="item?.markedForDestruction !== true")
                   v-col(cols="3")
@@ -42,10 +42,10 @@ v-container
                     v-btn(color="error" @click.prevent='removeItem(item)')
                       v-icon mdi-delete
 
-              v-row
-                v-col(cols="12" justify="end")
-                  v-btn(color="primary" @click.prevent='addItem')
-                    span {{ $t("quotation.addLigne") }}
+            v-row
+              v-col(cols="12" justify="end")
+                v-btn(color="primary" @click.prevent='addItem')
+                  span {{ $t("quotation.addLigne") }}
 
 
           v-card-actions
@@ -91,6 +91,7 @@ const quotationItemTemplate: Prisma.InvoiceItemsUncheckedCreateInput = {
 };
 
 onMounted(async () => {
+  // TODO: this should be made dynamic
   const setupPromises = [getCustomer(customerId), getRevenuIds({ BankId: 1 })];
   if (route.params.id) setupPromises.push(getQuotation(customerId, route.params.id));
 
@@ -104,7 +105,9 @@ onMounted(async () => {
     if (data.length > 2) {
       quotation.value = { ...data[2] };
       if (quotation.value) {
-        quotation.value.paymentDate = dayjs(quotation.value.paymentDate || undefined).toDate();
+        quotation.value.paymentDate = quotation.value.cautionPaid
+          ? dayjs(quotation.value.paymentDate || undefined).toDate()
+          : null;
         quotationItemTemplate.QuotationId = quotation.value.id;
       }
     } else {
@@ -127,6 +130,32 @@ onMounted(async () => {
     loadingStore.setLoading(false);
   });
 });
+
+watch(
+  () => quotation.value?.RevenuId,
+  (newRevenuId) => {
+    if (!quotation.value) return;
+    const revenu = revenus.value.find((r) => r.id === newRevenuId);
+    if (!revenu) return;
+    quotation.value.paymentDate = dayjs(revenu.createdAt).toDate();
+  },
+);
+
+watch(
+  () => quotation.value?.cautionPaid,
+  () => {
+    if (!quotation.value || quotation.value?.cautionPaid) return;
+    quotation.value.paymentDate = null;
+    quotation.value.RevenuId = null;
+  },
+);
+
+function itemProps(item) {
+  return {
+    title: dayjs(item.createdAt).format("MMMM YYYY"),
+    value: item.id,
+  };
+}
 
 function updateTotal(item) {
   if (!quotation.value) return;

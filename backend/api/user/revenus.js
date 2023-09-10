@@ -66,6 +66,7 @@ export async function getRevenus(params) {
  * @returns {Promise<Models.Revenus[]>}
  */
 export async function getRevenuIds(params) {
+  if (!params.BankId) return;
   const revenus = await getOrSetCache(`revenuIds`, async () => {
     return await prisma.revenus.findMany({
       where: {

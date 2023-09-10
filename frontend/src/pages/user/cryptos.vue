@@ -4,34 +4,30 @@ v-row
     v-card(elevation="3")
       v-card-title
         v-row(justify="space-between" align="center")
-          v-col.text-uppercase(cols="11") {{ $t("cryptos.title") }}
+          v-col.text-uppercase.text-center.text-h5(cols="11") {{ $t("cryptos.title") }}
 
       v-card-text
         CryptoTable(:cryptos="cryptos" @refresh-cryptos="fetchPriceUpdate")
     .mt-4
   v-col(cols="12" md="4")
-    v-card(elevation="3")
-      v-card-text.py-0
-        v-container
-          v-row
-            CryptoCard(:elevation="0")
-              template(#header)
-                v-row
-                  v-col(cols="3").d-flex.justify-center.align-center
-                    span.mr-5 {{ $t("cryptos.subtitle") }}
-                    v-badge(:color="returnGlobalCryptoPercentageGain > 0 ? 'success' : 'error'" :content='returnGlobalCryptoPercentageGain + "%"')
-                  v-spacer
-                  v-col(cols="1")
-                    v-btn(variant="text" icon="mdi-refresh" @click="fetchPriceUpdate")
-              template(#lower_content_button)
-                v-chip.mt-3(color="secondary" size="small") {{ $n(returnTotalInvestment, "currency") }}
-              template(#lower_content_return)
-                v-chip.mt-3(:color="returnInvestmentCurrentValue > returnTotalInvestment ? 'success' : 'error'" size="small") {{ $n(returnInvestmentCurrentValue, "currency") }}
-                v-chip.mt-3(:color="returnTotalInvestmentProfit > returnTotalInvestment ? 'success' : 'error'" size="small") {{ $n(returnTotalInvestmentProfit, "currency") }}
-          hr.mx-2.my-4
-          v-card-text
-            v-card-title {{ $t("cryptos.chartTitle") }}
-            PieChart(v-if="chartData" :chart-data='chartData' :chart-options='chartOptions')
+    CryptoCard(:elevation="0")
+      template(#header)
+        v-row
+          v-col(cols="3" md="5" xl="3").d-flex.justify-center.align-center
+            span.mr-5 {{ $t("cryptos.subtitle") }}
+            v-badge(:color="returnGlobalCryptoPercentageGain > 0 ? 'success' : 'error'" :content='returnGlobalCryptoPercentageGain + "%"')
+          v-spacer
+          v-col(cols="1")
+            v-btn(variant="text" icon="mdi-refresh" @click="fetchPriceUpdate")
+      template(#lower_content_button)
+        v-chip.mt-3(color="secondary" size="small") {{ $n(returnTotalInvestment, "currency") }}
+      template(#lower_content_return)
+        v-chip.mt-3(:color="returnInvestmentCurrentValue > returnTotalInvestment ? 'success' : 'error'" size="small") {{ $n(returnInvestmentCurrentValue, "currency") }}
+        v-chip.mt-3(:color="returnTotalInvestmentProfit > returnTotalInvestment ? 'success' : 'error'" size="small") {{ $n(returnTotalInvestmentProfit, "currency") }}
+    v-card.mt-4
+      v-card-text
+        v-card-title.text-center.mb-2 {{ $t("cryptos.chartTitle") }}
+        PieChart(v-if="chartData" :chart-data='chartData' :chart-options='chartOptions')
 
 </template>
 

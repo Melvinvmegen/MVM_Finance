@@ -1,12 +1,11 @@
 <template lang="pug">
 v-col(cols="12" lg="11")
   v-row(justify="center")
-    v-col(cols="12" md="9")
-      template(v-if='initialCustomer?.id')
-        InvoiceTable(:customer-id='initialCustomer?.id')
-        .mt-4
-        QuotationTable(:customer-id='initialCustomer?.id')
-    v-col(cols="12" md="3")
+    v-col(v-if='initialCustomer?.id' cols="12" md="9")
+      InvoiceTable(:customer-id='initialCustomer?.id')
+      .mt-4
+      QuotationTable(:customer-id='initialCustomer?.id')
+    v-col(cols="12" :md="initialCustomer?.id ? 3 : 6")
       CustomerForm(v-if="route.params.customerId && initialCustomer || !route.params.customerId" :initial-customer='initialCustomer')
 </template>
 

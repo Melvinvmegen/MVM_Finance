@@ -3,7 +3,7 @@ v-container
   v-row(v-if="invoice")
     v-col(cols='9')
       v-card.pa-4
-        v-form(@submit.prevent="handleSubmit")
+        v-form(v-model="valid" @submit.prevent="handleSubmit")
           v-card-title 
             v-row.mb-4(align="center")
               v-btn(icon="mdi-arrow-left" variant="text" @click='router.go(-1)')
@@ -16,9 +16,9 @@ v-container
               v-col(cols="3" lg="2")
                 v-switch(name='paid' hide-details :label='$t("invoice.paid")' v-model="invoice.paid" color="secondary" )
               template(v-if="invoice.paid")
-                v-col(cols="3" lg="2")
-                  v-select(:items="revenus" hide-details item-title="createdAt" item-value="id" name='revenuId' v-model="invoice.RevenuId" :label='$t("invoice.revenu")'  )
-                v-col(cols="3" lg="2")
+                v-col(cols="4" lg="3" xl="2")
+                  v-select(:items="revenus" hide-details :item-props="itemProps" name='revenuId' v-model="invoice.RevenuId" :label='$t("invoice.revenu")' :rules="[$v.required()]")
+                v-col(cols="4" lg="3" xl="2")
                   DateInput(v-model="invoice.paymentDate")
             v-row(v-if="invoice.InvoiceItems.length")
               v-col(cols="3") {{ $t("invoice.reference") }}
@@ -27,8 +27,8 @@ v-container
               v-col(cols="2") {{ $t("invoice.total") }}
               v-col(cols="1")
             br
-            transition-group(name='slide-up')
-              div(v-for='(item, index) in invoice.InvoiceItems' :key="item.id || index")
+            transition-group(name='slide-up' v-if="invoice.InvoiceItems.length")
+              div(v-for='(item, index) in invoice.InvoiceItems' :key="index")
                 v-row(v-if="item?.markedForDestruction !== true")
                   v-col(cols="3")
                     v-text-field(v-model="item.name" :rules="[$v.required()]")
@@ -42,10 +42,10 @@ v-container
                     v-btn(color="error" @click.prevent='removeItem(index, item)')
                       v-icon mdi-delete
 
-              v-row
-                v-col(cols="12" justify="end")
-                  v-btn(color="primary" @click.prevent='addItem')
-                    span {{ $t("invoice.addLigne") }}
+            v-row
+              v-col(cols="12" justify="end")
+                v-btn(color="primary" @click.prevent='addItem')
+                  span {{ $t("invoice.addLigne") }}
 
 
           v-card-actions
@@ -98,7 +98,7 @@ onMounted(async () => {
     if (data.length > 2) {
       invoice.value = data[2];
       if (invoice.value) {
-        invoice.value.paymentDate = dayjs(invoice.value.paymentDate || undefined).toDate();
+        invoice.value.paymentDate = invoice.value.paid ? dayjs(invoice.value.paymentDate || undefined).toDate() : null;
         invoiceItemTemplate.InvoiceId = invoice.value.id;
       }
     } else {
@@ -124,6 +124,32 @@ onMounted(async () => {
 
   loadingStore.setLoading(false);
 });
+
+watch(
+  () => invoice.value?.RevenuId,
+  (newRevenuId) => {
+    if (!invoice.value) return;
+    const revenu = revenus.value.find((r) => r.id === newRevenuId);
+    if (!revenu) return;
+    invoice.value.paymentDate = dayjs(revenu.createdAt).toDate();
+  },
+);
+
+watch(
+  () => invoice.value?.paid,
+  () => {
+    if (!invoice.value || invoice.value?.paid) return;
+    invoice.value.paymentDate = null;
+    invoice.value.RevenuId = null;
+  },
+);
+
+function itemProps(item) {
+  return {
+    title: dayjs(item.createdAt).format("MMMM YYYY"),
+    value: item.id,
+  };
+}
 
 function updateTotal(item) {
   if (!invoice.value) return;

@@ -23,7 +23,7 @@ v-card.pa-4(elevation="3")
           v-icon.ml-2(@click="resetAll()") mdi-restore
 
     v-col(cols="12")
-      v-data-table-server.elevation-1(
+      v-data-table-server(
         :headers="dataTable.headers"
         :items-length="items?.count"
         :items="items?.rows"
@@ -32,16 +32,18 @@ v-card.pa-4(elevation="3")
         @update:options="getQuotationsData"
         item-value="name"
         )
+        template( v-slot:[`item.cautionPaid`]="{ item }")
+          v-chip(:color="item.raw.cautionPaid ? 'success' : 'error'") {{ $t(`quotations.cautionPaidStatuses.${item.raw.cautionPaid}`)  }}
         template( v-slot:[`item.month`]="{ item }")
           span {{ revenuDate(item.raw.Revenus) }}
+        template( v-slot:[`item.date`]="{ item }")
+          span(v-if="item.raw.paymentDate") {{ dayjs(item.raw.paymentDate).format("DD/MM/YYYY") }}
         template( v-slot:[`item.totalTTC`]="{ item }")
           span {{ $n(item.raw.totalTTC, "currency") }}
         template( v-slot:[`item.caution`]="{ item }")
           span {{ $n(item.raw.total * 0.3, "currency") }}
         template( v-slot:[`item.tvaAmount`]="{ item }")
           span {{ $n(item.raw.tvaAmount, "currency") }}
-        template( v-slot:[`item.cautionPaid`]="{ item }")
-          span {{ $t(`quotations.cautionPaidStatuses.${item.raw.cautionPaid}`)  }}
         template(v-slot:item.actions="{ item }")
           v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openQuotationModel = true; selectedQuotation = item.raw" v-if='!item.raw.cautionPaid' )
           v-btn(variant="text" size="small" icon="mdi-receipt" @click.stop="download(item.raw)")
@@ -68,7 +70,7 @@ v-card.pa-4(elevation="3")
           )
 
   v-dialog(v-model="openQuotationModel" width='800')
-    payment-form(:model='selectedQuotation' @close="closePaymentForm")
+    PaymentForm(:model='selectedQuotation' @close="closePaymentForm")
 </template>
 
 <script setup lang="ts">
@@ -96,10 +98,20 @@ const dataTable = {
   perPage: 12,
   headers: [
     {
+      key: "cautionPaid",
+      value: "cautionPaid",
+      title: $t("quotations.caution"),
+    },
+    {
       key: "month",
       value: "month",
       title: $t("quotations.revenu"),
       sortable: false,
+    },
+    {
+      key: "date",
+      value: "date",
+      title: $t("quotations.paymentDate"),
     },
     {
       key: "totalTTC",
@@ -107,20 +119,9 @@ const dataTable = {
       title: $t("quotations.total"),
     },
     {
-      key: "caution",
-      value: "caution",
-      title: $t("quotations.caution"),
-      sortable: false,
-    },
-    {
       key: "tvaAmount",
       value: "tvaAmount",
       title: $t("quotations.tvaAmount"),
-    },
-    {
-      key: "cautionPaid",
-      value: "cautionPaid",
-      title: $t("quotations.cautionPaid"),
     },
     {
       key: "actions",

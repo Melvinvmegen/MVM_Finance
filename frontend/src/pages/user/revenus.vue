@@ -2,7 +2,7 @@
 v-row(v-if="items.rows")
   v-col(cols="12" md="8")
     v-card(elevation="3")
-      v-card-title
+      v-card-title.text-h5
         v-row(justify="space-between" align="center")
           v-col.text-uppercase(cols="11") {{ $t("revenus.title") }}
           v-spacer
@@ -12,23 +12,27 @@ v-row(v-if="items.rows")
 
       v-card-text
         RevenuTable(:items="items" @filter="refreshRevenus")
-    v-card(elevation="3" class="mt-4")
-      v-card-text
-        v-row(justify="space-around" align="center")
-          v-col(cols="12" md="6")
-            v-row(justify="space-around" align="center")   
-              v-col(v-if="expensesAverage" cols="12" md="6")
-                v-card-subtitle {{ $t("revenus.averageMonthlySpending") }}
-                v-card-title {{ $n(expensesAverage, "currency") }}
-              v-col(v-if="recurrentCosts" cols="12" md="6")
-                v-card-subtitle {{ $t("revenus.averageRecurrentSpending") }}
-                v-card-title {{ $n(recurrentCosts, "currency") }}
-            BarChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
-          v-col(cols="12" md="6")
-            v-row(v-if="revenusAverage" justify="space-around" align="start")
-              v-card-subtitle {{ $t("revenus.averageRevenu") }}
-              v-card-title.pt-0.mb-4 {{ $n(revenusAverage, "currency") }}
-            BarChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
+    v-row
+      v-col(cols="12" md="6")
+        v-card(elevation="3" class="mt-4")
+          v-card-text
+            v-row(justify="space-around" align="center")
+                v-row.my-2(justify="space-around" align="center")   
+                  template(v-if="expensesAverage")
+                    v-card-subtitle {{ $t("revenus.averageMonthlySpending") }}
+                    v-card-title {{ $n(expensesAverage, "currency") }}
+                  template(v-if="recurrentCosts")
+                    v-card-subtitle {{ $t("revenus.averageRecurrentSpending") }}
+                    v-card-title {{ $n(recurrentCosts, "currency") }}
+                BarChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
+      v-col(cols="12" md="6")
+        v-card(elevation="3" class="mt-4")
+          v-card-text
+            v-row(justify="space-around" align="center")
+                v-row.my-2(v-if="revenusAverage" justify="space-around" align="center")
+                  v-card-subtitle {{ $t("revenus.averageRevenu") }}
+                  v-card-title {{ $n(revenusAverage, "currency") }}
+                BarChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
 
   v-col(cols="12" md="4")
     v-card
@@ -46,17 +50,22 @@ v-row(v-if="items.rows")
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.netResult") }}
           v-card-title {{ $n(Math.round(revenusTotal + revenusCostTotal), "currency") }}
-      hr.mx-2.my-4
+
+    v-card.mt-4
       v-card-text
         v-row(justify="center" align="center")
           v-col(cols="12" md="10")
             v-row(justify="space-around" align="center")
-              v-card-subtitle {{ $t("revenus.costDistribution") }}
+              v-card-title {{ $t("revenus.costDistribution") }}
             br
             PieChart(v-if="costPieChartData" :chart-data='costPieChartData' :chart-options='pieChartOptions')
-            hr.mx-2.my-10
+
+    v-card.mt-4
+      v-card-text
+        v-row(justify="center" align="center")
+          v-col(cols="12" md="10")
             v-row(justify="space-around" align="center")
-              v-card-subtitle {{ $t("revenus.revenuDistribution") }}
+              v-card-title {{ $t("revenus.revenuDistribution") }}
             br
             PieChart(v-if="creditPieChartData" :chart-data='creditPieChartData' :chart-options='pieChartOptions')
 
@@ -233,6 +242,7 @@ async function uploadFile(event) {
   loadingStore.setLoading(true);
   try {
     await createRevenu(banks.value?.[0].id, { file: event.target.files[0] });
+    await filterAll();
   } finally {
     loadingStore.setLoading(false);
   }

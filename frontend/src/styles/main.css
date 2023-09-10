@@ -88,3 +88,7 @@ footer span {
 .v-list-item--density-compact.v-list-item--one-line {
   min-height: 30px !important;
 }
+
+.v-dialog > .v-overlay__content {
+  align-items: center;
+}

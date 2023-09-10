@@ -28,9 +28,9 @@ v-table.pt-3
   v-row(justify="center").mb-3.mt-6
     v-btn(@click="openModal" color="secondary") {{ $t("cryptos.createToken") }}
 
-  v-dialog(v-model='showModal' width='900')
-    v-card.pa-4
-      v-form(@submit.prevent="handleSubmit")
+  v-dialog(v-model='showModal' width='800')
+    v-card.pa-4.w-100
+      v-form(v-model="valid" @submit.prevent="handleSubmit")
         v-card-title.mb-4 {{ dialogTitle }}
         v-card-text
           v-row(dense)
@@ -42,11 +42,11 @@ v-table.pt-3
               v-text-field(name='profit' :label='$t("cryptos.profit")' v-model.number='mutableCrypto.profit' :rules="[$v.number()]")
             v-col(cols="12" sm="4")
           v-divider.mb-6
-          transition-group(name='slide-up')
-            div(v-for='(transaction, index) in mutableCrypto.Transactions' :key="transaction.id || index")
+          transition-group(name='slide-up' v-if="mutableCrypto?.Transactions?.length")
+            div(v-for='(transaction, index) in mutableCrypto.Transactions' :key="index")
               v-row(v-if="transaction?.markedForDestruction !== true")
                 v-col(cols="12" sm="3")
-                  DateInput(:value="transaction.buyingDate")
+                  DateInput(v-model="transaction.buyingDate")
                 v-col(cols="12" sm="2")
                   v-text-field(:label='$t("cryptos.exchange")' v-model="transaction.exchange" :rules="[$v.required()]")
                 v-col(cols="12" sm="2")
@@ -60,10 +60,10 @@ v-table.pt-3
                   v-btn(color="error" href='#' @click.prevent='removeItem(transaction)')
                     v-icon mdi-delete
 
-            v-row
-              v-col(cols="12" justify="end")
-                v-btn(color="primary" @click.prevent='addItem')
-                  span {{ $t("cryptos.addLine") }}
+          v-row
+            v-col(cols="12" justify="end")
+              v-btn(color="primary" @click.prevent='addItem')
+                span {{ $t("cryptos.addLine") }}
 
         v-card-actions
           v-row(dense justify="center")
@@ -79,6 +79,7 @@ import { createCrypto, updateCrypto } from "../utils/generated/api-user";
 type CryptoCurrencyWithTransactions = CryptoCurrencies & { Transactions: Transactions[] };
 const loadingStore = useLoadingStore();
 const showModal = ref(false);
+const valid = ref(false);
 const mutableCrypto = ref({} as CryptoCurrencyWithTransactions);
 const swappingCrypto = ref({} as CryptoCurrencyWithTransactions);
 const parentModelId = ref(0);
@@ -102,7 +103,7 @@ const transactionItemTemplate = {
 
 const { t: $t } = useI18n();
 const dialogTitle = computed(() => {
-  if (swappingCrypto.value) {
+  if (swappingCrypto.value?.id) {
     return $t("cryptos.swapToken", [swappingCrypto.value.name]);
   } else if (mutableCrypto.value?.id) {
     return $t("cryptos.editToken");
@@ -178,6 +179,7 @@ function removeItem(item) {
 
 const emit = defineEmits(["refreshCryptos"]);
 async function handleSubmit(): Promise<void> {
+  if (!valid.value) return;
   loadingStore.setLoading(true);
   mutableCrypto.value.category = "Crypto";
   try {

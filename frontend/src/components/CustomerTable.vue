@@ -7,9 +7,6 @@ v-form(@submit.prevent ref="searchFrom")
     v-col(cols="12" sm="3" md="2")
       v-text-field(hide-details :label='$t("customers.email")' name='by_email' v-model='query.email' @blur='filterCustomers')
 
-    v-col(cols="12" sm="3" md="2")
-      v-text-field(hide-details :label='$t("customers.city")' name='by_city' v-model='query.city' @blur='filterCustomers')
-
     v-col.mr-2(cols="12" sm="3" md="2")
       v-text-field(hide-details :label='$t("customers.phone")' name='by_phone' v-model='query.phone' @blur='filterCustomers')
 
@@ -18,7 +15,7 @@ v-form(@submit.prevent ref="searchFrom")
       v-icon.ml-2(@click="resetAll()") mdi-restore
 
 v-col(cols="12")
-  v-data-table-server.elevation-1(
+  v-data-table-server(
     :headers="dataTable.headers"
     :items-length="props.items?.count"
     :items="props.items?.rows"

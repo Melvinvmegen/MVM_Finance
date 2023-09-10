@@ -22,7 +22,7 @@ import dayjs from "dayjs";
 
 const props = defineProps({
   modelValue: {
-    type: Date,
+    type: [String, Date],
     default() {
       return dayjs().toDate();
     },
@@ -51,7 +51,7 @@ const getDate = computed(() => {
 
 function updateDate(val) {
   menu.value = false;
-  input.value = val[0];
-  emit("update:modelValue", val[0]);
+  input.value = val;
+  emit("update:modelValue", val);
 }
 </script>

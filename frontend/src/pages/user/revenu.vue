@@ -15,89 +15,92 @@ v-container
                 v-text-field(name='taxPercentage' :label='$t("revenu.tax")'  v-model.number="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
 
             div(v-if='revenu?.Invoices?.length')
-              v-card-title {{ $t("revenu.invoices") }} 
-              transition-group(name='slide-up')
-                v-row(v-for='invoice in revenu.Invoices' :key="invoice.id")
+              hr.my-8
+              v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.invoices") }} 
+              TransitionGroup(name='slide-up')
+                v-row(v-for='(invoice, index) in revenu.Invoices' :key="index")
                   v-col(cols="3")
                     v-text-field(:label='$t("revenu.name")' :model-value="invoice.company || invoice.lastName" disabled)
                   v-col(cols="2")
                     v-text-field(:label='$t("revenu.total")' :model-value="invoice.total" disabled)
 
             div(v-if='revenu.Quotations?.length')
-              v-card-title.px-0.pb-8 {{ $t("revenu.quotations") }}
+              v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.quotations") }}
               v-row
                 v-col(cols="3") {{ $t("revenu.name") }}
                 v-col(cols="2") {{ $t("revenu.total") }}
                 v-col(cols="1")
               br
-              transition-group(name='slide-up')
-                v-row(v-for='quotation in revenu.Quotations' :key="quotation.id")
+              TransitionGroup(name='slide-up')
+                v-row(v-for='(quotation, index) in revenu.Quotations' :key="index")
                   v-col(cols="3")
                     v-text-field(v-model="quotation.company" :rules="[$v.required()]")
                   v-col(cols="2")
                     v-text-field(v-model="quotation.total" :disabled='true'  )
 
             hr.my-8
-            v-card-title.px-0.pb-8 {{ $t("revenu.credits") }}
-            v-row
-              v-col(cols="3") {{ $t("revenu.createdAt") }}
-              v-col(cols="3") {{ $t("revenu.creditor") }}
-              v-col(cols="3") {{ $t("revenu.category") }}
-              v-col(cols="2") {{ $t("revenu.total") }}
-              v-col(cols="1")
-            br
-            transition-group(name='slide-up')
-              v-row(v-for='(credit, index) in credits' :key="credit.id || index")
-                v-col(cols="3")
-                  DateInput(v-model="credit.createdAt")
-                v-col(cols="3")
-                  v-text-field(v-model="credit.creditor" :rules="[$v.required()]")
-                v-col(cols="3")
-                  v-select(v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal" )
-                v-col(cols="2")
-                  v-text-field(v-model.number="credit.total" @change="updateTotal" :rules="[$v.required(), $v.number()]")
-                v-col(cols="1")
-                  v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
-                    v-icon mdi-delete
-
+            v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.credits") }}
+            template(v-if="credits.length")
               v-row
-                v-col(cols="12" justify="end")
-                  v-btn(@click.prevent="addItem('Credit')")
-                    span {{ $t("revenu.addLine") }}
+                v-col(cols="3") {{ $t("revenu.createdAt") }}
+                v-col(cols="3") {{ $t("revenu.creditor") }}
+                v-col(cols="3") {{ $t("revenu.category") }}
+                v-col(cols="2") {{ $t("revenu.total") }}
+                v-col(cols="1")
+              br
+              TransitionGroup(name='slide-up')
+                v-row(v-for='(credit, index) in credits' :key="index")
+                  v-col(cols="3")
+                    DateInput(v-model="credit.createdAt")
+                  v-col(cols="3")
+                    v-text-field(v-model="credit.creditor" :rules="[$v.required()]")
+                  v-col(cols="3")
+                    v-select(v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal" )
+                  v-col(cols="2")
+                    v-text-field(v-model.number="credit.total" @change="updateTotal" :rules="[$v.required(), $v.number()]")
+                  v-col(cols="1")
+                    v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
+                      v-icon mdi-delete
+
+            v-row
+              v-col(cols="12" justify="end")
+                v-btn(@click.prevent="addItem('Credit')")
+                  span {{ $t("revenu.addLine") }}
 
             hr.my-8
-            v-card-title.px-0.pb-8 {{ $t("revenu.costs") }}
-            v-row
-              v-col(cols="1") {{ $t("revenu.recurrent") }}
-              v-col(cols="2") {{ $t("revenu.createdAt") }}
-              v-col(cols="3") {{ $t("revenu.reference") }}
-              v-col(cols="2") {{ $t("revenu.category") }}
-              v-col(cols="1") {{ $t("revenu.vat") }}
-              v-col(cols="2") {{ $t("revenu.total") }}
-              v-col(cols="1")
-            br
-            transition-group(name='slide-up')
-              v-row(v-for='(cost, index) in costs' :key="cost.id || index" :class="{'bg-red-darken-4': cost.category === 'TODEFINE'}")
-                v-col(cols="1")
-                  v-checkbox(v-model="cost.recurrent" color="secondary")
-                v-col(cols="2")
-                  DateInput(v-model="cost.createdAt")
-                v-col(cols="3")
-                  v-text-field(v-model="cost.name" :rules="[$v.required()]")
-                v-col(cols="2")
-                  v-select(v-model="cost.category" :items="costCategories")
-                v-col(cols="1")
-                  v-text-field(v-model.number="cost.tvaAmount" @change="updateTotal" :rules="[$v.number()]")
-                v-col(cols="2")
-                  v-text-field(v-model.number="cost.total" @change="updateTotal" :rules="[$v.required(), $v.number()]")
-                v-col(cols="1")
-                  v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
-                    v-icon mdi-delete
-
+            v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.costs") }}
+            template(v-if="costs.length")
               v-row
-                v-col(cols="12" justify="end")
-                  v-btn(@click.prevent="addItem('Cost')")
-                    span {{ $t("revenu.addLine") }}
+                v-col(cols="1") {{ $t("revenu.recurrent") }}
+                v-col(cols="2") {{ $t("revenu.createdAt") }}
+                v-col(cols="3") {{ $t("revenu.reference") }}
+                v-col(cols="2") {{ $t("revenu.category") }}
+                v-col(cols="1") {{ $t("revenu.vat") }}
+                v-col(cols="2") {{ $t("revenu.total") }}
+                v-col(cols="1")
+              br
+              TransitionGroup(name='slide-up')
+                v-row(v-for='(cost, index) in costs' :key="index" :class="{'bg-red-darken-4': cost.category === 'TODEFINE'}")
+                  v-col(cols="1")
+                    v-checkbox(v-model="cost.recurrent" color="secondary")
+                  v-col(cols="2")
+                    DateInput(v-model="cost.createdAt")
+                  v-col(cols="3")
+                    v-text-field(v-model="cost.name" :rules="[$v.required()]")
+                  v-col(cols="2")
+                    v-select(v-model="cost.category" :items="costCategories")
+                  v-col(cols="1")
+                    v-text-field(v-model.number="cost.tvaAmount" @change="updateTotal" :rules="[$v.number()]")
+                  v-col(cols="2")
+                    v-text-field(v-model.number="cost.total" @change="updateTotal" :rules="[$v.required(), $v.number()]")
+                  v-col(cols="1")
+                    v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
+                      v-icon mdi-delete
+
+            v-row
+              v-col(cols="12" justify="end")
+                v-btn(@click.prevent="addItem('Cost')")
+                  span {{ $t("revenu.addLine") }}
 
           v-card-actions
             v-row(dense justify="center")
@@ -105,19 +108,21 @@ v-container
                 v-btn(color="primary" @click='router.go(-1)') {{ "Retour" }}
                 v-btn(color="secondary" type="submit") {{ "Editer un revenu" }}
     v-col(cols='4')
-      v-card
+      TotalField(
+        :initial-total='revenu.total',
+        :model='revenu'
+      )
+      v-card.mt-4(v-if="credits.length")
+        v-card-title.text-center.mb-2 {{ $t("revenu.revenus") }} {{ revenu.total }} €
         v-card-text
-          TotalField(
-            :initial-total='revenu.total',
-            :model='revenu'
-          )
-        v-card-text
-          v-card-title {{ $t("revenu.revenus") }} {{ revenu.total }} €
           PieChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
-          v-card-title {{ $t("revenu.costs") }} {{ revenu.expense }} €
+      v-card.mt-4(v-if="costs.length")
+        v-card-title.text-center.mb-2 {{ $t("revenu.costs") }} {{ revenu.expense }} €
+        v-card-text
           PieChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
-          hr.mx-2.my-4
-          v-card-title {{ $t("revenu.watchers") }}
+      v-card.mt-4
+        v-card-title.text-center.mb-2 {{ $t("revenu.watchers") }}
+        v-card-text
           v-autocomplete(
             chips
             :items="costsNames"
@@ -304,6 +309,14 @@ function groupModelByCategory(model, model_name, items) {
 
 watch(computedCostCategories, () => groupModelByCategory(costs, "costs", costCategories));
 watch(computedCreditCategories, () => groupModelByCategory(credits, "credits", creditCategories));
+watch(
+  () => revenu.value?.total,
+  () => groupModelByCategory(credits, "credits", creditCategories),
+);
+watch(
+  () => revenu.value?.expense,
+  () => groupModelByCategory(costs, "costs", costCategories),
+);
 
 const costsNames = computed(() => {
   const arr = costs.value ? costs.value.map((cost) => cost.name.replace(/[\d+/+]/g, "").trim()) : [];

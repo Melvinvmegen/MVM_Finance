@@ -2,12 +2,11 @@
 v-form(@submit.prevent ref="searchFrom")
   v-row(align="center")
     v-col(cols="12" sm="3" md="3")
-      v-select(hide-details :items="props.items?.rows"  clearable item-title="createdAt" item-value="id" name='revenuId' :label='$t("revenu.search")' @blur='getByRevenuId')
-
+      v-select(hide-details :items="props.items?.rows" clearable :item-props="itemProps" :label='$t("revenu.search")' v-model="revenuId")
     v-btn.bg-secondary {{ $t("revenus.search") }}
 
 v-col(cols="12")
-  v-data-table-server.elevation-1(
+  v-data-table-server(
     :headers="dataTable.headers"
     :items-length="props.items?.count"
     :items="props.items?.rows"
@@ -119,13 +118,22 @@ const dataTable = {
   ],
 };
 
+function itemProps(item) {
+  return {
+    title: dayjs(item.createdAt).format("MMMM YYYY"),
+    value: item.id,
+  };
+}
+
 const emit = defineEmits(["filter"]);
-function getByRevenuId(event) {
+const revenuId = ref();
+watch(revenuId, (newId) => {
   emit("filter", {
-    id: event.target.value,
+    id: newId,
     force: true,
   });
-}
+});
+
 function getRevenus({ page, itemsPerPage, sortBy }) {
   emit("filter", {
     currentPage: page,

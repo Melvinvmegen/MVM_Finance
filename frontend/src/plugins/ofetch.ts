@@ -8,7 +8,7 @@ export function createOFetch(options = { headers: [] }) {
     headers: options?.headers || { Sid: useSettingsStore().sid },
     credentials: "include",
     async onRequestError({ error }) {
-      useMessageStore().i18nMessage("error", "errors.server.notreachable");
+      useMessageStore().i18nMessage("error", "errors.server.notReachable");
       return Promise.reject(error);
     },
     async onResponseError({ response }) {

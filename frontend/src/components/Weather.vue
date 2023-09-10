@@ -1,6 +1,6 @@
 <template lang="pug">
-v-card(v-if="weather")
-  v-card-text#weather(:class="weather.value?.main?.temp > 16 ? $t('weather.warm') : $t('weather.cold')")
+v-card(v-if="weather" class="h-100")
+  v-card-text#weather(class="h-100" :class="weather?.main?.temp > 16 ? 'warm' : 'cold'")
     v-text-field.text-white(
       color="white"
       shaped
@@ -12,21 +12,20 @@ v-card(v-if="weather")
     )
     .weather-wrap
       .location-box
-        .location {{ weather.value.name }}, {{ weather.value.sys.country }}
+        .location {{ weather.name }}, {{ weather.sys.country }}
         br
         .date {{ currentDate }}
-      .weather-box(v-if="weather.value.main.temp")
-        .temp {{ Math.round(weather.value.main.temp) }}&deg;c
+      .weather-box(v-if="weather.main.temp")
+        .temp {{ Math.round(weather.main.temp) }}&deg;c
         br
         .weather(v-if="settingsStore.settings")
-          img(:src='`${settingsStore.settings.weatherIconUrl}${weather?.value?.weather[0]?.icon}.png`')
-          span {{ weather.value.weather[0].description }}
+          img(:src='`${settingsStore.settings.weatherIconUrl}${weather?.weather[0]?.icon}.png`')
+          span {{ weather.weather[0].description }}
 
 </template>
 <script setup lang="ts">
 import dayjs from "dayjs";
-import { useOFetch } from "../plugins/ofetch";
-
+import { ofetch } from "ofetch";
 interface Weather {
   value: {
     weather: [{ description: string; icon: string }];
@@ -50,8 +49,13 @@ onMounted(() => {
 
 async function fetchWeather() {
   try {
-    const response = await getWeather();
-    weather.value = response.data;
+    const response = await ofetch(
+      `${settingsStore.settings.weatherApiBaseUrl}weather?q=${query.value}&units=metric&appid=${settingsStore.settings.weatherApiKey}`,
+      {
+        method: "GET",
+      },
+    );
+    weather.value = response;
   } catch (error) {
     if (error.status === "404") {
       messageStore.i18nMessage("error", "errors.server.notFound");
@@ -59,15 +63,6 @@ async function fetchWeather() {
       messageStore.i18nMessage("error", "errors.server.unexpected");
     }
   }
-}
-
-async function getWeather() {
-  return await useOFetch(
-    `${settingsStore.settings.weatherApiBaseUrl}weather?q=${query.value}&units=metric&appid=${settingsStore.settings.weatherApiKey}`,
-    {
-      method: "GET",
-    },
-  );
 }
 
 const currentDate = computed(() => {
@@ -144,7 +139,7 @@ const currentDate = computed(() => {
   display: inline-block;
   padding: 10px 25px;
   color: #fff;
-  font-size: 102px;
+  font-size: 70px;
   font-weight: 900;
   text-shadow: 3px 6px rgba(0, 0, 0, 0.25);
   border-radius: 16px;

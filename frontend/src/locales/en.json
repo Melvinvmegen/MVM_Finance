@@ -100,7 +100,7 @@
     }
   },
   "cryptos": {
-    "title": "Cryptos:",
+    "title": "Cryptos",
     "subtitle": "Watchlist",
     "chartTitle": "Crypto distribution",
     "createToken": "Create token",
@@ -112,7 +112,7 @@
     "exchange": "Exchange",
     "quantity": "Quantity",
     "fees": "Fees",
-    "swapToken": "Crypto conversion from {0} to:"
+    "swapToken": "Crypto conversion from {0} to"
   },
   "customers": {
     "title": "Customers",
@@ -183,16 +183,16 @@
   },
   "revenu": {
     "editRevenu": "Edit your {0} revenu",
-    "invoices": "Invoices:",
+    "invoices": "Invoices",
     "tax": "Tax %",
     "name": "Name",
     "total": "Total",
     "creditor": "Creditor",
-    "quotations": "Quotations:",
+    "quotations": "Quotations",
     "category": "Category",
-    "credits": "Credits:",
+    "credits": "Credits",
     "addLine": "+ Add a new line",
-    "costs": "Costs:",
+    "costs": "Costs",
     "watchers": "Watchers",
     "vat": "VAT amount",
     "revenus": "Revenus:",
@@ -202,7 +202,7 @@
     "recurrent": "Recurrent"
   },
   "revenus": {
-    "title": "Revenus:",
+    "title": "Revenus",
     "averageMonthlySpending": "Average Monthly spending",
     "averageRecurrentSpending": "Average Monthly recurrent spending",
     "averageRevenu": "Average monthly revenu",
@@ -241,7 +241,8 @@
     "emailSent": "Invoice has been sent successfully!",
     "updated": "Invoice successfully updated!",
     "created": "Invoice successfully created!",
-    "vatAmount": "VAT Amount"
+    "vatAmount": "VAT Amount",
+    "paymentDate": "Payment date"
   },
   "quotations": {
     "title": "Quotations",
@@ -264,14 +265,15 @@
     "emailSent": "Quotation has been sent successfully!",
     "updated": "Quotation successfully updated!",
     "created": "Quotation successfully created!",
-    "tvaAmount": "VAT Amount"
+    "tvaAmount": "VAT Amount",
+    "paymentDate": "Payment date"
   },
   "totalField": {
     "invoiceNumber": "Invoice n°{0}",
     "invoiceFor": "To the attention of Mr or Mrs",
     "totalPro": "Pro total",
     "totalPerso": "Personal total",
-    "total": "Total",
+    "total": "Revenus",
     "withVAT": "Including VAT",
     "expenses": "Expenses",
     "totalVAT": " Total incl. VAT",

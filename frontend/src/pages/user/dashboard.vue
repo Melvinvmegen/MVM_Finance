@@ -24,7 +24,7 @@ div
         v-card-text
           LineChart(v-if="lineChartData" :chart-data='lineChartData' :chart-options='chartOptions')
     v-col(cols="12" md="4")
-      v-card(class="v-col mt-4")
+      v-card(class="v-col")
         v-card-text
           v-row(justify="space-around" align="center" v-if="revenu?.pro")
             v-card-subtitle {{ $t("dashboard.revenuPro") }}

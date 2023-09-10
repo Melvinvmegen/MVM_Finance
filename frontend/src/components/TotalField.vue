@@ -29,9 +29,11 @@ v-card.pa-4(v-if="props.model")
     v-row.mx-1(justify="space-between" align="center")
         v-card-subtitle {{ $t("totalField.totalVAT") }}
         v-card-title {{ $n(Math.round(initialTotalTTC), "currency") }}
-  v-row.mx-1(justify="space-between" align="center" v-if="props.model.total && props.model.expense")
-    v-card-subtitle {{ $t("totalField.balance") }}
-    v-card-title {{ $n(Math.round(props.model.total - Math.abs(props.model.expense)), "currency") }}
+  template(v-if="props.model.total && props.model.expense")
+    hr.mx-2.my-4
+    v-row.mx-1(justify="space-between" align="center")
+      v-card-subtitle {{ $t("totalField.balance") }}
+      v-card-title {{ $n(Math.round(props.model.total - Math.abs(props.model.expense)), "currency") }}
   hr.mx-2.my-4
   v-row.mx-1(justify="space-between" align="center" v-if='props.model.tva_collected')
     v-card-subtitle {{ $t("totalField.vatCollected") }}
