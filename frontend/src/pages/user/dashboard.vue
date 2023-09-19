@@ -75,7 +75,7 @@ div
             v-col(cols="10")
               v-text-field(name='name' :label='$t("dashboard.name")' v-model='mutableBank.name' :rules="[$v.required()]")
             v-col(cols="10")
-              v-text-field(name='amount' :label='$t("dashboard.amount")' v-model.number='mutableBank.amount' :rules="[$v.required(), $v.number()]")
+              NumberInput(name='amount' :label='$t("dashboard.amount")' v-model='mutableBank.amount' :rules="[$v.required(), $v.number()]")
 
         v-card-actions.mb-2
           v-row(dense justify="center")

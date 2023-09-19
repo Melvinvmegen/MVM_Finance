@@ -15,6 +15,7 @@ declare module 'vue' {
     DateInput: typeof import('./../src/components/DateInput.vue')['default']
     InvoiceTable: typeof import('./../src/components/InvoiceTable.vue')['default']
     LineChart: typeof import('./../src/components/LineChart.vue')['default']
+    NumberInput: typeof import('./../src/components/NumberInput.vue')['default']
     PaymentForm: typeof import('./../src/components/PaymentForm.vue')['default']
     PieChart: typeof import('./../src/components/PieChart.vue')['default']
     QuotationTable: typeof import('./../src/components/QuotationTable.vue')['default']

@@ -16,7 +16,7 @@ v-card.pa-4(elevation="3")
     v-form(v-model="valid" @submit.prevent ref="searchFrom")
       v-row
         v-col.mr-2(cols="12" sm="5" md="4" lg="3")
-          v-text-field(hide-details :label='$t("invoice.searchByTotal")' name='by_total' v-model.number='query.totalTTC' @blur='searchInvoices' :rules="[$v.number()]")
+          NumberInput(hide-details :label='$t("invoice.searchByTotal")' name='by_total' v-model='query.totalTTC' @blur='searchInvoices' :rules="[$v.number()]")
 
         v-row(align="center")
           v-btn.bg-secondary(@click='searchInvoices') {{ $t("invoices.search") }}

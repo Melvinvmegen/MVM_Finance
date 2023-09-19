@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container
   v-row(v-if="revenu")
-    v-col(cols='8')
+    v-col(cols='12' lg="8")
       v-card.pa-4
         v-form(v-model="valid" @submit.prevent="handleSubmit")
           v-card-title 
@@ -12,7 +12,7 @@ v-container
           v-card-text
             v-row(dense)
               v-col(cols="2")
-                v-text-field(name='taxPercentage' :label='$t("revenu.tax")'  v-model.number="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
+                NumberInput(name='taxPercentage' :label='$t("revenu.tax")'  v-model="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
 
             div(v-if='revenu?.Invoices?.length')
               hr.my-8
@@ -57,7 +57,7 @@ v-container
                   v-col(cols="3")
                     v-select(v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal" )
                   v-col(cols="2")
-                    v-text-field(v-model.number="credit.total" @change="updateTotal" :rules="[$v.required(), $v.number()]")
+                    NumberInput(v-model="credit.total" @change="(event) => updateTotal(index, event, 'Credits', 'total')" :rules="[$v.required(), $v.number()]")
                   v-col(cols="1")
                     v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
                       v-icon mdi-delete
@@ -90,9 +90,9 @@ v-container
                   v-col(cols="2")
                     v-select(v-model="cost.category" :items="costCategories")
                   v-col(cols="1")
-                    v-text-field(v-model.number="cost.tvaAmount" @change="updateTotal" :rules="[$v.number()]")
+                    NumberInput(v-model="cost.tvaAmount" @change="(event) => updateTotal(index, event, 'Costs', 'tvaAmount')" :rules="[$v.number()]")
                   v-col(cols="2")
-                    v-text-field(v-model.number="cost.total" @change="updateTotal" :rules="[$v.required(), $v.number()]")
+                    NumberInput(v-model="cost.total" @change="(event) => updateTotal(index, event, 'Costs', 'total')" :rules="[$v.required(), $v.number()]")
                   v-col(cols="1")
                     v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
                       v-icon mdi-delete
@@ -107,7 +107,7 @@ v-container
               v-col.d-flex.justify-center(cols="12" lg="8")
                 v-btn(color="primary" @click='router.go(-1)') {{ "Retour" }}
                 v-btn(color="secondary" type="submit") {{ "Editer un revenu" }}
-    v-col(cols='4')
+    v-col(cols='12' lg="4")
       TotalField(
         :initial-total='revenu.total',
         :model='revenu'
@@ -221,7 +221,10 @@ function removeItem(item, itemName) {
   }
 }
 
-function updateTotal() {
+function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
+  if (index && event && modelName) {
+    revenu.value[modelName][index][columnName] = +event.target.value;
+  }
   if (!revenu.value) return;
   const tvaCollected = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.tvaAmount, 0);
   const tvaDispatched = costs.value.reduce((sum, cost) => sum + Number(cost.tvaAmount), 0);

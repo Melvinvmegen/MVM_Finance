@@ -7,6 +7,7 @@
       transition="scale-transition"
       offset-y
       min-width="290px"
+      location="end"
     >
       <template v-slot:activator="{ props }">
         <v-text-field v-bind="props" :modelValue="dateFormatted" append-inner-icon="mdi-calendar"></v-text-field>
@@ -42,7 +43,7 @@ watch(
 );
 
 const dateFormatted = computed(() => {
-  return dayjs(input.value || undefined).format("YYYY-MM-DD");
+  return dayjs(input.value || undefined).format("DD-MM-YYYY");
 });
 
 const getDate = computed(() => {
