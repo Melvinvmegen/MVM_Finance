@@ -188,6 +188,7 @@
     "tax": "Tax %",
     "name": "Name",
     "total": "Total",
+    "totalTTC": "Total incl. VAT",
     "creditor": "Creditor",
     "quotations": "Quotations",
     "category": "Category",

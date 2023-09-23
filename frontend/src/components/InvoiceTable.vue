@@ -43,7 +43,7 @@ v-card.pa-4(elevation="3")
         template( v-slot:[`item.tvaAmount`]="{ item }")
           span {{ $n(item.raw.tvaAmount, "currency") }}
         template(v-slot:item.actions="{ item }")
-          v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openInvoiceModel = true; selectedInvoice = item.raw" v-if='!item.raw.paid' )
+          v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openInvoiceModel = true; selectedInvoice = item.raw")
           v-btn(variant="text" size="small" icon="mdi-receipt" @click.stop="download(item.raw)")
           v-btn(variant="text" size="small" icon="mdi-email" @click.stop="sendEmail(item.raw)")
           v-btn(

@@ -17,18 +17,27 @@ v-container
             div(v-if='revenu?.Invoices?.length')
               hr.my-8
               v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.invoices") }} 
+              v-row
+                v-col(cols="3") {{ $t("revenu.name") }}
+                v-col(cols="2") {{ $t("revenu.total") }}
+                v-col(cols="2") {{ $t("revenu.totalTTC") }}
+                v-col(cols="1")
+              br
               TransitionGroup(name='slide-up')
                 v-row(v-for='(invoice, index) in revenu.Invoices' :key="index")
                   v-col(cols="3")
-                    v-text-field(:label='$t("revenu.name")' :model-value="invoice.company || invoice.lastName" disabled)
+                    v-text-field(:model-value="invoice.company || invoice.lastName" disabled)
                   v-col(cols="2")
-                    v-text-field(:label='$t("revenu.total")' :model-value="invoice.total" disabled)
+                    v-text-field(:model-value="invoice.total" disabled)
+                  v-col(cols="2")
+                    v-text-field(:model-value="invoice.totalTTC" disabled)
 
             div(v-if='revenu.Quotations?.length')
               v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.quotations") }}
               v-row
                 v-col(cols="3") {{ $t("revenu.name") }}
                 v-col(cols="2") {{ $t("revenu.total") }}
+                v-col(cols="2") {{ $t("revenu.totalTTC") }}
                 v-col(cols="1")
               br
               TransitionGroup(name='slide-up')
@@ -37,6 +46,8 @@ v-container
                     v-text-field(v-model="quotation.company" :rules="[$v.required()]")
                   v-col(cols="2")
                     v-text-field(v-model="quotation.total" :disabled='true'  )
+                  v-col(cols="2")
+                    v-text-field(v-model="quotation.totalTTC" :disabled='true'  )
 
             hr.my-8
             v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.credits") }}
@@ -203,9 +214,9 @@ onMounted(async () => {
 
 function addItem(itemName) {
   if (itemName === "Cost") {
-    costs.value.push({ ...costItemTemplate });
+    costs.value.push({ createdAt: costs.value.at(-1)?.createdAt, ...costItemTemplate });
   } else {
-    credits.value.push({ ...creditItemTemplate });
+    credits.value.push({ createdAt: credits.value.at(-1)?.createdAt, ...creditItemTemplate });
   }
 }
 
