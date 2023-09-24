@@ -37,7 +37,7 @@ v-container
                   v-col(cols="3")
                     NumberInput(v-model="item.quantity" @change="updateTotal(item)" :rules="[$v.required(), $v.number()]")
                   v-col(cols="2")
-                    v-text-field(v-model="item.total" :disabled='true')
+                    v-text-field(v-model="item.total" disabled)
                   v-col(cols="1")
                     v-btn(color="error" @click.prevent='removeItem(index, item)')
                       v-icon mdi-delete

@@ -31,6 +31,8 @@ v-container
                     v-text-field(:model-value="invoice.total" disabled)
                   v-col(cols="2")
                     v-text-field(:model-value="invoice.totalTTC" disabled)
+                  v-col(cols="1")
+                    v-btn(icon="mdi-eye" variant="plain" size="small" :to="`/customers/${invoice.CustomerId}/invoices/${invoice.id}`")
 
             div(v-if='revenu.Quotations?.length')
               v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.quotations") }}
@@ -45,9 +47,12 @@ v-container
                   v-col(cols="3")
                     v-text-field(v-model="quotation.company" :rules="[$v.required()]")
                   v-col(cols="2")
-                    v-text-field(v-model="quotation.total" :disabled='true'  )
+                    v-text-field(v-model="quotation.total" disabled)
                   v-col(cols="2")
-                    v-text-field(v-model="quotation.totalTTC" :disabled='true'  )
+                    v-text-field(v-model="quotation.totalTTC" disabled)
+                  v-col(cols="1")
+                    v-btn(icon="mdi-eye" variant="plain" size="small" :to="`/customers/${quotation.CustomerId}/invoices/${quotation.id}`")
+
 
             hr.my-8
             v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.credits") }}
@@ -241,8 +246,8 @@ function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
   const tvaDispatched = costs.value.reduce((sum, cost) => sum + Number(cost.tvaAmount), 0);
   const totalInvoices = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.total, 0);
   const totalPro = credits.value.filter((c) => c.category !== "REFUND").reduce((sum, credit) => sum + +credit.total, 0);
-  const totalRefunds = credits.value
-    .filter((c) => c.category === "REFUND")
+  const totalPerso = credits.value
+    .filter((c) => c.category !== "SALARY")
     .reduce((sum, credit) => sum + +credit.total, 0);
   const totalCosts = costs.value.reduce((sum, cost) => sum + Number(cost.total), 0);
 
@@ -250,8 +255,8 @@ function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
   revenu.value.tva_collected = tvaCollected;
   revenu.value.expense = totalCosts;
   revenu.value.pro = totalInvoices + totalPro;
-  revenu.value.perso = totalRefunds;
-  revenu.value.total = totalInvoices + totalPro + totalRefunds;
+  revenu.value.perso = totalPerso;
+  revenu.value.total = totalInvoices + totalPro + totalPerso;
 }
 
 async function handleSubmit() {
