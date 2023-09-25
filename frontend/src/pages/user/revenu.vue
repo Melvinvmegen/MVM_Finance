@@ -218,10 +218,13 @@ onMounted(async () => {
 });
 
 function addItem(itemName) {
+  let createdAt;
   if (itemName === "Cost") {
-    costs.value.push({ createdAt: costs.value.at(-1)?.createdAt, ...costItemTemplate });
+    createdAt = costs.value.at(-1)?.createdAt || revenu.value?.createdAt;
+    costs.value.push({ createdAt, ...costItemTemplate });
   } else {
-    credits.value.push({ createdAt: credits.value.at(-1)?.createdAt, ...creditItemTemplate });
+    createdAt = credits.value.at(-1)?.createdAt || revenu.value?.createdAt;
+    credits.value.push({ createdAt, ...creditItemTemplate });
   }
 }
 
@@ -245,7 +248,7 @@ function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
   const tvaCollected = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.tvaAmount, 0);
   const tvaDispatched = costs.value.reduce((sum, cost) => sum + Number(cost.tvaAmount), 0);
   const totalInvoices = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.total, 0);
-  const totalPro = credits.value.filter((c) => c.category !== "REFUND").reduce((sum, credit) => sum + +credit.total, 0);
+  const totalPro = credits.value.filter((c) => c.category === "SALARY").reduce((sum, credit) => sum + +credit.total, 0);
   const totalPerso = credits.value
     .filter((c) => c.category !== "SALARY")
     .reduce((sum, credit) => sum + +credit.total, 0);

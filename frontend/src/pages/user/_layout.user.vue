@@ -1,6 +1,7 @@
 <template lang="pug">
 v-app
   v-app-bar(color='primary' fixed)
+    v-app-bar-nav-icon(variant="text" @click.stop="drawer = !drawer")
     v-app-bar-title {{ $t("common.brand") }}
     v-spacer
     v-menu(offset-y)
@@ -8,7 +9,7 @@ v-app
         v-btn(icon="mdi-power" to='/logout' v-if='currentUser')
         router-link.text-decoration-none(:to="'/login'" color='white' v-else)
           v-btn(icon="mdi-account" color='white')
-  v-navigation-drawer(:permanent='!display.mobile.value' width='300' v-if="currentUser")
+  v-navigation-drawer(v-model="drawer" :permanent='!display.mobile.value' width='300' v-if="currentUser")
     v-list(class="pt-0")
       div(v-for='item in menuItems' :key='item.title')
         v-list-item(v-if="item.active" color="secondary" lines="two" density="comfortable" :to='`/${item.link}`')
@@ -30,7 +31,7 @@ import { useDisplay } from "vuetify";
 const display = useDisplay();
 const authStore = useAuthStore();
 const currentUser = computed(() => authStore.me);
-
+const drawer = ref(false);
 const menuItems = [
   { title: "Dashboard", link: "dashboard", icon: "mdi-view-dashboard", active: true },
   { title: "Revenus", link: "revenus", icon: "mdi-currency-eur", active: currentUser?.value?.revenusModuleActive },
