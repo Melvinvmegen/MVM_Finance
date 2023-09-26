@@ -103,7 +103,7 @@ app.register(cors, {
 // app.use(bodyParser.urlencoded({ extended: false }));
 
 app.addHook("onRequest", async (request) => {
-  const level = request.url !== "/n/health" && request.method !== "OPTIONS" ? "info" : "debug";
+  const level = request.url !== "/health" && request.method !== "OPTIONS" ? "info" : "debug";
   const requestMethod = settings.logger.colorize
     ? (request.method === "GET" ? gray : magenta)(request.method)
     : request.method;
@@ -149,7 +149,7 @@ app.addHook("preHandler", async (req) => {
 });
 
 app.addHook("onResponse", async (request, reply) => {
-  const level = request.url !== "/n/health" && request.method !== "OPTIONS" ? "info" : "debug";
+  const level = request.url !== "/health" && request.method !== "OPTIONS" ? "info" : "debug";
   const statusCode = settings.logger.colorize
     ? (reply.statusCode < 400 ? green : reply.statusCode < 500 ? yellow : red)(reply.statusCode)
     : reply.statusCode;
