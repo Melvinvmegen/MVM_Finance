@@ -85,7 +85,12 @@ onMounted(async () => {
 });
 
 async function refreshRevenus(value) {
-  await filterAll(value);
+  loadingStore.setLoading(true);
+  await filterAll({
+    ...value,
+    force: !!items.value.count,
+  });
+  loadingStore.setLoading(false);
 }
 
 const costPieChartData = computed(() => {

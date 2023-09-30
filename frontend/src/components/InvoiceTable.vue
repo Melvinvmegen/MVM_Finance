@@ -33,30 +33,30 @@ v-card.pa-4(elevation="3")
         item-value="name"
         )
         template( v-slot:[`item.paid`]="{ item }")
-          v-chip(:color="item.raw.paid ? 'success' : 'error'") {{ $t(`invoices.paidStatus.${item.raw.paid}`)  }}
+          v-chip(:color="item.paid ? 'success' : 'error'") {{ $t(`invoices.paidStatus.${item.paid}`)  }}
         template( v-slot:[`item.month`]="{ item }")
-          span {{ revenuDate(item.raw.Revenus) }}
+          span {{ revenuDate(item.Revenus) }}
         template( v-slot:[`item.date`]="{ item }")
-          span(v-if="item.raw.paymentDate") {{ dayjs(item.raw.paymentDate).format("DD/MM/YYYY") }}
+          span(v-if="item.paymentDate") {{ dayjs(item.paymentDate).format("DD/MM/YYYY") }}
         template( v-slot:[`item.total`]="{ item }")
-          span {{ $n(item.raw.totalTTC, "currency") }}
+          span {{ $n(item.totalTTC, "currency") }}
         template( v-slot:[`item.tvaAmount`]="{ item }")
-          span {{ $n(item.raw.tvaAmount, "currency") }}
+          span {{ $n(item.tvaAmount, "currency") }}
         template(v-slot:item.actions="{ item }")
-          v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openInvoiceModel = true; selectedInvoice = item.raw")
-          v-btn(variant="text" size="small" icon="mdi-receipt" @click.stop="download(item.raw)")
-          v-btn(variant="text" size="small" icon="mdi-email" @click.stop="sendEmail(item.raw)")
+          v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openInvoiceModel = true; selectedInvoice = item")
+          v-btn(variant="text" size="small" icon="mdi-receipt" @click.stop="download(item)")
+          v-btn(variant="text" size="small" icon="mdi-email" @click.stop="sendEmail(item)")
           v-btn(
-            v-if="!item.raw.paid"
+            v-if="!item.paid"
             variant="text" size="small" 
             icon="mdi-pen"
-            :to="`/customers/${route.params.customerId}/invoices/${item.raw.id}`"
+            :to="`/customers/${route.params.customerId}/invoices/${item.id}`"
           )
           v-btn(
-            v-if="!item.raw.paid"
+            v-if="!item.paid"
             variant="text" size="small" 
             icon="mdi-delete"
-            @click.stop="deleteItem(item.raw, $t('invoices.confirmDelete', [item.raw.id]))",
+            @click.stop="deleteItem(item, $t('invoices.confirmDelete', [item.id]))",
           )
 
 v-dialog(v-model="openInvoiceModel")
@@ -117,29 +117,28 @@ const dataTable = {
   ],
 };
 
-onMounted(async () => {
-  await filterAll({
-    CustomerId: +route.params.customerId,
-  });
-});
-
 async function searchInvoices() {
   if (!valid.value) return;
+  loadingStore.setLoading(true);
   await filterAll({
     CustomerId: +route.params.customerId,
     ...query.value,
     force: true,
   });
+  loadingStore.setLoading(false);
 }
 
 async function getInvoicesData({ page, itemsPerPage, sortBy }) {
+  loadingStore.setLoading(true);
+
   await filterAll({
     CustomerId: +route.params.customerId,
-    force: true,
+    force: !!items.value.count,
     currentPage: page,
     perPage: itemsPerPage,
     sortBy,
   });
+  loadingStore.setLoading(false);
 }
 
 async function download(invoice: Invoices) {

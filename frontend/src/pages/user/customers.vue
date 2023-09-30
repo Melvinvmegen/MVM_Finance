@@ -34,14 +34,17 @@ v-row
 
 <script setup lang="ts">
 import { getCustomers } from "../../utils/generated/api-user";
+const loadingStore = useLoadingStore();
 
 const { filterAll, items } = useFilter(getCustomers);
-onMounted(async () => {
-  await filterAll();
-});
 
 async function refreshCustomers(value) {
-  await filterAll(value);
+  loadingStore.setLoading(true);
+  await filterAll({
+    ...value,
+    force: !!items.value.count,
+  });
+  loadingStore.setLoading(false);
 }
 
 const chartData = computed(() => {

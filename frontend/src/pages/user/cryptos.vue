@@ -40,9 +40,7 @@ type CryptoCurrencyWithTransactions = CryptoCurrencies & { Transactions: Transac
 const loadingStore = useLoadingStore();
 const cryptos = ref<CryptoCurrencyWithTransactions[]>([]);
 onMounted(async () => {
-  loadingStore.setLoading(true);
   await fetchPriceUpdate();
-  loadingStore.setLoading(false);
 });
 
 const chartData = computed(() => {
@@ -146,6 +144,7 @@ function returnTotalPricePurchased(crypto: CryptoCurrencyWithTransactions) {
 }
 
 async function fetchPriceUpdate(): Promise<void> {
+  if (loadingStore.loading) return;
   loadingStore.setLoading(true);
   try {
     await refreshCryptos();

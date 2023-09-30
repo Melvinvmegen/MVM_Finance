@@ -25,15 +25,15 @@ v-col(cols="12")
     item-value="name"
     )
     template( v-slot:[`item.revenus`]="{ item }")
-      span {{ $n(returnPaidInvoiceTotal(item.raw), "currency") }}
+      span {{ $n(returnPaidInvoiceTotal(item), "currency") }}
     template( v-slot:[`item.unpaidAmount`]="{ item }")
-      span {{ $n(returnUnpaidInvoiceTotal(item.raw), "currency") }}
+      span {{ $n(returnUnpaidInvoiceTotal(item), "currency") }}
     template( v-slot:[`item.vatCollected`]="{ item }")
-      span {{ $n(returnTvaAmount(item.raw), "currency") }}
+      span {{ $n(returnTvaAmount(item), "currency") }}
     template(v-slot:item.actions="{ item }")
       v-row(align="center")
-        v-btn(icon="mdi-pencil" variant="plain" size="small" :to="`/customers/${item.raw.id}`")
-        v-btn(icon="mdi-delete" variant="plain" size="small" @click.stop="deleteItem(item.raw, $t('customers.confirmDelete', [`${item.raw.firstName} ${item.raw.lastName}`]) )")
+        v-btn(icon="mdi-pencil" variant="plain" size="small" :to="`/customers/${item.id}`")
+        v-btn(icon="mdi-delete" variant="plain" size="small" @click.stop="deleteItem(item, $t('customers.confirmDelete', [`${item.firstName} ${item.lastName}`]) )")
 </template>
 
 <script setup lang="ts">

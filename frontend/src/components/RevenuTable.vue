@@ -16,25 +16,25 @@ v-col(cols="12")
     item-value="name"
     )
     template( v-slot:[`item.createdAt`]="{ item }")
-      span {{ revenuDate(item.raw) }}
+      span {{ revenuDate(item) }}
     template( v-slot:[`item.pro`]="{ item }")
-      span {{ $n(Math.round(item.raw.pro), "currency") }}
+      span {{ $n(Math.round(item.pro), "currency") }}
     template( v-slot:[`item.revenuNet`]="{ item }")
-      span {{ $n(returnRevenuNet(item.raw), "currency") }}
+      span {{ $n(returnRevenuNet(item), "currency") }}
     template( v-slot:[`item.perso`]="{ item }")
-      span {{ $n(Math.round(item.raw.perso), "currency") }}
+      span {{ $n(Math.round(item.perso), "currency") }}
     template( v-slot:[`item.total`]="{ item }")
-      span {{ $n(Math.round(item.raw.total), "currency") }}
+      span {{ $n(Math.round(item.total), "currency") }}
     template( v-slot:[`item.investments`]="{ item }")
-      span {{ $n(returnInvestmentTotal(item.raw), "currency") }}
+      span {{ $n(returnInvestmentTotal(item), "currency") }}
     template( v-slot:[`item.expense`]="{ item }")
-      span {{ $n(Math.round(item.raw.expense), "currency") }}
+      span {{ $n(Math.round(item.expense), "currency") }}
     template( v-slot:[`item.vatCollected`]="{ item }")
-      span {{ $n(returnTVABalance(item.raw), "currency") }}
+      span {{ $n(returnTVABalance(item), "currency") }}
     template( v-slot:[`item.balance`]="{ item }")
-      span {{ $n(Math.round((returnRevenuNet(item.raw) + item.raw.perso)- Math.abs(item.raw.expense)), "currency") }}
+      span {{ $n(Math.round((returnRevenuNet(item) + item.perso)- Math.abs(item.expense)), "currency") }}
     template(v-slot:item.actions="{ item }")
-      v-btn(icon="mdi-pencil" variant="plain" size="small" :to="`/revenus/${item.raw.id}?bankId=${item.raw.BankId}`")
+      v-btn(icon="mdi-pencil" variant="plain" size="small" :to="`/revenus/${item.id}?bankId=${item.BankId}`")
 </template>
 
 <script setup lang="ts">

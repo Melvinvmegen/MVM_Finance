@@ -33,40 +33,40 @@ v-card.pa-4(elevation="3")
         item-value="name"
         )
         template( v-slot:[`item.cautionPaid`]="{ item }")
-          v-chip(:color="item.raw.cautionPaid ? 'success' : 'error'") {{ $t(`quotations.cautionPaidStatuses.${item.raw.cautionPaid}`)  }}
+          v-chip(:color="item.cautionPaid ? 'success' : 'error'") {{ $t(`quotations.cautionPaidStatuses.${item.cautionPaid}`)  }}
         template( v-slot:[`item.month`]="{ item }")
-          span {{ revenuDate(item.raw.Revenus) }}
+          span {{ revenuDate(item.Revenus) }}
         template( v-slot:[`item.date`]="{ item }")
-          span(v-if="item.raw.paymentDate") {{ dayjs(item.raw.paymentDate).format("DD/MM/YYYY") }}
+          span(v-if="item.paymentDate") {{ dayjs(item.paymentDate).format("DD/MM/YYYY") }}
         template( v-slot:[`item.totalTTC`]="{ item }")
-          span {{ $n(item.raw.totalTTC, "currency") }}
+          span {{ $n(item.totalTTC, "currency") }}
         template( v-slot:[`item.caution`]="{ item }")
-          span {{ $n(item.raw.total * 0.3, "currency") }}
+          span {{ $n(item.total * 0.3, "currency") }}
         template( v-slot:[`item.tvaAmount`]="{ item }")
-          span {{ $n(item.raw.tvaAmount, "currency") }}
+          span {{ $n(item.tvaAmount, "currency") }}
         template(v-slot:item.actions="{ item }")
-          v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openQuotationModel = true; selectedQuotation = item.raw" v-if='!item.raw.cautionPaid' )
-          v-btn(variant="text" size="small" icon="mdi-receipt" @click.stop="download(item.raw)")
-          v-btn(variant="text" size="small" icon="mdi-email" @click.stop="sendEmail(item.raw)")
+          v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openQuotationModel = true; selectedQuotation = item" v-if='!item.cautionPaid' )
+          v-btn(variant="text" size="small" icon="mdi-receipt" @click.stop="download(item)")
+          v-btn(variant="text" size="small" icon="mdi-email" @click.stop="sendEmail(item)")
           v-btn(
-            v-if="!item.raw.cautionPaid && !item.raw.InvoiceId"
+            v-if="!item.cautionPaid && !item.InvoiceId"
             variant="text" size="small" 
             icon="mdi-pen"
-            :to="`/customers/${route.params.customerId}/quotations/${item.raw.id}`"
+            :to="`/customers/${route.params.customerId}/quotations/${item.id}`"
           )
           v-btn(
             variant="text" 
             size="small" 
             icon="mdi-file-swap" 
-            v-if="!item.raw.InvoiceId"
-            @click.stop="convertToInvoice(item.raw, $t('quotations.confirmConvert', [item.raw.id]))"
+            v-if="!item.InvoiceId"
+            @click.stop="convertToInvoice(item, $t('quotations.confirmConvert', [item.id]))"
           )
           v-btn(
-            v-if="!item.raw.cautionPaid && !item.raw.InvoiceId"
+            v-if="!item.cautionPaid && !item.InvoiceId"
             variant="text" size="small" 
             icon="mdi-delete"
-            @click.stop="deleteItem(item.raw, $t('quotations.confirmDelete', [item.raw.id]))",
-            :key="item.raw.id"
+            @click.stop="deleteItem(item, $t('quotations.confirmDelete', [item.id]))",
+            :key="item.id"
           )
 
   v-dialog(v-model="openQuotationModel" width='800')
@@ -134,22 +134,19 @@ const dataTable = {
   ],
 };
 
-onMounted(async () => {
-  await filterAll({
-    CustomerId: +route.params.customerId,
-  });
-});
-
 async function searchQuotations() {
   if (!valid.value) return;
+  loadingStore.setLoading(true);
   await filterAll({
     CustomerId: +route.params.customerId,
     ...query.value,
     force: true,
   });
+  loadingStore.setLoading(false);
 }
 
 async function getQuotationsData({ page, itemsPerPage, sortBy }) {
+  loadingStore.setLoading(true);
   await filterAll({
     CustomerId: +route.params.customerId,
     force: true,
@@ -157,6 +154,7 @@ async function getQuotationsData({ page, itemsPerPage, sortBy }) {
     perPage: itemsPerPage,
     sortBy,
   });
+  loadingStore.setLoading(false);
 }
 
 async function download(quotation: Quotations) {
