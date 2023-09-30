@@ -234,17 +234,17 @@
   resolved "https://registry.yarnpkg.com/@prisma/engines/-/engines-5.1.1.tgz#9c26d209f93a563e048eab63b1976f222f1707d0"
   integrity sha512-NV/4nVNWFZSJCCIA3HIFJbbDKO/NARc9ej0tX5S9k2EVbkrFJC4Xt9b0u4rNZWL4V+F5LAjvta8vzEUw0rw+HA==
 
-"@redis/bloom@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/@redis/bloom/-/bloom-1.1.0.tgz"
-  integrity sha512-9QovlxmpRtvxVbN0UBcv8WfdSMudNZZTFqCsnBszcQXqaZb/TVe30ScgGEO7u1EAIacTPAo7/oCYjYAxiHLanQ==
+"@redis/bloom@1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@redis/bloom/-/bloom-1.2.0.tgz#d3fd6d3c0af3ef92f26767b56414a370c7b63b71"
+  integrity sha512-HG2DFjYKbpNmVXsa0keLHp/3leGJz1mjh09f2RLGGLQZzSHpkmZWuwJbAvo3QcRY8p80m5+ZdXZdYOSBLlp7Cg==
 
-"@redis/client@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.npmjs.org/@redis/client/-/client-1.4.0.tgz"
-  integrity sha512-1gEj1AkyXPlkcC/9/T5xpDcQF8ntERURjLBgEWMTdUZqe181zfI9BY3jc2OzjTLkvZh5GV7VT4ktoJG2fV2ufw==
+"@redis/client@1.5.11":
+  version "1.5.11"
+  resolved "https://registry.yarnpkg.com/@redis/client/-/client-1.5.11.tgz#5ee8620fea56c67cb427228c35d8403518efe622"
+  integrity sha512-cV7yHcOAtNQ5x/yQl7Yw1xf53kO0FNDTdDU6bFIMbW6ljB7U7ns0YRM+QIkpoqTAt6zK5k9Fq0QWlUbLcq9AvA==
   dependencies:
-    cluster-key-slot "1.1.1"
+    cluster-key-slot "1.1.2"
     generic-pool "3.9.0"
     yallist "4.0.0"
 
@@ -253,20 +253,20 @@
   resolved "https://registry.npmjs.org/@redis/graph/-/graph-1.1.0.tgz"
   integrity sha512-16yZWngxyXPd+MJxeSr0dqh2AIOi8j9yXKcKCwVaKDbH3HTuETpDVPcLujhFYVPtYrngSco31BUcSa9TH31Gqg==
 
-"@redis/json@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/@redis/json/-/json-1.0.4.tgz"
-  integrity sha512-LUZE2Gdrhg0Rx7AN+cZkb1e6HjoSKaeeW8rYnt89Tly13GBI5eP4CwDVr+MY8BAYfCg4/N15OUrtLoona9uSgw==
+"@redis/json@1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@redis/json/-/json-1.0.6.tgz#b7a7725bbb907765d84c99d55eac3fcf772e180e"
+  integrity sha512-rcZO3bfQbm2zPRpqo82XbW8zg4G/w4W3tI7X8Mqleq9goQjAGLL7q/1n1ZX4dXEAmORVZ4s1+uKLaUOg7LrUhw==
 
-"@redis/search@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/@redis/search/-/search-1.1.0.tgz"
-  integrity sha512-NyFZEVnxIJEybpy+YskjgOJRNsfTYqaPbK/Buv6W2kmFNaRk85JiqjJZA5QkRmWvGbyQYwoO5QfDi2wHskKrQQ==
+"@redis/search@1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@redis/search/-/search-1.1.5.tgz#682b68114049ff28fdf2d82c580044dfb74199fe"
+  integrity sha512-hPP8w7GfGsbtYEJdn4n7nXa6xt6hVZnnDktKW4ArMaFQ/m/aR7eFvsLQmG/mn1Upq99btPJk+F27IQ2dYpCoUg==
 
-"@redis/time-series@1.0.4":
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/@redis/time-series/-/time-series-1.0.4.tgz"
-  integrity sha512-ThUIgo2U/g7cCuZavucQTQzA9g9JbDDY2f64u3AbAoz/8vE2lt2U37LamDUVChhaDA3IRT9R6VvJwqnUfTJzng==
+"@redis/time-series@1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@redis/time-series/-/time-series-1.0.5.tgz#a6d70ef7a0e71e083ea09b967df0a0ed742bc6ad"
+  integrity sha512-IFjIgTusQym2B5IZJG3XKr5llka7ey84fw/NOYqESP5WUfQs9zz1ww/9+qoz4ka/S6KcGBodzlCeZ5UImKbscg==
 
 "@sendinblue/client@^3.2.2":
   version "3.2.2"
@@ -704,10 +704,10 @@ clone@^1.0.4:
   resolved "https://registry.npmjs.org/clone/-/clone-1.0.4.tgz"
   integrity "sha1-2jCcwmPfFZlMaIypAheco8fNfH4= sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg=="
 
-cluster-key-slot@1.1.1:
-  version "1.1.1"
-  resolved "https://registry.npmjs.org/cluster-key-slot/-/cluster-key-slot-1.1.1.tgz"
-  integrity sha512-rwHwUfXL40Chm1r08yrhU3qpUvdVlgkKNeyeGPOxnW8/SyVDvgRaed/Uz54AqWNaTCAThlj6QAs3TZcKI0xDEw==
+cluster-key-slot@1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/cluster-key-slot/-/cluster-key-slot-1.1.2.tgz#88ddaa46906e303b5de30d3153b7d9fe0a0c19ac"
+  integrity sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==
 
 color-convert@^1.9.0:
   version "1.9.3"
@@ -2484,17 +2484,17 @@ real-require@^0.2.0:
   resolved "https://registry.npmjs.org/real-require/-/real-require-0.2.0.tgz"
   integrity sha512-57frrGM/OCTLqLOAh0mhVA9VBMHd+9U7Zb2THMGdBUoZVOtGbJzjxsYGDJ3A9AYYCP4hn6y1TVbaOfzWtm5GFg==
 
-redis@4.5.0:
-  version "4.5.0"
-  resolved "https://registry.npmjs.org/redis/-/redis-4.5.0.tgz"
-  integrity sha512-oZGAmOKG+RPnHo0UxM5GGjJ0dBd/Vi4fs3MYwM1p2baDoXC0wpm0yOdpxVS9K+0hM84ycdysp2eHg2xGoQ4FEw==
+redis@4.6.10:
+  version "4.6.10"
+  resolved "https://registry.yarnpkg.com/redis/-/redis-4.6.10.tgz#07f6ea2b2c5455b098e76d1e8c9b3376114e9458"
+  integrity sha512-mmbyhuKgDiJ5TWUhiKhBssz+mjsuSI/lSZNPI9QvZOYzWvYGejtb+W3RlDDf8LD6Bdl5/mZeG8O1feUGhXTxEg==
   dependencies:
-    "@redis/bloom" "1.1.0"
-    "@redis/client" "1.4.0"
+    "@redis/bloom" "1.2.0"
+    "@redis/client" "1.5.11"
     "@redis/graph" "1.1.0"
-    "@redis/json" "1.0.4"
-    "@redis/search" "1.1.0"
-    "@redis/time-series" "1.0.4"
+    "@redis/json" "1.0.6"
+    "@redis/search" "1.1.5"
+    "@redis/time-series" "1.0.5"
 
 regenerator-runtime@^0.11.0:
   version "0.11.1"

@@ -9,7 +9,7 @@
   "private": true,
   "scripts": {
     "test": "test",
-    "start": "yarn run prisma_generate && concurrently npm:serve npm:prisma_deploy npm:apiclient_watch",
+    "start": "yarn run prisma_generate && concurrently npm:redis npm:serve npm:prisma_deploy npm:apiclient_watch",
     "serve": "nodemon -r dotenv/config server.js --quiet --colors",
     "prisma_generate": "node ./scripts/generatePrismaClient.js",
     "prisma_deploy": "echo Applying migrations ... && prisma migrate deploy >> ./node_modules/.prisma/logs.txt",
@@ -45,7 +45,7 @@
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.4",
     "pino-pretty": "^10.0.0",
-    "redis": "4.5.0",
+    "redis": "4.6.10",
     "stripe": "^12.4.0"
   },
   "devDependencies": {

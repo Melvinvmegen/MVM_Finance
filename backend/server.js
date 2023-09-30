@@ -1,6 +1,7 @@
 import { validateCustomerBelongsToUser } from "./utils/rights.js";
 import { green, yellow, red, magenta, gray } from "colorette";
 import UnauthorizedError from "./utils/unauthorizedError.js";
+import { createRedisClient } from "./utils/cacheManager.js";
 import clientWrapper from "./apiClient/wrapper.js";
 import { settings } from "./utils/settings.js";
 import multipart from "@fastify/multipart";
@@ -206,6 +207,9 @@ app.get("/health", async () => {
 for (const file of glob.sync("./api/**/[^._]*.js")) {
   app.register(import(file), { prefix: path.dirname(file.slice(2)) });
 }
+
+// Create redis
+await createRedisClient();
 
 // Start server
 try {
