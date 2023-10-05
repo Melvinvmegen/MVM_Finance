@@ -136,6 +136,13 @@ v-container
         v-card-title.text-center.mb-2 {{ $t("revenu.costs") }} {{ revenu.expense }} €
         v-card-text
           PieChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
+      v-card.mt-4(v-if="recurrentCosts.length")
+        v-card-title.text-center.mb-2 {{ $t("revenu.recurrents") }}
+        v-card-text
+          v-row(align="center" class="ml-1 mt-1" v-for='recurrentCost in recurrentCosts' closable-chips :key="recurrentCost.id")
+            v-card-subtitle - {{ recurrentCost.name }}
+            v-card-title {{ $n(recurrentCost.total, "currency") }}
+
       v-card.mt-4
         v-card-title.text-center.mb-2 {{ $t("revenu.watchers") }}
         v-card-text
@@ -357,5 +364,9 @@ const splitedWatchers = computed(() => {
   } else {
     return [];
   }
+});
+
+const recurrentCosts = computed(() => {
+  return revenu.value?.Costs?.filter((c) => c.recurrent) || [];
 });
 </script>
