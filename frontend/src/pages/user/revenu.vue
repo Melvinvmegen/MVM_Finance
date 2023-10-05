@@ -205,7 +205,7 @@ onMounted(async () => {
       BankId: route.query.bankId,
     });
     if (!revenu.value) return;
-    revenu.value.watchers = revenu.value?.watchers?.split(",");
+    revenu.value.watchers = revenu.value?.watchers?.length ? revenu.value?.watchers?.split(",") : [];
     costs.value = revenu.value.Costs;
     credits.value = revenu.value.Credits;
     creditItemTemplate.RevenuId = revenu.value?.id;
@@ -349,7 +349,7 @@ const costsNames = computed(() => {
 
 const splitedWatchers = computed(() => {
   if (!revenu.value) return;
-  let watchers = revenu.value.watchers || [];
+  let watchers = revenu.value.watchers;
   if (!!watchers && typeof watchers === "object") {
     return (watchers = Object.entries(watchers).map((i) => i[1]));
   } else if (!!watchers && typeof watchers === "string") {
