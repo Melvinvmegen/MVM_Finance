@@ -6,5 +6,5 @@ COPY . .
 ENV NODE_ENV=production
 RUN npm install
 RUN npm prune --production
-# HEALTHCHECK CMD curl --fail-early --silent http://localhost:3000/health 2>&1 | grep '"status":"UP"' || exit 1
+HEALTHCHECK CMD curl --fail-early --silent http://localhost:3000/health 2>&1 | grep '"status":"UP"' || exit 1
 ENTRYPOINT [ "node", "server.js" ]

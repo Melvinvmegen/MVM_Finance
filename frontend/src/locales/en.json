@@ -201,7 +201,8 @@
     "reference": "Reference",
     "search": "Search revenu",
     "createdAt": "Création date",
-    "recurrent": "Recurrent"
+    "recurrent": "Recurrent",
+    "recurrents": "Recurrents"
   },
   "revenus": {
     "title": "Revenus",
