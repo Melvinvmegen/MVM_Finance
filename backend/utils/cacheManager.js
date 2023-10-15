@@ -20,17 +20,18 @@ async function createRedisClient() {
 
 const getOrSetCache = async (key, cb, force = false) => {
   try {
-    const result = await redisClient.get(key);
-    if (result && !force) {
-      console.log(green(`[CACHE] HIT: ${key}`));
-      return JSON.parse(result);
-    } else {
-      const redisKey = force ? `filtered_${key}` : key;
-      console.log(yellow(`[CACHE] MISS: ${redisKey}`));
-      const freshData = await cb();
-      redisClient.setEx(redisKey, 3600, JSON.stringify(freshData));
-      return freshData;
-    }
+    // const result = await redisClient.get(key);
+    // if (result && !force) {
+    //   console.log(green(`[CACHE] HIT: ${key}`));
+    //   return JSON.parse(result);
+    // } else {
+    //   const redisKey = force ? `filtered_${key}` : key;
+    //   console.log(yellow(`[CACHE] MISS: ${redisKey}`));
+    //   const freshData = await cb();
+    //   redisClient.setEx(redisKey, 3600, JSON.stringify(freshData));
+    //   return freshData;
+    // }
+    return cb();
   } catch (error) {
     new AppError(500, `[CACHE] ERROR: ${error}`);
   }

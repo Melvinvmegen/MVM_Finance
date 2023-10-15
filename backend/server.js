@@ -209,7 +209,7 @@ for (const file of glob.sync("./api/**/[^._]*.js")) {
 }
 
 // Create redis
-await createRedisClient();
+// await createRedisClient();
 
 // Start server
 try {
