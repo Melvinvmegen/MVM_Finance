@@ -123,7 +123,6 @@ export async function updateCustomer(customerId, body) {
 /**
  * @this {API.This}
  * @param {string} customerId
- * @returns {Promise<Models.Customers>}
  */
 export async function deleteCustomer(customerId) {
   await prisma.customers.delete({
@@ -133,5 +132,4 @@ export async function deleteCustomer(customerId) {
     },
   });
   await invalidateCache("customers");
-  return;
 }

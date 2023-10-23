@@ -276,7 +276,7 @@ export async function convertQuotationToInvoice(customerId, quotationId) {
  * @param {string} quotationId
  */
 export async function sendQuotation(customerId, quotationId) {
-  const quotation = await prisma.quotations.findFirstOrThrow({
+  const quotation = await prisma.quotations.findFirst({
     where: { id: +quotationId, CustomerId: +customerId },
     include: {
       InvoiceItems: true,
@@ -284,8 +284,9 @@ export async function sendQuotation(customerId, quotationId) {
     },
   });
 
+  if (!quotation) throw new AppError("Quotation not found!");
+
   await createInvoiceEmail(quotation);
-  return;
 }
 
 /**
@@ -302,5 +303,4 @@ export async function deleteQuotation(customerId, quotationId) {
   });
 
   await invalidateCache(`quotations_customer_${quotation.CustomerId}`);
-  return;
 }

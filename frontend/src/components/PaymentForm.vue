@@ -37,8 +37,7 @@ const revenus = ref();
 
 onMounted(async () => {
   mutableModel.paymentDate = dayjs(props.model.paymentDate || undefined).toDate();
-  // TODO: this should be made dynamic
-  revenus.value = await getRevenuIds({ BankId: 1 });
+  revenus.value = await getRevenuIds();
 });
 
 async function handleSubmit(): Promise<void> {

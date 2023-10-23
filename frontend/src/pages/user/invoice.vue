@@ -87,8 +87,7 @@ const invoiceItemTemplate: Prisma.InvoiceItemsUncheckedCreateInput = {
 };
 
 onMounted(async () => {
-  // TODO: this should be made dynamic
-  const setupPromises = [getCustomer(customerId), getRevenuIds({ BankId: 1 })];
+  const setupPromises = [getCustomer(customerId), getRevenuIds()];
   if (route.params.id) setupPromises.push(getInvoice(customerId, route.params.id));
 
   loadingStore.setLoading(true);

@@ -64,7 +64,7 @@ export async function getInvoices(CustomerId, params) {
  */
 export async function getInvoice(customerId, invoiceId) {
   const invoice = await getOrSetCache(`invoice_${invoiceId}`, async () => {
-    const data = await prisma.invoices.findFirstOrThrow({
+    const data = await prisma.invoices.findFirst({
       where: {
         id: +invoiceId,
         CustomerId: +customerId,
@@ -89,7 +89,7 @@ export async function getInvoice(customerId, invoiceId) {
  */
 export async function downloadInvoice(customerId, invoiceId) {
   const invoice = await getOrSetCache(`invoice_${invoiceId}`, async () => {
-    const data = await prisma.invoices.findFirstOrThrow({
+    const data = await prisma.invoices.findFirst({
       where: {
         id: +invoiceId,
         CustomerId: +customerId,
@@ -206,7 +206,7 @@ export async function updateInvoice(customerId, invoiceId, body) {
  * @param {string} invoiceId
  */
 export async function sendInvoice(customerId, invoiceId) {
-  const invoice = await prisma.invoices.findFirstOrThrow({
+  const invoice = await prisma.invoices.findFirst({
     where: { id: +invoiceId, CustomerId: +customerId },
     include: {
       InvoiceItems: true,
@@ -214,8 +214,9 @@ export async function sendInvoice(customerId, invoiceId) {
     },
   });
 
+  if (!invoice) throw new AppError("Invoice not found!");
+
   await createInvoiceEmail(invoice);
-  return;
 }
 
 /**
@@ -232,5 +233,4 @@ export async function deleteInvoice(customerId, invoiceId) {
   });
 
   await invalidateCache(`invoices_customer_${invoice.CustomerId}`);
-  return;
 }

@@ -267,8 +267,6 @@ async function sendWebhook(body) {
     },
     body,
   });
-
-  return;
 }
 
 export default routes;

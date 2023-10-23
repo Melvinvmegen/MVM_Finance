@@ -65,17 +65,16 @@ export async function getRevenus(params) {
 
 /**
  * @this {API.This}
- * @param {{ BankId: string }} params
  * @returns {Promise<Models.Revenus[]>}
  */
-export async function getRevenuIds(params) {
-  if (!params.BankId) return;
+export async function getRevenuIds() {
   const revenus = await getOrSetCache(`revenuIds`, async () => {
     return await prisma.revenus.findMany({
       where: {
         Banks: {
-          id: +params.BankId,
-          UserId: this.request.user?.id,
+          is: {
+            id: { in: this.request.user?.bankIds },
+          },
         },
       },
       select: {
