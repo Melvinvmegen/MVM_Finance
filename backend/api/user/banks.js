@@ -24,7 +24,7 @@ export async function getBanks(params) {
     async () => {
       const banks = await prisma.banks.findMany({
         where: {
-          UserId: this.request.user?.id,
+          id: { in: this.request.user?.bankIds },
         },
       });
 

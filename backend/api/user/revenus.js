@@ -30,7 +30,14 @@ export async function getRevenus(params) {
     async () => {
       const count = await prisma.revenus.count();
       const rows = await prisma.revenus.findMany({
-        where: options,
+        where: {
+          ...options,
+          Banks: {
+            is: {
+              id: { in: this.request.user?.bankIds },
+            },
+          },
+        },
         take: per_page,
         skip: offset,
         orderBy: orderBy || { createdAt: "desc" },
@@ -44,11 +51,7 @@ export async function getRevenus(params) {
           },
           Quotations: true,
           Transactions: true,
-          Banks: {
-            where: {
-              UserId: this.request.user?.id,
-            },
-          },
+          Banks: true,
         },
       });
 

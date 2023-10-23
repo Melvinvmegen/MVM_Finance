@@ -16,6 +16,7 @@ declare global {
       cryptosModuleActive: boolean;
       customersModuleActive: boolean;
       revenusModuleActive: boolean;
+      bankIds: number[];
     };
 
     export type DownloadReturns =

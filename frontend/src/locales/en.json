@@ -153,7 +153,10 @@
     "bank": "bank",
     "addBank": "Add a banque",
     "name": "Name",
-    "amount": "Amount"
+    "amount": "Amount",
+    "createRevenu": "Create revenu",
+    "noRevenuText": "All you have left to do is to create one",
+    "noRevenuTitle": "There is no revenu yet"
   },
   "invoice": {
     "editInvoice": "Edit an invoice",

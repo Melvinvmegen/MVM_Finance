@@ -1,29 +1,29 @@
 <template lang="pug">
 div
   v-row
-    v-col(cols="12" md="4")
+    v-col(v-if="costChartData" cols="12" md="4")
       v-card(elevation="3")
         v-card-title
           v-col.text-uppercase(cols="11") {{ $t("dashboard.costs") }} ({{ revenuDate }})
         v-card-text
-          BarChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
-    v-col(cols="12" md="4")
+          BarChart(:chart-data='costChartData' :chart-options='chartOptions')
+    v-col(v-if="creditChartData" cols="12" md="4")
       v-card(elevation="3")
         v-card-title
           v-col.text-uppercase(cols="11") {{ $t("dashboard.revenus") }} ({{ revenuDate }})
         v-card-text
-          BarChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
+          BarChart(:chart-data='creditChartData' :chart-options='chartOptions')
     v-col(cols="12" md="4")
       Weather
 
   v-row  
-    v-col(cols="12" md="8")
+    v-col(v-if="lineChartData" cols="12" md="8")
       v-card(elevation="3")
         v-card-title
           v-col.text-uppercase(cols="11") {{ $t("dashboard.evolution") }} ({{ revenuDate }})
         v-card-text
-          LineChart(v-if="lineChartData" :chart-data='lineChartData' :chart-options='chartOptions')
-    v-col(cols="12" md="4")
+          LineChart(:chart-data='lineChartData' :chart-options='chartOptions')
+    v-col(v-if="revenu" cols="12" md="4")
       v-card(class="v-col")
         v-card-text
           v-row(justify="space-around" align="center" v-if="revenu?.pro")
@@ -48,6 +48,7 @@ div
           v-row(justify="space-around" align="center" v-if="revenuBalance")
             v-card-subtitle {{ $t("dashboard.balance") }}
             v-card-title {{ $n(revenuBalance, "currency") }}
+
       v-card(class="v-col mt-4" v-if="revenuBalance")
         v-card-text(v-for="bank in banks" :key="bank.id")
           v-card-subtitle.text-h6 {{ bank.name }}
@@ -66,6 +67,14 @@ div
           v-card-title
             .text-overline.text-center.text-decoration-underline(@click="show_modal = true") {{ $t("dashboard.addBank") }}
           br
+
+    v-card(v-else class="v-col")
+      v-card-title.text-center {{ $t("dashboard.noRevenuTitle") }}
+      v-card-text.text-center 
+        p {{ $t("dashboard.noRevenuText") }}
+        br
+        v-btn.bg-secondary.text-white(type="submit" to="/revenus") {{ $t("dashboard.createRevenu") }}
+
   v-dialog(v-model='show_modal' width='600')
     v-card
       v-form(v-model="valid" @submit.prevent="handleSubmit")
