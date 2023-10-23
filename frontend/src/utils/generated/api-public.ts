@@ -2,14 +2,6 @@
 import { useOFetch, useOFetchRaw } from "../../plugins/ofetch";
 
 /**
- * @param {Parameters<import("../../../../backend/api/public/auth.js").signUp>[0]} body
- * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/public/auth.js").signUp>>}
-**/
-export async function signUp(body = undefined, query = undefined) {
-  return await useOFetch(`/api/public/signup`, { method: "POST", body, query });
-}
-/**
  * @param {Parameters<import("../../../../backend/api/public/auth.js").signIn>[0]} body
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/public/auth.js").signIn>>}

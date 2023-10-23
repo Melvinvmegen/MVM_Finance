@@ -8,7 +8,7 @@ import { randomUUID } from "crypto";
  * @param {API.ServerInstance} app
  */
 export default async function (app) {
-  app.$post("/signup", signUp);
+  // app.$post("/signup", signUp);
   app.$post("/signin", signIn);
   app.$get("/logout", logout);
   app.$get("/who-am-i", whoAmI);

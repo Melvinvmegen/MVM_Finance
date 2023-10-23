@@ -8,15 +8,15 @@ v-row(justify='center' align="center" dense class="fill-height")
           v-card-subtitle {{ isSignIn ? $t("auth.signIn.subtitle") : $t("auth.signUp.subtitle") }}
           v-divider.my-7
           transition(name="switch" mode="out-in")
-            sign-in-form(@submit="handleSubmit" v-if='isSignIn')
-            sign-up-form(@submit="handleSubmit" v-else)
-    br
-    a.text-decoration-underline.d-flex.justify-center.mx-8(@click='changeMode') {{ isSignIn ? $t("auth.signUp.submit") : $t("auth.signIn.submit") }}
+            sign-in-form(@submit="handleSubmit")
+            //- sign-up-form(@submit="handleSubmit" v-else)
+    //- br
+    //- a.text-decoration-underline.d-flex.justify-center.mx-8(@click='changeMode') {{ isSignIn ? $t("auth.signUp.submit") : $t("auth.signIn.submit") }}
 </template>
 
 <script setup lang="ts">
 import type { Users } from "../../../types/models";
-import { signUp, signIn } from "../../utils/generated/api-public";
+import { signIn } from "../../utils/generated/api-public";
 
 const loadingStore = useLoadingStore();
 const authStore = useAuthStore();
@@ -35,17 +35,17 @@ async function handleSubmit(user: Users): Promise<void> {
       await signIn(user);
       window.location.href = `${window.location.origin}/dashboard`;
     } else {
-      await signUp(user);
-      isSignIn.value = true;
+      // await signUp(user);
+      // isSignIn.value = true;
     }
   } finally {
     loadingStore.setLoading(false);
   }
 }
 
-function changeMode(): void {
-  isSignIn.value = !isSignIn.value;
-}
+// function changeMode(): void {
+//   isSignIn.value = !isSignIn.value;
+// }
 </script>
 
 <style>
