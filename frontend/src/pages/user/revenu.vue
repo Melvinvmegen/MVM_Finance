@@ -12,7 +12,7 @@ v-container
           v-card-text
             v-row(dense)
               v-col(cols="2")
-                NumberInput(name='taxPercentage' :label='$t("revenu.tax")'  v-model="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
+                NumberInput(name='taxPercentage' :label='$t("revenu.tax")' v-model="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
 
             div(v-if='revenu?.Invoices?.length')
               hr.my-8
@@ -108,7 +108,7 @@ v-container
                   v-col(cols="1")
                     NumberInput(v-model="cost.tvaAmount" @change="(event) => updateTotal(index, event, 'Costs', 'tvaAmount')" :rules="[$v.number()]")
                   v-col(cols="2")
-                    NumberInput(v-model="cost.total" @change="(event) => updateTotal(index, event, 'Costs', 'total')" :rules="[$v.required(), $v.number()]")
+                    NumberInput(v-model="cost.total" :positive="false" @change="(event) => updateTotal(index, event, 'Costs', 'total')" :rules="[$v.required(), $v.number()]")
                   v-col(cols="1")
                     v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
                       v-icon mdi-delete
@@ -322,7 +322,17 @@ function groupModelByCategory(model, model_name, items) {
         datasets: [
           {
             data: modelTotalByCategory,
-            backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20", "#FC2E20", "#FDB750", "#010100"],
+            backgroundColor: [
+              "#05445E",
+              "#189AB4",
+              "#75E6DA",
+              "#D4F1F4",
+              "#FDB750",
+              "#FD7F20",
+              "#FC2E20",
+              "#780000",
+              "#010100",
+            ],
           },
         ],
       })
@@ -331,7 +341,7 @@ function groupModelByCategory(model, model_name, items) {
         datasets: [
           {
             data: modelTotalByCategory,
-            backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20"],
+            backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FDB750", "#FD7F20"],
           },
         ],
       });

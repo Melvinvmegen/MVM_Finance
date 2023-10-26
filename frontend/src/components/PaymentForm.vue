@@ -5,7 +5,7 @@ v-card(width="600")
     v-card-text
       v-row.my-2(justify="center")
         v-col(cols="12" sm="8")
-          v-select(:items="revenus" :item-props="itemProps" name='revenuId' v-model="mutableModel.RevenuId" :label='$t("invoice.revenu")'  )
+          v-select(:items="revenus" :item-props="itemProps" name='revenuId' v-model="mutableModel.RevenuId" :label='$t("invoice.revenu")')
       v-row.my-2(justify="center")
         v-col(cols="12" sm="8")
           label {{ $t("invoice.paymentDate") }}

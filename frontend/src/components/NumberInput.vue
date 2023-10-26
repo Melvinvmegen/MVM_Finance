@@ -8,16 +8,15 @@ const props = defineProps({
     type: [String, Number],
     default: 0,
   },
+  positive: {
+    type: [Boolean],
+    default: true,
+  },
 });
 
 const emit = defineEmits(["update:modelValue"]);
 function onInput(event) {
-  emit("update:modelValue", parseFloat(event.target.value) || null);
-}
-
-function onKeydown(event) {
-  if (/^[^0-9,. -]$/.test(event.key)) {
-    event.preventDefault();
-  }
+  const value = props.positive ? Math.abs(event.target.value) : Math.abs(event.target.value) * -1;
+  emit("update:modelValue", parseFloat(value) || null);
 }
 </script>
