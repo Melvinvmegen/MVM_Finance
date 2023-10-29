@@ -317,3 +317,13 @@ export async function createRevenu(bankId, body = undefined, query = undefined) 
 export async function updateRevenu(id, body = undefined, query = undefined) {
   return await useOFetch(`/api/user/revenus/${id}`, { method: "PUT", body, query });
 }
+/**
+ * @param {string|string[]|number} id
+ * @param {string|string[]|number} CostId
+ * @param {Parameters<import("../../../../backend/api/user/revenus.js").updateRevenuCost>[2]} body
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").updateRevenuCost>>}
+**/
+export async function updateRevenuCost(id, CostId, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/revenus/${id}/costs/${CostId}`, { method: "PUT", body, query });
+}

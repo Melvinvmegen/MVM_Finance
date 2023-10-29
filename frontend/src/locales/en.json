@@ -205,7 +205,11 @@
     "search": "Search revenu",
     "createdAt": "Création date",
     "recurrent": "Recurrent",
-    "recurrents": "Recurrents"
+    "recurrents": "Recurrents",
+    "paymentMean": "Payment Mean",
+    "bank": "Bank",
+    "update": "Update",
+    "updateCost": "Update cost"
   },
   "revenus": {
     "title": "Revenus",
@@ -214,7 +218,7 @@
     "averageRevenu": "Average monthly revenu",
     "turnover": "Turnover",
     "totalSpending": "Total spending",
-    "taxes": "Taxes",
+    "taxes": "Estimated Taxes",
     "netResult": "Net result",
     "costDistribution": "Cost distribution:",
     "revenuDistribution": "Revenu distribution:",
@@ -227,7 +231,9 @@
     "expenses": "Expenses",
     "vatCollected": "VAT collected",
     "balance": "Balance",
-    "revenuTotal": "Total"
+    "revenuTotal": "Total",
+    "import": "File import",
+    "fileInput": "File"
   },
   "invoices": {
     "title": "Invoices:",

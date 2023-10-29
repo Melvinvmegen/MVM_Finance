@@ -19,4 +19,6 @@ export interface Query {
   CustomerId?: number;
   totalTTC?: number;
   force?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

@@ -7,11 +7,24 @@ v-row(v-if="items.rows")
           v-col.text-uppercase(cols="11") {{ $t("revenus.title") }}
           v-spacer
           v-col(cols="1")
-            v-btn(icon="mdi-plus" @click="triggerUpload" color="primary")
-            input.mr-2(type="file" id="fileInput" name="fileInput" accept=".csv" style="display:none;" @change="uploadFile")
-
+            v-btn(icon="mdi-plus" @click="showModal = true;" color="primary")
       v-card-text
         RevenuTable(:items="items" @filter="refreshRevenus")
+
+    v-dialog(v-model='showModal' width='600')
+      v-card(width="100%")
+        v-form(@submit.prevent="uploadFile")
+          v-card-title.text-center {{ $t("revenus.import") }}
+          v-card-text.mt-4
+            v-row(dense justify="center")
+              v-col(cols="10")
+                v-select(:items="banks" :item-props="itemProps" v-model="mutableImport.BankId" :label='$t("invoice.revenu")')
+              v-col(cols="10")
+                v-file-input(clearable :label="$t('revenus.fileInput')" accept=".csv" v-model="mutableImport.file")
+          v-card-actions.mb-2
+            v-row(dense justify="center")
+              v-col.d-flex.justify-center(cols="12" lg="8")
+                v-btn.bg-secondary.text-white(type="submit") {{ $t("revenus.import") }}
     v-row
       v-col(cols="12" md="6")
         v-card(elevation="3" class="mt-4")
@@ -75,12 +88,20 @@ v-row(v-if="items.rows")
 import dayjs from "dayjs";
 import { getBanks, getRevenus, createRevenu } from "../../utils/generated/api-user";
 import type { Banks } from "../../../types/models";
+import chartColors from "../../utils/chartColors";
+
 const loadingStore = useLoadingStore();
 const banks = ref<Banks[]>([]);
 const { filterAll, items } = useFilter(getRevenus);
+const showModal = ref(false);
+const mutableImport = ref();
 
 onMounted(async () => {
   banks.value = await getBanks();
+  mutableImport.value = {
+    BankId: banks.value[0].id,
+    file: null,
+  };
   await filterAll();
 });
 
@@ -104,6 +125,7 @@ const costPieChartData = computed(() => {
     "SERVICES",
     "HOUSING",
     "INVESTMENT",
+    "WITHDRAWAL",
     "TODEFINE",
   ];
   const costs = items.value.rows.flatMap((revenu) => revenu.Costs);
@@ -134,7 +156,7 @@ const costPieChartData = computed(() => {
     datasets: [
       {
         data: modelTotalByCategory.map((model) => Math.round((model / total) * 100)),
-        backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20", "#FC2E20", "#FDB750", "#010100"],
+        backgroundColor: chartColors,
       },
     ],
   };
@@ -142,7 +164,7 @@ const costPieChartData = computed(() => {
 
 const creditPieChartData = computed(() => {
   if (!items.value.count) return;
-  const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER"];
+  const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER", "CASH"];
   const credits = items.value.rows.flatMap((revenu) => revenu.Credits);
   const groupedModel = credits.reduce((acc, item) => {
     if (!acc[item.category]) {
@@ -171,7 +193,7 @@ const creditPieChartData = computed(() => {
     datasets: [
       {
         data: modelTotalByCategory.map((model) => Math.round((model / total) * 100)),
-        backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FD7F20", "#FC2E20", "#FDB750", "#010100"],
+        backgroundColor: chartColors,
       },
     ],
   };
@@ -238,16 +260,13 @@ const chartOptions = {
   responsive: true,
 };
 
-function triggerUpload() {
-  document.getElementById("fileInput")?.click();
-}
-
-async function uploadFile(event) {
+async function uploadFile() {
   if (!banks.value.length) return;
   loadingStore.setLoading(true);
   try {
-    await createRevenu(banks.value?.[0].id, { file: event.target.files[0] });
-    await filterAll();
+    await createRevenu(mutableImport.value.BankId, { file: mutableImport.value.file });
+    await refreshRevenus({});
+    showModal.value = false;
   } finally {
     loadingStore.setLoading(false);
   }
@@ -309,4 +328,11 @@ const recurrentCosts = computed(() => {
   if (!items.value.count) return 0;
   return items.value.rows[0]?.Costs?.filter((c) => c.recurrent).reduce((sum, cost) => sum + cost.total, 0) || 0;
 });
+
+function itemProps(item) {
+  return {
+    title: item.name,
+    value: item.id,
+  };
+}
 </script>

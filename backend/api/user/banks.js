@@ -1,6 +1,7 @@
 import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
 import { AppError } from "../../utils/AppError.js";
 import { prisma, Models } from "../../utils/prisma.js";
+import { Prisma } from "@prisma/client";
 
 /**
  * @param {API.ServerInstance} app
@@ -22,11 +23,28 @@ export async function getBanks(params) {
   const result = await getOrSetCache(
     "banks",
     async () => {
-      const banks = await prisma.banks.findMany({
-        where: {
-          id: { in: this.request.user?.bankIds },
-        },
-      });
+      const banks = await prisma.$queryRaw`
+        SELECT
+          banks.id,
+          banks.amount,
+          banks.name,
+          COALESCE(
+              (SELECT SUM(costs.total)
+              FROM "Costs" costs
+              WHERE costs."BankId" = banks.id
+              AND costs."paymentMean" = 'CARD'
+              AND costs."createdAt" >= banks."amountDate"), 0) as sum_costs,
+          COALESCE(
+              (SELECT SUM(credits.total)
+              FROM "Credits" credits
+              WHERE credits."BankId" = banks.id
+              AND credits.category <> 'CASH'
+              AND credits."createdAt" >= banks."amountDate"), 0) as sum_credits
+        FROM
+          "Banks" as banks
+        WHERE
+          banks."UserId" IN (${Prisma.join(this.request.user?.bankIds)})
+        ORDER BY banks.amount DESC`;
 
       return banks;
     },
@@ -35,6 +53,7 @@ export async function getBanks(params) {
 
   return result;
 }
+
 /**
  * @this {API.This}
  * @param {number} bankId
@@ -54,6 +73,7 @@ export async function getBank(bankId) {
 
   return bank;
 }
+
 /**
  * @this {API.This}
  * @param {Models.Prisma.BanksUncheckedCreateInput} body

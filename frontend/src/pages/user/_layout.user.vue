@@ -1,7 +1,7 @@
 <template lang="pug">
 v-app
   v-app-bar(color='primary' fixed)
-    v-app-bar-nav-icon(variant="text" @click.stop="drawer = !drawer")
+    v-app-bar-nav-icon(v-if="currentUser" variant="text" @click.stop="drawer = !drawer")
     v-app-bar-title {{ $t("common.brand") }}
     v-spacer
     v-menu(offset-y)

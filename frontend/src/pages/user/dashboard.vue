@@ -49,24 +49,40 @@ div
             v-card-subtitle {{ $t("dashboard.balance") }}
             v-card-title {{ $n(revenuBalance, "currency") }}
 
-      v-card(class="v-col mt-4" v-if="revenuBalance")
-        v-card-text(v-for="bank in banks" :key="bank.id")
-          v-card-subtitle.text-h6 {{ bank.name }}
-          br
-          v-card-title
-            .d-flex.justify-center.align-center
-              .text-h4.mr-2 {{ $n(bank.amount + (revenuBalance), "currency") }}
-              v-icon(:class="[(revenuBalance) > 0 ? 'text-success' : 'text-red']") mdi-chart-line-variant 
-              .text-subtitle-1.mr-2 {{ +(((revenuBalance) / bank.amount) * 100).toFixed(2) }}%
-          br
-          p.text-overline.text-decoration-underline.text-right(@click="show_modal = true") {{ $t("dashboard.editBank") }}
-        v-card-text(v-if="!banks.length")
-          v-card-subtitle.text-h6 {{ $t("dashboard.bank") }}
-          br
-          br
-          v-card-title
-            .text-overline.text-center.text-decoration-underline(@click="show_modal = true") {{ $t("dashboard.addBank") }}
-          br
+      v-carousel(v-if="revenuBalance && banks.length"      
+        :continuous="!!banks.length"
+        :show-arrows="banks.length > 1"
+        hide-delimiters
+        height="auto")
+        template(v-slot:prev="{ props }")
+          v-btn(
+            icon="mdi-arrow-left" variant="plain" size="small"
+            @click="props.onClick")
+        template(v-slot:next="{ props }")
+          v-btn(
+            icon="mdi-arrow-right" variant="plain" size="small"
+            @click="props.onClick")
+
+        v-carousel-item(v-for="bank in banks" :key="bank.id")
+          v-card(class="v-col mt-4")
+            v-card-text
+              v-card-subtitle.text-h6 {{ bank.name }}
+              br
+              v-card-title
+                .d-flex.justify-center.align-center
+                  .text-h4.mr-2 {{ $n(bank.amount + returnBankBalance(bank), "currency") }}
+                  div(v-if="returnBankBalance(bank)")
+                    v-icon(:class="[(returnBankBalance(bank)) > 0 ? 'text-success' : 'text-red']") mdi-chart-line-variant 
+                    .text-subtitle-1.mr-2 {{ +(((returnBankBalance(bank)) / Math.max(bank.amount, 1)) * 100).toFixed(2) }}%
+              br
+              p.text-overline.text-decoration-underline.text-right(@click="showModalBank = true; mutableBank = bank") {{ $t("dashboard.editBank") }}
+            v-card-text(v-if="!banks.length")
+              v-card-subtitle.text-h6 {{ $t("dashboard.bank") }}
+              br
+              br
+              v-card-title
+                .text-overline.text-center.text-decoration-underline(@click="showModalBank = true") {{ $t("dashboard.addBank") }}
+              br
 
     v-card(v-else class="v-col")
       v-card-title.text-center {{ $t("dashboard.noRevenuTitle") }}
@@ -75,9 +91,9 @@ div
         br
         v-btn.bg-secondary.text-white(type="submit" to="/revenus") {{ $t("dashboard.createRevenu") }}
 
-  v-dialog(v-model='show_modal' width='600')
-    v-card
-      v-form(v-model="valid" @submit.prevent="handleSubmit")
+  v-dialog(v-model='showModalBank' width='600')
+    v-card(width="100%")
+      v-form(v-model="valid" @submit.prevent="handleBankSubmit")
         v-card-title.text-center {{ mutableBank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
         v-card-text.mt-4
           v-row(dense justify="center")
@@ -85,6 +101,8 @@ div
               v-text-field(name='name' :label='$t("dashboard.name")' v-model='mutableBank.name' :rules="[$v.required()]")
             v-col(cols="10")
               NumberInput(name='amount' :label='$t("dashboard.amount")' v-model='mutableBank.amount' :rules="[$v.required(), $v.number()]")
+            v-col(cols="10")
+              DateInput(v-model='mutableBank.amountDate' :rules="[$v.required()]")
 
         v-card-actions.mb-2
           v-row(dense justify="center")
@@ -101,7 +119,7 @@ import type { Revenus, Costs, Credits, Banks } from "../../../types/models";
 const loadingStore = useLoadingStore();
 let banks: Banks[] = reactive([]);
 const { filterAll, items } = useFilter(getRevenus);
-const show_modal = ref(false);
+const showModalBank = ref(false);
 const valid = ref(false);
 let mutableBank: Ref<Banks> = ref({});
 const dates: string[] = [];
@@ -120,7 +138,7 @@ onMounted(async () => {
   banks = await getBanks();
   mutableBank.value = banks[0];
   await filterAll({
-    BankId: mutableBank.value.id,
+    perPage: 1,
   });
 
   revenu.value = items.value.rows[0];
@@ -272,12 +290,16 @@ const lineChartData = computed(() => {
   return chartData;
 });
 
-async function handleSubmit(): Promise<void> {
+async function handleBankSubmit(): Promise<void> {
   if (!valid.value) return;
   loadingStore.setLoading(true);
   try {
     if (mutableBank.value.id) {
-      await updateBank(mutableBank.value.id, mutableBank.value);
+      await updateBank(mutableBank.value.id, {
+        name: mutableBank.value.name,
+        amount: mutableBank.value.amount,
+        amountDate: dayjs(mutableBank.value.amountDate),
+      });
     } else {
       await createBank(mutableBank.value);
     }
@@ -285,5 +307,8 @@ async function handleSubmit(): Promise<void> {
   } finally {
     loadingStore.setLoading(false);
   }
+}
+function returnBankBalance(bank): number {
+  return bank.sum_costs + bank.sum_credits;
 }
 </script>

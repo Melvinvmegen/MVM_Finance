@@ -8,16 +8,19 @@ datasource db {
 }
 
 model Costs {
-  id        Int          @id @default(autoincrement())
-  name      String       @db.VarChar(255)
-  total     Float
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  RevenuId  Int
-  tvaAmount Float?
-  recurrent Boolean      @default(false)
-  category  CostCategory @default(TODEFINE)
-  Revenus   Revenus      @relation(fields: [RevenuId], references: [id])
+  id          Int          @id @default(autoincrement())
+  name        String       @db.VarChar(255)
+  total       Float
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  RevenuId    Int
+  BankId      Int?
+  tvaAmount   Float?
+  recurrent   Boolean      @default(false)
+  paymentMean String       @default("CARD")
+  category    CostCategory @default(TODEFINE)
+  Revenus     Revenus      @relation(fields: [RevenuId], references: [id])
+  Bank        Banks?       @relation(fields: [BankId], references: [id])
 }
 
 model Credits {
@@ -28,8 +31,10 @@ model Credits {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   RevenuId  Int
+  BankId    Int?
   category  CreditCategory @default(REFUND)
   Revenus   Revenus        @relation(fields: [RevenuId], references: [id])
+  Bank      Banks?         @relation(fields: [BankId], references: [id])
 }
 
 model CryptoCurrencies {
@@ -187,14 +192,17 @@ model Users {
 }
 
 model Banks {
-  id        Int       @id @default(autoincrement())
-  name      String    @db.VarChar(45)
-  amount    Float
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  UserId    Int?
-  Users     Users?    @relation(fields: [UserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bank_user")
-  Revenus   Revenus[]
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(45)
+  amount     Float
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  amountDate DateTime?
+  UserId     Int
+  Users      Users     @relation(fields: [UserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bank_user")
+  Revenus    Revenus[]
+  Credits    Credits[]
+  Costs      Costs[]
 }
 
 model Subscriptions {
@@ -257,6 +265,7 @@ enum CostCategory {
   HOUSING
   TODEFINE
   INVESTMENT
+  WITHDRAWAL
 }
 
 enum CreditCategory {
@@ -266,6 +275,7 @@ enum CreditCategory {
   STOCK
   RENTAL
   TRANSFER
+  CASH
 }
 
 enum SubscriptionStatus {

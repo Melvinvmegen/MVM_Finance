@@ -15,6 +15,7 @@ export default async function (app) {
   app.$get("/revenus/:id", getRevenu);
   app.$upload("/revenus/:bankId", createRevenu);
   app.$put("/revenus/:id", updateRevenu);
+  app.$put("/revenus/:id/costs/:CostId", updateRevenuCost);
 }
 
 /**
@@ -149,6 +150,7 @@ export async function createRevenu(bankId, upload) {
   const costs = [];
   const credits = [];
   const revenus = [];
+
   upload.file
     .pipe(parse({ delimiter: ",", from_line: 5 }))
     .on("data", (row) => {
@@ -226,9 +228,7 @@ export async function createRevenu(bankId, upload) {
                 recurrent: true,
               },
               where: {
-                Revenus: {
-                  BankId: +bankId,
-                },
+                BankId: +bankId,
                 name: {
                   contains: name,
                 },
@@ -256,11 +256,17 @@ export async function createRevenu(bankId, upload) {
               where: {
                 id: cost.id,
               },
-              data: newObj,
+              data: {
+                ...newObj,
+                BankId: +bankId,
+              },
             });
           } else {
             cost = await prisma.costs.create({
-              data: newObj,
+              data: {
+                ...newObj,
+                BankId: +bankId,
+              },
             });
           }
           revenu.Costs.push(cost);
@@ -279,9 +285,7 @@ export async function createRevenu(bankId, upload) {
                 creditor: {
                   contains: name,
                 },
-                Revenus: {
-                  BankId: +bankId,
-                },
+                BankId: +bankId,
               },
             });
             if (previousCredit) {
@@ -303,11 +307,17 @@ export async function createRevenu(bankId, upload) {
               where: {
                 id: credit.id,
               },
-              data: newObj,
+              data: {
+                ...newObj,
+                BankId: +bankId,
+              },
             });
           } else {
             credit = await prisma.credits.create({
-              data: newObj,
+              data: {
+                ...newObj,
+                BankId: +bankId,
+              },
             });
           }
           revenu.Credits.push(credit);
@@ -323,7 +333,8 @@ export async function createRevenu(bankId, upload) {
 
       for (let revenu of revenus) {
         const totalCredits = revenu.Credits.reduce((sum, credit) => sum + +credit.total, 0);
-        const expense = revenu.Costs.reduce((sum, cost) => sum + Number(cost.total), 0);
+        const totalCosts = revenu.Costs.reduce((sum, cost) => sum + +cost.total, 0);
+
         revenu = await prisma.revenus.update({
           where: {
             id: revenu.id,
@@ -332,7 +343,7 @@ export async function createRevenu(bankId, upload) {
             pro: 0,
             perso: 0,
             total: totalCredits,
-            expense: expense,
+            expense: totalCosts,
           },
         });
       }
@@ -393,4 +404,34 @@ export async function updateRevenu(revenuId, body) {
   await invalidateCache("revenus");
   await invalidateCache(`revenu_${revenu?.id}`);
   return revenu;
+}
+
+/**
+ * @this {API.This}
+ * @param {string} RevenuId
+ * @param {string} CostId
+ * @param {Models.Prisma.CostsUncheckedUpdateInput} body
+ * @returns {Promise<Models.Costs>}
+ */
+export async function updateRevenuCost(RevenuId, CostId, body) {
+  let cost = await prisma.costs.findFirst({
+    where: {
+      id: +CostId,
+      RevenuId: +RevenuId,
+    },
+  });
+
+  if (!cost) throw new AppError("Cost not found!");
+
+  cost = await prisma.costs.update({
+    where: {
+      id: +CostId,
+    },
+    data: {
+      paymentMean: body.paymentMean,
+      BankId: body.BankId,
+    },
+  });
+
+  return cost;
 }

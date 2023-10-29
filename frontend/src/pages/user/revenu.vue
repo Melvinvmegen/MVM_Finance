@@ -58,23 +58,26 @@ v-container
             v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.credits") }}
             template(v-if="credits.length")
               v-row
-                v-col(cols="3") {{ $t("revenu.createdAt") }}
+                v-col(cols="2") {{ $t("revenu.createdAt") }}
                 v-col(cols="3") {{ $t("revenu.creditor") }}
-                v-col(cols="3") {{ $t("revenu.category") }}
+                v-col(cols="2") {{ $t("revenu.category") }}
                 v-col(cols="2") {{ $t("revenu.total") }}
+                v-col(cols="2") {{ $t("revenu.bank") }}
                 v-col(cols="1")
               br
               TransitionGroup(name='slide-up')
                 v-row(v-for='(credit, index) in credits' :key="index")
-                  v-col(cols="3")
+                  v-col(cols="2")
                     DateInput(v-model="credit.createdAt")
                   v-col(cols="3")
                     v-text-field(v-model="credit.creditor" :rules="[$v.required()]")
-                  v-col(cols="3")
+                  v-col(cols="2")
                     v-select(v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal" )
                   v-col(cols="2")
                     NumberInput(v-model="credit.total" @change="(event) => updateTotal(index, event, 'Credits', 'total')" :rules="[$v.required(), $v.number()]")
-                  v-col(cols="1")
+                  v-col(cols="2")
+                    v-select(:items="banks" :item-props="itemProps" v-model="credit.BankId")
+                  v-col.d-flex(cols="1")
                     v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
                       v-icon mdi-delete
 
@@ -107,9 +110,11 @@ v-container
                     v-select(v-model="cost.category" :items="costCategories")
                   v-col(cols="1")
                     NumberInput(v-model="cost.tvaAmount" @change="(event) => updateTotal(index, event, 'Costs', 'tvaAmount')" :rules="[$v.number()]")
-                  v-col(cols="2")
-                    NumberInput(v-model="cost.total" :positive="false" @change="(event) => updateTotal(index, event, 'Costs', 'total')" :rules="[$v.required(), $v.number()]")
                   v-col(cols="1")
+                    NumberInput(v-model="cost.total" :positive="false" @change="(event) => updateTotal(index, event, 'Costs', 'total')" :rules="[$v.required(), $v.number()]")
+                  v-col.d-flex(cols="1")
+                    v-btn.mr-2(color="primary" href='#' @click.prevent="showModal = true; mutableCost = cost")
+                      v-icon mdi-bank
                     v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
                       v-icon mdi-delete
 
@@ -117,6 +122,21 @@ v-container
               v-col(cols="12" justify="end")
                 v-btn(@click.prevent="addItem('Cost')")
                   span {{ $t("revenu.addLine") }}
+
+          v-dialog(v-model='showModal' width='600')
+            v-card(width="100%")
+              v-form(@submit.prevent="updateCost")
+                v-card-title.text-center {{ $t("revenu.updateCost") }}
+                v-card-text.mt-4
+                  v-row(dense justify="center")
+                    v-col(cols="10")
+                      v-select(:items="paymentMeans" v-model="mutableCost.paymentMean" :label='$t("revenu.paymentMean")')
+                    v-col(cols="10")
+                      v-select(:items="banks" :item-props="itemProps" v-model="mutableCost.BankId" :label='$t("revenu.bank")')
+                v-card-actions.mb-2
+                  v-row(dense justify="center")
+                    v-col.d-flex.justify-center(cols="12" lg="8")
+                      v-btn.bg-secondary.text-white(type="submit") {{ $t("revenu.update") }}
 
           v-card-actions
             v-row(dense justify="center")
@@ -159,15 +179,21 @@ v-container
 
 <script setup lang="ts">
 import dayjs from "dayjs";
-import type { Revenus, Costs, Credits, Invoices, Prisma } from "../../../types/models";
-import { getRevenu, updateRevenu } from "../../utils/generated/api-user";
+import type { Revenus, Costs, Credits, Invoices, Prisma, Banks } from "../../../types/models";
+import { getRevenu, updateRevenu, getBanks, updateRevenuCost } from "../../utils/generated/api-user";
+import chartColors from "../../utils/chartColors";
+
 type RevenuWithCostsCredits = Revenus & { Costs: Costs[]; Credits: Credits[]; Invoices: Invoices[] };
 
 const loadingStore = useLoadingStore();
 const route = useRoute();
 const router = useRouter();
 const valid = ref(false);
+const showModal = ref(false);
+const mutableCost = ref();
 const revenu = ref<RevenuWithCostsCredits>();
+const banks = ref<Banks[]>([]);
+const cashPots = ref<CashPots[]>([]);
 const costs = ref<Prisma.CostsUncheckedCreateInput[]>([]);
 const credits = ref<Prisma.CreditsUncheckedCreateInput[]>([]);
 const costCategories = [
@@ -179,9 +205,10 @@ const costCategories = [
   "SERVICES",
   "HOUSING",
   "INVESTMENT",
+  "WITHDRAWAL",
   "TODEFINE",
 ];
-const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER"];
+const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER", "CASH"];
 const creditItemTemplate = {
   total: 0,
   creditor: "",
@@ -189,6 +216,7 @@ const creditItemTemplate = {
   reason: "",
   RevenuId: 0,
 };
+const paymentMeans = ["CARD", "CASH"];
 
 const costChartData = ref();
 const creditChartData = ref();
@@ -208,6 +236,7 @@ const costItemTemplate: Prisma.CostsUncheckedCreateInput = {
 onMounted(async () => {
   try {
     loadingStore.setLoading(true);
+    banks.value = await getBanks();
     revenu.value = await getRevenu(route.params.id, {
       BankId: route.query.bankId,
     });
@@ -271,7 +300,6 @@ function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
 
 async function handleSubmit() {
   loadingStore.setLoading(true);
-
   try {
     const res = await updateRevenu(revenu.value.id, revenu.value);
     if (res && res.id) {
@@ -322,17 +350,7 @@ function groupModelByCategory(model, model_name, items) {
         datasets: [
           {
             data: modelTotalByCategory,
-            backgroundColor: [
-              "#05445E",
-              "#189AB4",
-              "#75E6DA",
-              "#D4F1F4",
-              "#FDB750",
-              "#FD7F20",
-              "#FC2E20",
-              "#780000",
-              "#010100",
-            ],
+            backgroundColor: chartColors,
           },
         ],
       })
@@ -341,7 +359,7 @@ function groupModelByCategory(model, model_name, items) {
         datasets: [
           {
             data: modelTotalByCategory,
-            backgroundColor: ["#05445E", "#189AB4", "#75E6DA", "#D4F1F4", "#FDB750", "#FD7F20"],
+            backgroundColor: chartColors,
           },
         ],
       });
@@ -379,4 +397,31 @@ const splitedWatchers = computed(() => {
 const recurrentCosts = computed(() => {
   return revenu.value?.Costs?.filter((c) => c.recurrent) || [];
 });
+
+function itemProps(item) {
+  return {
+    title: item.name,
+    value: item.id,
+  };
+}
+
+async function updateCost() {
+  loadingStore.setLoading(true);
+  try {
+    const res = await updateRevenuCost(revenu.value?.id, mutableCost.value.id, {
+      paymentMean: mutableCost.value.paymentMean,
+      BankId: mutableCost.value.BankId,
+    });
+    const costIndex = costs.value.findIndex((c) => c.id === res.id);
+    costs.value[costIndex] = {
+      ...costs.value[costIndex],
+      paymentMean: mutableCost.value.paymentMean,
+      BankId: mutableCost.value.BankId,
+      CashPotId: mutableCost.value.CashPotId,
+    };
+    showModal.value = false;
+  } finally {
+    loadingStore.setLoading(false);
+  }
+}
 </script>
