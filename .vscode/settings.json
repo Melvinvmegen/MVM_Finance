@@ -41,5 +41,8 @@
     "**/node_modules/*/**": false,
     "**/node_modules/!(.prisma)/**": true
   },
-  "autoRestartTsESLint.monitorFilesForTypescript": true
+  "autoRestartTsESLint.monitorFilesForTypescript": true,
+  "[sql]": {
+    "editor.defaultFormatter": "adpyke.vscode-sql-formatter"
+  }
 }
