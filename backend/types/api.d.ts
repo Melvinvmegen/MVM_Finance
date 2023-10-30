@@ -17,6 +17,7 @@ declare global {
       customersModuleActive: boolean;
       revenusModuleActive: boolean;
       bankIds: number[];
+      cashPotsIds: number[];
     };
 
     export type DownloadReturns =

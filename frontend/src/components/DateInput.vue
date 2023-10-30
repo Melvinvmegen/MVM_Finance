@@ -10,7 +10,12 @@
       location="end"
     >
       <template v-slot:activator="{ props }">
-        <v-text-field v-bind="props" :modelValue="dateFormatted" append-inner-icon="mdi-calendar"></v-text-field>
+        <v-text-field
+          :label="componentProps.label"
+          v-bind="props"
+          :modelValue="dateFormatted"
+          append-inner-icon="mdi-calendar"
+        ></v-text-field>
       </template>
       <v-date-picker :modelValue="getDate" @update:modelValue="updateDate"></v-date-picker>
     </v-menu>
@@ -21,20 +26,21 @@
 import { VDatePicker } from "vuetify/labs/VDatePicker";
 import dayjs from "dayjs";
 
-const props = defineProps({
+const componentProps = defineProps({
   modelValue: {
     type: [String, Date],
     default() {
       return dayjs().toDate();
     },
   },
+  label: String,
 });
 const menu = ref(false);
 const input = ref();
 const emit = defineEmits(["update:modelValue"]);
 
 watch(
-  () => props.modelValue,
+  () => componentProps.modelValue,
   (newValue) => {
     if (!newValue) return;
     input.value = newValue;

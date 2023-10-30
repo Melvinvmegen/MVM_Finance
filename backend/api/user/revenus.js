@@ -430,6 +430,7 @@ export async function updateRevenuCost(RevenuId, CostId, body) {
     data: {
       paymentMean: body.paymentMean,
       BankId: body.BankId,
+      CashPotId: body.CashPotId,
     },
   });
 

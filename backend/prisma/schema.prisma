@@ -14,12 +14,14 @@ model Costs {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   RevenuId    Int
+  CashPotId   Int?
   BankId      Int?
   tvaAmount   Float?
   recurrent   Boolean      @default(false)
   paymentMean String       @default("CARD")
   category    CostCategory @default(TODEFINE)
   Revenus     Revenus      @relation(fields: [RevenuId], references: [id])
+  CashPot     CashPots?    @relation(fields: [CashPotId], references: [id])
   Bank        Banks?       @relation(fields: [BankId], references: [id])
 }
 
@@ -31,9 +33,11 @@ model Credits {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   RevenuId  Int
+  CashPotId Int?
   BankId    Int?
   category  CreditCategory @default(REFUND)
   Revenus   Revenus        @relation(fields: [RevenuId], references: [id])
+  CashPot   CashPots?      @relation(fields: [CashPotId], references: [id])
   Bank      Banks?         @relation(fields: [BankId], references: [id])
 }
 
@@ -187,6 +191,7 @@ model Users {
   customersModuleActive Boolean            @default(true)
   revenusModuleActive   Boolean            @default(true)
   Banks                 Banks[]
+  CashPots              CashPots[]
   CryptoCurrencies      CryptoCurrencies[]
   Customers             Customers[]
 }
@@ -253,6 +258,19 @@ model Payments {
   Customers      Customers?       @relation(fields: [CustomerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subscription_customer")
   Invoices       Invoices?        @relation(fields: [InvoiceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subscription_invoice")
   PaymentIntents PaymentIntents[]
+}
+
+model CashPots {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String    @db.VarChar(45)
+  amount    Float
+  amountDate DateTime?
+  UserId    Int
+  User      Users     @relation(fields: [UserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bank_user")
+  Credits   Credits[]
+  Costs     Costs[]
 }
 
 enum CostCategory {

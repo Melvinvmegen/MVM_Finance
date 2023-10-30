@@ -35,6 +35,38 @@ export async function updateBank(bankId, body = undefined, query = undefined) {
 }
 /**
  * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/cash-pots.js").getCashPots>>}
+**/
+export async function getCashPots(query = undefined) {
+  return await useOFetch(`/api/user/cash-pots`, { method: "GET", query });
+}
+/**
+ * @param {string|string[]|number} cashPotId
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/cash-pots.js").getCashPot>>}
+**/
+export async function getCashPot(cashPotId, query = undefined) {
+  return await useOFetch(`/api/user/cash-pots/${cashPotId}`, { method: "GET", query });
+}
+/**
+ * @param {Parameters<import("../../../../backend/api/user/cash-pots.js").createCashPot>[0]} body
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/cash-pots.js").createCashPot>>}
+**/
+export async function createCashPot(body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/cash-pots`, { method: "POST", body, query });
+}
+/**
+ * @param {string|string[]|number} cashPotId
+ * @param {Parameters<import("../../../../backend/api/user/cash-pots.js").updateCashPot>[1]} body
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/cash-pots.js").updateCashPot>>}
+**/
+export async function updateCashPot(cashPotId, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/cash-pots/${cashPotId}`, { method: "PUT", body, query });
+}
+/**
+ * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/cryptos.js").getCryptos>>}
 **/
 export async function getCryptos(query = undefined) {

@@ -28,6 +28,7 @@ export async function getBanks(params) {
           banks.id,
           banks.amount,
           banks.name,
+          banks."amountDate",
           COALESCE(
               (SELECT SUM(costs.total)
               FROM "Costs" costs
@@ -43,7 +44,7 @@ export async function getBanks(params) {
         FROM
           "Banks" as banks
         WHERE
-          banks."UserId" IN (${Prisma.join(this.request.user?.bankIds)})
+          banks.id IN (${Prisma.join(this.request.user?.bankIds)})
         ORDER BY banks.amount DESC`;
 
       return banks;

@@ -76,7 +76,8 @@ v-container
                   v-col(cols="2")
                     NumberInput(v-model="credit.total" @change="(event) => updateTotal(index, event, 'Credits', 'total')" :rules="[$v.required(), $v.number()]")
                   v-col(cols="2")
-                    v-select(:items="banks" :item-props="itemProps" v-model="credit.BankId")
+                    v-select(v-if="credit.category === 'CASH'" :items="cashPots" :item-props="itemProps" v-model="credit.CashPotId")
+                    v-select(v-else :items="banks" :item-props="itemProps" v-model="credit.BankId")
                   v-col.d-flex(cols="1")
                     v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
                       v-icon mdi-delete
@@ -132,7 +133,8 @@ v-container
                     v-col(cols="10")
                       v-select(:items="paymentMeans" v-model="mutableCost.paymentMean" :label='$t("revenu.paymentMean")')
                     v-col(cols="10")
-                      v-select(:items="banks" :item-props="itemProps" v-model="mutableCost.BankId" :label='$t("revenu.bank")')
+                      v-select(v-if="mutableCost.paymentMean === 'CARD'" :items="banks" :item-props="itemProps" v-model="mutableCost.BankId" :label='$t("revenu.bank")')
+                      v-select(v-else :items="cashPots" :item-props="itemProps" v-model="mutableCost.CashPotId" :label='$t("revenu.CashPot")')
                 v-card-actions.mb-2
                   v-row(dense justify="center")
                     v-col.d-flex.justify-center(cols="12" lg="8")
@@ -179,8 +181,8 @@ v-container
 
 <script setup lang="ts">
 import dayjs from "dayjs";
-import type { Revenus, Costs, Credits, Invoices, Prisma, Banks } from "../../../types/models";
-import { getRevenu, updateRevenu, getBanks, updateRevenuCost } from "../../utils/generated/api-user";
+import type { Revenus, Costs, Credits, Invoices, Prisma, Banks, CashPots } from "../../../types/models";
+import { getRevenu, updateRevenu, getBanks, getCashPots, updateRevenuCost } from "../../utils/generated/api-user";
 import chartColors from "../../utils/chartColors";
 
 type RevenuWithCostsCredits = Revenus & { Costs: Costs[]; Credits: Credits[]; Invoices: Invoices[] };
@@ -237,6 +239,7 @@ onMounted(async () => {
   try {
     loadingStore.setLoading(true);
     banks.value = await getBanks();
+    cashPots.value = await getCashPots();
     revenu.value = await getRevenu(route.params.id, {
       BankId: route.query.bankId,
     });
@@ -411,6 +414,7 @@ async function updateCost() {
     const res = await updateRevenuCost(revenu.value?.id, mutableCost.value.id, {
       paymentMean: mutableCost.value.paymentMean,
       BankId: mutableCost.value.BankId,
+      CashPotId: mutableCost.value.CashPotId,
     });
     const costIndex = costs.value.findIndex((c) => c.id === res.id);
     costs.value[costIndex] = {

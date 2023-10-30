@@ -156,7 +156,11 @@
     "amount": "Amount",
     "createRevenu": "Create revenu",
     "noRevenuText": "All you have left to do is to create one",
-    "noRevenuTitle": "There is no revenu yet"
+    "noRevenuTitle": "There is no revenu yet",
+    "editCashPot": "Edit cash pot",
+    "cashPot": "Cash pot",
+    "addCashPot": "Add cash pot",
+    "amountDate": "Amount date"
   },
   "invoice": {
     "editInvoice": "Edit an invoice",
@@ -208,6 +212,7 @@
     "recurrents": "Recurrents",
     "paymentMean": "Payment Mean",
     "bank": "Bank",
+    "CashPot": "Cash pot",
     "update": "Update",
     "updateCost": "Update cost"
   },
