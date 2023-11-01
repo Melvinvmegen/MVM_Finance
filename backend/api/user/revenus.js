@@ -21,7 +21,7 @@ export default async function (app) {
 /**
  * @this {API.This}
  * @param {{ per_page: number, offset: number, force: string, options: any }} params
- * @returns {Promise<{ count: number, rows:Models.Revenus[] & { Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions, Banks: Models.Banks} }>}
+ * @returns {Promise<{ count: number, rows:Models.Revenus[] & { Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions} }>}
  */
 export async function getRevenus(params) {
   const { per_page, offset, orderBy, options } = setFilters(params);
@@ -33,11 +33,7 @@ export async function getRevenus(params) {
       const rows = await prisma.revenus.findMany({
         where: {
           ...options,
-          Banks: {
-            is: {
-              id: { in: this.request.user?.bankIds },
-            },
-          },
+          UserId: this.request.user?.id,
         },
         take: per_page,
         skip: offset,
@@ -52,7 +48,6 @@ export async function getRevenus(params) {
           },
           Quotations: true,
           Transactions: true,
-          Banks: true,
         },
       });
 
@@ -72,11 +67,7 @@ export async function getRevenuIds() {
   const revenus = await getOrSetCache(`revenuIds`, async () => {
     return await prisma.revenus.findMany({
       where: {
-        Banks: {
-          is: {
-            id: { in: this.request.user?.bankIds },
-          },
-        },
+        UserId: this.request.user?.id,
       },
       select: {
         id: true,
@@ -92,13 +83,14 @@ export async function getRevenuIds() {
 /**
  * @this {API.This}
  * @param {string} revenuId
- * @returns {Promise<Models.Revenus[] & { Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions, Banks: Models.Banks}>}
+ * @returns {Promise<Models.Revenus[] & { Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions}>}
  */
 export async function getRevenu(revenuId) {
   const revenu = await getOrSetCache(`revenu_${revenuId}`, async () => {
     const revenu_fetched = await prisma.revenus.findUnique({
       where: {
         id: +revenuId,
+        UserId: this.request.user?.id,
       },
       include: {
         Invoices: true,
@@ -114,11 +106,6 @@ export async function getRevenu(revenuId) {
         },
         Quotations: true,
         Transactions: true,
-        Banks: {
-          where: {
-            UserId: this.request.user?.id,
-          },
-        },
       },
     });
 
@@ -186,12 +173,11 @@ export async function createRevenu(bankId, upload) {
               gte: beginningOfMonth,
               lte: endOfMonth,
             },
-            BankId: +bankId,
+            UserId: +this.request.user.id,
           },
           include: {
             Costs: true,
             Credits: true,
-            Banks: true,
           },
         });
 
@@ -200,7 +186,7 @@ export async function createRevenu(bankId, upload) {
             data: {
               createdAt: beginningOfMonth,
               updatedAt: beginningOfMonth,
-              BankId: +bankId,
+              UserId: +this.request.user.id,
             },
             include: {
               Costs: true,
@@ -359,22 +345,18 @@ export async function createRevenu(bankId, upload) {
  * @this {API.This}
  * @param {number} revenuId
  * @param {Models.Prisma.RevenusUpdateInput} body
- * @returns {Promise<Models.Revenus & {Credits: Models.Credits[], Costs: Models.Costs[], Banks: Models.Banks}>}
+ * @returns {Promise<Models.Revenus & {Credits: Models.Credits[], Costs: Models.Costs[]}>}
  */
 export async function updateRevenu(revenuId, body) {
-  const { Credits, Costs, Quotations, Transactions, Invoices, Banks, ...revenuBody } = body;
+  const { Credits, Costs, Quotations, Transactions, Invoices, ...revenuBody } = body;
   let revenu = await prisma.revenus.findUnique({
     where: {
       id: +revenuId,
+      UserId: this.request.user?.id,
     },
     include: {
       Credits: true,
       Costs: true,
-      Banks: {
-        where: {
-          UserId: this.request.user?.id,
-        },
-      },
     },
   });
 
@@ -392,12 +374,10 @@ export async function updateRevenu(revenuId, body) {
     data: {
       ...revenuBody,
       watchers: [revenuBody.watchers].join(),
-      BankId: this.request.user?.id,
     },
     include: {
       Credits: true,
       Costs: true,
-      Banks: true,
     },
   });
 

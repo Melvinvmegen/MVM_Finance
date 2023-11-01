@@ -31,19 +31,28 @@ UPDATE
 SET
   "BankId" = (
     SELECT
-      DISTINCT "Revenus"."BankId"
+      "Revenus"."BankId"
     FROM
       "Costs"
       JOIN "Revenus" ON "Costs"."RevenuId" = "Revenus"."id"
+    LIMIT
+      1
   );
+
+UPDATE
+  "Costs"
+SET
+  "BankId" = "Revenus"."BankId"
+FROM
+  "Revenus"
+WHERE
+  "Costs"."RevenuId" = "Revenus"."id";
 
 UPDATE
   "Credits"
 SET
-  "BankId" = (
-    SELECT
-      DISTINCT "Revenus"."BankId"
-    FROM
-      "Credits"
-      JOIN "Revenus" ON "Credits"."RevenuId" = "Revenus"."id"
-  );
+  "BankId" = "Revenus"."BankId"
+FROM
+  "Revenus"
+WHERE
+  "Credits"."RevenuId" = "Revenus"."id";

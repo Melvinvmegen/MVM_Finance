@@ -62,13 +62,7 @@ export async function createCrypto(body) {
           lte: lastDay,
           gte: firstDay,
         },
-      },
-      include: {
-        Banks: {
-          where: {
-            UserId: this.request.user?.id,
-          },
-        },
+        UserId: this.request.user?.id,
       },
     });
 
@@ -158,13 +152,7 @@ export async function updateCrypto(cryptoId, body) {
             lte: lastDay,
             gte: firstDay,
           },
-        },
-        include: {
-          Banks: {
-            where: {
-              UserId: this.request.user?.id,
-            },
-          },
+          UserId: this.request.user?.id,
         },
       });
 

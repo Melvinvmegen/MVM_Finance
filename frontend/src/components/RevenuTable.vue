@@ -34,7 +34,7 @@ v-col(cols="12")
     template( v-slot:[`item.balance`]="{ item }")
       span {{ $n(Math.round((returnRevenuNet(item) + item.perso)- Math.abs(item.expense)), "currency") }}
     template(v-slot:item.actions="{ item }")
-      v-btn(icon="mdi-pencil" variant="plain" size="small" :to="`/revenus/${item.id}?bankId=${item.BankId}`")
+      v-btn(icon="mdi-pencil" variant="plain" size="small" :to="`/revenus/${item.id}`")
 </template>
 
 <script setup lang="ts">

@@ -20,9 +20,9 @@ model Costs {
   recurrent   Boolean      @default(false)
   paymentMean String       @default("CARD")
   category    CostCategory @default(TODEFINE)
-  Revenus     Revenus      @relation(fields: [RevenuId], references: [id])
-  CashPot     CashPots?    @relation(fields: [CashPotId], references: [id])
-  Bank        Banks?       @relation(fields: [BankId], references: [id])
+  Revenus     Revenus      @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  CashPot     CashPots?    @relation(fields: [CashPotId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Bank        Banks?       @relation(fields: [BankId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Credits {
@@ -36,9 +36,9 @@ model Credits {
   CashPotId Int?
   BankId    Int?
   category  CreditCategory @default(REFUND)
-  Revenus   Revenus        @relation(fields: [RevenuId], references: [id])
-  CashPot   CashPots?      @relation(fields: [CashPotId], references: [id])
-  Bank      Banks?         @relation(fields: [BankId], references: [id])
+  Revenus   Revenus        @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  CashPot   CashPots?      @relation(fields: [CashPotId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Bank      Banks?         @relation(fields: [BankId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model CryptoCurrencies {
@@ -53,7 +53,7 @@ model CryptoCurrencies {
   profit        Float?
   sold          Boolean        @default(false)
   UserId        Int?
-  Users         Users?         @relation(fields: [UserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_crypto_currency_user")
+  Users         Users?         @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_crypto_currency_user")
   Transactions  Transactions[]
 }
 
@@ -71,7 +71,7 @@ model Customers {
   updatedAt    DateTime       @updatedAt
   stripeId     String?        @unique
   UserId       Int?
-  Users        Users?         @relation(fields: [UserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_customer_user")
+  Users        Users?         @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_customer_user")
   Invoices     Invoices[]
   Quotations   Quotations[]
   Subscription Subscriptions?
@@ -88,8 +88,8 @@ model InvoiceItems {
   updatedAt   DateTime    @updatedAt
   InvoiceId   Int?
   QuotationId Int?
-  Invoices    Invoices?   @relation(fields: [InvoiceId], references: [id], onDelete: Cascade)
-  Quotations  Quotations? @relation(fields: [QuotationId], references: [id], onDelete: Cascade)
+  Invoices    Invoices?   @relation(fields: [InvoiceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Quotations  Quotations? @relation(fields: [QuotationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Invoices {
@@ -112,8 +112,8 @@ model Invoices {
   tvaAmount     Float          @default(0)
   InvoiceItems  InvoiceItems[]
   Payments      Payments[]
-  Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade)
-  Revenus       Revenus?       @relation(fields: [RevenuId], references: [id])
+  Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Revenus       Revenus?       @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   Quotations    Quotations[]
 }
 
@@ -136,9 +136,9 @@ model Quotations {
   tvaAmount     Float          @default(0)
   paymentDate   DateTime?      @db.Timestamptz(6)
   InvoiceItems  InvoiceItems[]
-  Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade)
-  Invoices      Invoices?      @relation(fields: [InvoiceId], references: [id])
-  Revenus       Revenus?       @relation(fields: [RevenuId], references: [id])
+  Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Invoices      Invoices?      @relation(fields: [InvoiceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Revenus       Revenus?       @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Revenus {
@@ -153,13 +153,13 @@ model Revenus {
   tva_collected  Float          @default(0)
   tva_dispatched Float          @default(0)
   refund         Float          @default(0)
-  BankId         Int?
+  UserId         Int?
   watchers       String?        @db.Text
+  User           Users?         @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   Costs          Costs[]
   Credits        Credits[]
   Invoices       Invoices[]
   Quotations     Quotations[]
-  Banks          Banks?         @relation(fields: [BankId], references: [id], onDelete: Restrict)
   Transactions   Transactions[]
 }
 
@@ -175,8 +175,8 @@ model Transactions {
   updatedAt        DateTime          @updatedAt
   CryptoCurrencyId Int?
   RevenuId         Int?
-  CryptoCurrencies CryptoCurrencies? @relation(fields: [CryptoCurrencyId], references: [id], onDelete: Cascade)
-  Revenus          Revenus?          @relation(fields: [RevenuId], references: [id])
+  CryptoCurrencies CryptoCurrencies? @relation(fields: [CryptoCurrencyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Revenus          Revenus?          @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Users {
@@ -191,6 +191,7 @@ model Users {
   customersModuleActive Boolean            @default(true)
   revenusModuleActive   Boolean            @default(true)
   Banks                 Banks[]
+  Revenus               Revenus[]
   CashPots              CashPots[]
   CryptoCurrencies      CryptoCurrencies[]
   Customers             Customers[]
@@ -204,8 +205,7 @@ model Banks {
   updatedAt  DateTime  @updatedAt
   amountDate DateTime?
   UserId     Int
-  Users      Users     @relation(fields: [UserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bank_user")
-  Revenus    Revenus[]
+  Users      Users     @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_bank_user")
   Credits    Credits[]
   Costs      Costs[]
 }
@@ -235,8 +235,8 @@ model PaymentIntents {
   stripeId       String              @unique
   PaymentId      Int?
   SubscriptionId Int?
-  Payments       Payments?           @relation(fields: [PaymentId], references: [id])
-  Subscriptions  Subscriptions?      @relation(fields: [SubscriptionId], references: [id])
+  Payments       Payments?           @relation(fields: [PaymentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Subscriptions  Subscriptions?      @relation(fields: [SubscriptionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Payments {
@@ -261,16 +261,16 @@ model Payments {
 }
 
 model CashPots {
-  id        Int       @id @default(autoincrement())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  name      String    @db.VarChar(45)
-  amount    Float
+  id         Int       @id @default(autoincrement())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  name       String    @db.VarChar(45)
+  amount     Float
   amountDate DateTime?
-  UserId    Int
-  User      Users     @relation(fields: [UserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bank_user")
-  Credits   Credits[]
-  Costs     Costs[]
+  UserId     Int
+  User       Users     @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_bank_user")
+  Credits    Credits[]
+  Costs      Costs[]
 }
 
 enum CostCategory {

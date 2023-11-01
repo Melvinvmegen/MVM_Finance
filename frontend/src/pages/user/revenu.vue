@@ -240,9 +240,7 @@ onMounted(async () => {
     loadingStore.setLoading(true);
     banks.value = await getBanks();
     cashPots.value = await getCashPots();
-    revenu.value = await getRevenu(route.params.id, {
-      BankId: route.query.bankId,
-    });
+    revenu.value = await getRevenu(route.params.id);
     if (!revenu.value) return;
     revenu.value.watchers = revenu.value?.watchers?.length ? revenu.value?.watchers?.split(",") : [];
     costs.value = revenu.value.Costs;
