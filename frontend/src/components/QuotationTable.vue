@@ -38,10 +38,10 @@ v-card.pa-4(elevation="3")
           span {{ revenuDate(item.Revenus) }}
         template( v-slot:[`item.date`]="{ item }")
           span(v-if="item.paymentDate") {{ dayjs(item.paymentDate).format("DD/MM/YYYY") }}
-        template( v-slot:[`item.totalTTC`]="{ item }")
-          span {{ $n(item.totalTTC, "currency") }}
-        template( v-slot:[`item.caution`]="{ item }")
-          span {{ $n(item.total * 0.3, "currency") }}
+        template( v-slot:[`item.total`]="{ item }")
+          span {{ $n(item.totalTTC || item.total, "currency") }}
+        template( v-slot:[`item.deposit`]="{ item }")
+          span {{ $n((item.totalTTC || item.total) * 0.3, "currency") }}
         template( v-slot:[`item.tvaAmount`]="{ item }")
           span {{ $n(item.tvaAmount, "currency") }}
         template(v-slot:item.actions="{ item }")
@@ -115,9 +115,14 @@ const dataTable = {
       title: $t("quotations.paymentDate"),
     },
     {
-      key: "totalTTC",
-      value: "totalTTC",
+      key: "total",
+      value: "total",
       title: $t("quotations.total"),
+    },
+    {
+      key: "deposit",
+      value: "deposit",
+      title: $t("quotations.deposit"),
     },
     {
       key: "tvaAmount",

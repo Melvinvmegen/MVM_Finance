@@ -87,7 +87,7 @@ export async function getRevenuIds() {
  */
 export async function getRevenu(revenuId) {
   const revenu = await getOrSetCache(`revenu_${revenuId}`, async () => {
-    const revenu_fetched = await prisma.revenus.findUnique({
+    return await prisma.revenus.findUnique({
       where: {
         id: +revenuId,
         UserId: this.request.user?.id,
@@ -108,8 +108,6 @@ export async function getRevenu(revenuId) {
         Transactions: true,
       },
     });
-
-    return revenu_fetched;
   });
 
   return revenu;

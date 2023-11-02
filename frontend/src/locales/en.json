@@ -9,12 +9,16 @@
       "lastPage": "Last page",
       "pageText": "{0}-{1} of {2}"
     },
+    "dataIterator": {
+      "loadingText": "Loading..."
+    },
     "noDataText": "No data available",
     "open": "Open",
     "datePicker": {
       "title": "Pick a date",
       "cancel": "Cancel",
-      "ok": "Ok"
+      "ok": "Ok",
+      "placeholder": "Placeholder"
     },
     "input": {
       "clear": "Clear"
@@ -214,7 +218,8 @@
     "bank": "Bank",
     "CashPot": "Cash pot",
     "update": "Update",
-    "updateCost": "Update cost"
+    "updateCost": "Update cost",
+    "deposit": "Deposit"
   },
   "revenus": {
     "title": "Revenus",
@@ -283,7 +288,8 @@
     "updated": "Quotation successfully updated!",
     "created": "Quotation successfully created!",
     "tvaAmount": "VAT Amount",
-    "paymentDate": "Payment date"
+    "paymentDate": "Payment date",
+    "deposit": "Deposit"
   },
   "totalField": {
     "invoiceNumber": "Invoice n°{0}",

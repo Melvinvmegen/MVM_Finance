@@ -38,8 +38,7 @@ v-container
               v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.quotations") }}
               v-row
                 v-col(cols="3") {{ $t("revenu.name") }}
-                v-col(cols="2") {{ $t("revenu.total") }}
-                v-col(cols="2") {{ $t("revenu.totalTTC") }}
+                v-col(cols="2") {{ $t("revenu.deposit") }}
                 v-col(cols="1")
               br
               TransitionGroup(name='slide-up')
@@ -47,11 +46,9 @@ v-container
                   v-col(cols="3")
                     v-text-field(v-model="quotation.company" :rules="[$v.required()]")
                   v-col(cols="2")
-                    v-text-field(v-model="quotation.total" disabled)
-                  v-col(cols="2")
-                    v-text-field(v-model="quotation.totalTTC" disabled)
+                    v-text-field(:value="quotation.total * 0.3" disabled)
                   v-col(cols="1")
-                    v-btn(icon="mdi-eye" variant="plain" size="small" :to="`/customers/${quotation.CustomerId}/invoices/${quotation.id}`")
+                    v-btn(icon="mdi-eye" variant="plain" size="small" :to="`/customers/${quotation.CustomerId}/quotations/${quotation.id}`")
 
 
             hr.my-8
