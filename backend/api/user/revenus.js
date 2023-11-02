@@ -139,7 +139,7 @@ export async function createRevenu(bankId, upload) {
   upload.file
     .pipe(parse({ delimiter: ",", from_line: 5 }))
     .on("data", (row) => {
-      const total = +row[4];
+      const total = +`${row[4]}.${row[5]}`;
       const [day, month, year] = row[0].split("/");
       const date = dayjs(`${year}-${month}-${day}`).toDate();
       const name = row[2];
