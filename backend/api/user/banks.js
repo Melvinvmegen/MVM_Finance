@@ -43,8 +43,9 @@ export async function getBanks(params) {
               AND credits."createdAt" >= banks."amountDate"), 0) as sum_credits
         FROM
           "Banks" as banks
+        JOIN "Users" as users ON users.id = banks."UserId"
         WHERE
-          banks.id IN (${Prisma.join(this.request.user?.bankIds)})
+          users.id = ${this.request.user?.id}
         ORDER BY banks.amount DESC`;
 
       return banks;

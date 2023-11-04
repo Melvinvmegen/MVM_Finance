@@ -12,7 +12,7 @@ v-container
           v-card-text
             v-row(dense)
               v-col(cols="2")
-                NumberInput(name='taxPercentage' :label='$t("revenu.tax")' v-model="revenu.taxPercentage" :rules="[$v.required(), $v.number()]")
+                NumberInput(name='taxPercentage' :label='$t("revenu.tax")' v-model="revenu.taxPercentage" :rules="[$v.number()]")
 
             div(v-if='revenu?.Invoices?.length')
               hr.my-8
@@ -44,7 +44,7 @@ v-container
               TransitionGroup(name='slide-up')
                 v-row(v-for='(quotation, index) in revenu.Quotations' :key="index")
                   v-col(cols="3")
-                    v-text-field(v-model="quotation.company" :rules="[$v.required()]")
+                    v-text-field(v-model="quotation.company")
                   v-col(cols="2")
                     v-text-field(:value="quotation.total * 0.3" disabled)
                   v-col(cols="1")
@@ -297,6 +297,7 @@ function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
 }
 
 async function handleSubmit() {
+  if (!valid.value) return;
   loadingStore.setLoading(true);
   try {
     const res = await updateRevenu(revenu.value.id, revenu.value);

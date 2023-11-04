@@ -18,7 +18,7 @@ v-row(v-if="items.rows")
           v-card-text.mt-4
             v-row(dense justify="center")
               v-col(cols="10")
-                v-select(:items="banks" :item-props="itemProps" v-model="mutableImport.BankId" :label='$t("invoice.revenu")')
+                v-select(:items="banks" :item-props="itemProps" v-model="mutableImport.BankId" :label='$t("revenus.banks")')
               v-col(cols="10")
                 v-file-input(clearable :label="$t('revenus.fileInput')" accept=".csv" v-model="mutableImport.file")
           v-card-actions.mb-2

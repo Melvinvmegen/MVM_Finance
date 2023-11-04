@@ -32,7 +32,7 @@ v-col(cols="12")
     template( v-slot:[`item.vatCollected`]="{ item }")
       span {{ $n(returnTVABalance(item), "currency") }}
     template( v-slot:[`item.balance`]="{ item }")
-      span {{ $n(Math.round((returnRevenuNet(item) + item.perso)- Math.abs(item.expense)), "currency") }}
+      span {{ $n(returnBalance(item), "currency") }}
     template(v-slot:item.actions="{ item }")
       v-btn(icon="mdi-pencil" variant="plain" size="small" :to="`/revenus/${item.id}`")
 </template>
@@ -174,5 +174,10 @@ function returnTVABalance(revenu: RevenuWithCostsInvoicesTransactions) {
   } else {
     return 0;
   }
+}
+
+function returnBalance(revenu: RevenuWithCostsInvoicesTransactions) {
+  const revenuAmount = returnRevenuNet(revenu) + revenu.perso || revenu.total;
+  return Math.round(revenuAmount - Math.abs(revenu.expense));
 }
 </script>

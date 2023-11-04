@@ -33,7 +33,7 @@ v-card.pa-4(v-if="props.model")
     hr.mx-2.my-4
     v-row.mx-1(justify="space-between" align="center")
       v-card-subtitle {{ $t("totalField.balance") }}
-      v-card-title {{ $n(Math.round((returnRevenuNet + props.model.perso) || props.model.total - Math.abs(props.model.expense)), "currency") }}
+      v-card-title {{ $n(returnBalance, "currency") }}
   hr.mx-2.my-4
   v-row.mx-1(justify="space-between" align="center" v-if='props.model.tva_collected')
     v-card-subtitle {{ $t("totalField.vatCollected") }}
@@ -83,5 +83,10 @@ const returnRevenuNet = computed(() => {
   } else {
     return Math.round(props.model?.pro);
   }
+});
+
+const returnBalance = computed(() => {
+  const revenuAmount = returnRevenuNet.value + props.model?.perso || props.model?.total;
+  return Math.round(revenuAmount - Math.abs(props.model?.expense));
 });
 </script>

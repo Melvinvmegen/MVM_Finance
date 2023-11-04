@@ -75,8 +75,11 @@ div
                     v-icon(:class="[(returnBalance(bank)) > 0 ? 'text-success' : 'text-red']") mdi-chart-line-variant 
                     .text-subtitle-1.mr-2 {{ +(((returnBalance(bank)) / Math.max(bank.amount, 1)) * 100).toFixed(2) }}%
               br
-              p.text-right
-                a.text-overline.text-decoration-underline(@click.prevent="showModalBank = true; mutableBank = bank") {{ $t("dashboard.editBank") }}
+              .d-flex.justify-space-between
+                span.text-left
+                  a.text-overline.text-decoration-underline(@click.prevent="showModalBank = true; mutableBank = {}") {{ $t("dashboard.addBank") }}
+                span.text-right
+                  a.text-overline.text-decoration-underline(@click.prevent="showModalBank = true; mutableBank = bank") {{ $t("dashboard.editBank") }}
             v-card-text(v-if="!banks.length")
               v-card-subtitle.text-h6 {{ $t("dashboard.bank") }}
               br
@@ -111,8 +114,12 @@ div
                     v-icon(:class="[(returnBalance(cashPot)) > 0 ? 'text-success' : 'text-red']") mdi-chart-line-variant 
                     .text-subtitle-1.mr-2 {{ +(((returnBalance(cashPot)) / Math.max(cashPot.amount, 1)) * 100).toFixed(2) }}%
               br
-              p.text-right
-                a.text-overline.text-decoration-underline(@click.prevent="showModalCashPot = true; mutableCashPot = cashPot") {{ $t("dashboard.editCashPot") }}
+              .d-flex.justify-space-between
+                span.text-left
+                  a.text-overline.text-decoration-underline(@click.prevent="showModalCashPot = true; mutableCashPot = {}") {{ $t("dashboard.addCashPot") }}
+                span.text-right
+                  a.text-overline.text-decoration-underline(@click.prevent="showModalCashPot = true; mutableCashPot = cashPot") {{ $t("dashboard.editCashPot") }}
+
             v-card-text(v-if="!cashPots.length")
               v-card-subtitle.text-h6 {{ $t("dashboard.cashPot") }}
               br
@@ -121,7 +128,7 @@ div
                 a.text-overline.text-center.text-decoration-underline(@click.prevent="showModalCashPot = true") {{ $t("dashboard.addCashPot") }}
               br
 
-    v-card(v-else class="v-col")
+    v-card(v-else-if="!revenu && ready" class="v-col")
       v-card-title.text-center {{ $t("dashboard.noRevenuTitle") }}
       v-card-text.text-center 
         p {{ $t("dashboard.noRevenuText") }}
@@ -137,7 +144,7 @@ div
             v-col(cols="10")
               v-text-field(name='name' :label='$t("dashboard.name")' v-model='mutableBank.name' :rules="[$v.required()]")
             v-col(cols="10")
-              NumberInput(name='amount' :label='$t("dashboard.amount")' v-model='mutableBank.amount' :rules="[$v.required(), $v.number()]")
+              NumberInput(name='amount' :label='$t("dashboard.amount")' v-model='mutableBank.amount' :rules="[$v.required(),$v.number()]")
             v-col(cols="10")
               DateInput(v-model='mutableBank.amountDate' :label='$t("dashboard.amountDate")' :rules="[$v.required()]")
 
@@ -156,6 +163,8 @@ div
               v-text-field(name='name' :label='$t("dashboard.name")' v-model='mutableCashPot.name' :rules="[$v.required()]")
             v-col(cols="10")
               NumberInput(name='amount' :label='$t("dashboard.amount")' v-model='mutableCashPot.amount' :rules="[$v.required(), $v.number()]")
+            v-col(cols="10")
+              DateInput(v-model='mutableCashPot.amountDate' :label='$t("dashboard.amountDate")' :rules="[$v.required()]")
 
         v-card-actions.mb-2
           v-row(dense justify="center")
@@ -178,6 +187,7 @@ import {
 import type { Revenus, Costs, Credits, Banks, CashPots } from "../../../types/models";
 
 const loadingStore = useLoadingStore();
+const ready = ref(false);
 let banks: Banks[] = reactive([]);
 let cashPots: CashPots[] = reactive([]);
 const { filterAll, items } = useFilter(getRevenus);
@@ -214,6 +224,7 @@ onMounted(async () => {
     const date = dayjs().year(today.year()).month(today.month()).date(i).format("L");
     dates.push(date);
   }
+  ready.value = true;
 });
 
 const costChartData = computed(() => {

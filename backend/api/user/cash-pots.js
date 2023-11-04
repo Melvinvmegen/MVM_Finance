@@ -43,8 +43,9 @@ export async function getCashPots(params) {
               AND credits."createdAt" >= cashPots."amountDate"), 0) as sum_credits
         FROM
           "CashPots" as cashPots
+        JOIN "Users" as users ON users.id = cashPots."UserId"
         WHERE
-          cashPots.id IN (${Prisma.join(this.request.user?.cashPotsIds)})
+          users.id = ${this.request.user?.id}
         ORDER BY cashPots.amount DESC`;
 
       return cashPots;

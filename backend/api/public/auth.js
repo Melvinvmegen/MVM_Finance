@@ -64,32 +64,12 @@ export async function signIn({ email, password }) {
     },
   });
 
-  const bankIds = await prisma.banks.findMany({
-    select: {
-      id: true,
-    },
-    where: {
-      UserId: user.id,
-    },
-  });
-
-  const cashPotsIds = await prisma.cashPots.findMany({
-    select: {
-      id: true,
-    },
-    where: {
-      UserId: user.id,
-    },
-  });
-
   const me = {
     id: user.id,
     email: user.email,
     cryptosModuleActive: user.cryptosModuleActive,
     customersModuleActive: user.customersModuleActive,
     revenusModuleActive: user.revenusModuleActive,
-    bankIds: bankIds.map((b) => b.id),
-    cashPotsIds: cashPotsIds.map((b) => b.id),
   };
 
   this.reply.setCookie("MVMTOKEN", await this.reply.jwtSign(me), {

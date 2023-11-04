@@ -243,7 +243,8 @@
     "balance": "Balance",
     "revenuTotal": "Total",
     "import": "File import",
-    "fileInput": "File"
+    "fileInput": "File",
+    "banks": "Banks"
   },
   "invoices": {
     "title": "Invoices:",
