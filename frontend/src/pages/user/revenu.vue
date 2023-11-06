@@ -50,6 +50,34 @@ v-container
                   v-col(cols="1")
                     v-btn(icon="mdi-eye" variant="plain" size="small" :to="`/customers/${quotation.CustomerId}/quotations/${quotation.id}`")
 
+            hr.my-8
+            v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.withdrawals") }}
+            template(v-if="withdrawals.length")
+              v-row
+                v-col(cols="2") {{ $t("revenu.createdAt") }}
+                v-col(cols="3") {{ $t("revenu.name") }}
+                v-col(cols="2") {{ $t("revenu.amount") }}
+                v-col(cols="2") {{ $t("revenu.exchangeFees") }}
+                v-col(cols="1")
+              br
+              TransitionGroup(name='slide-up')
+                v-row(v-for='(withdrawal, index) in withdrawals' :key="index")
+                  v-col(cols="2")
+                    DateInput(v-model="withdrawal.date" :rules="[$v.required()]")
+                  v-col(cols="3")
+                    v-text-field(v-model="withdrawal.name" :rules="[$v.required()]")
+                  v-col(cols="2")
+                    NumberInput(v-model="withdrawal.amount" :rules="[$v.required(), $v.number()]")
+                  v-col(cols="2")
+                    NumberInput(v-model="withdrawal.exchangeFees" :rules="[$v.number()]")  
+                  v-col.d-flex(cols="1")
+                    v-btn(color="error" href='#' @click.prevent="removeItem(withdrawal, 'Withdrawal')")
+                      v-icon mdi-delete
+
+            v-row
+              v-col(cols="12" justify="end")
+                v-btn(@click.prevent="showModalWithdrawal = true;")
+                  span {{ $t("revenu.addLine") }}
 
             hr.my-8
             v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.credits") }}
@@ -111,7 +139,7 @@ v-container
                   v-col.px-0(cols="1")
                     NumberInput(v-model="cost.total" :positive="false" @change="(event) => updateTotal(index, event, 'Costs', 'total')" :rules="[$v.required(), $v.number()]")
                   v-col.d-flex(cols="1")
-                    v-btn.mr-2(color="primary" href='#' @click.prevent="showModal = true; mutableCost = cost")
+                    v-btn.mr-2(color="primary" href='#' @click.prevent="showModalCost = true; mutableCost = cost")
                       v-icon mdi-bank
                     v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
                       v-icon mdi-delete
@@ -121,9 +149,39 @@ v-container
                 v-btn(@click.prevent="addItem('Cost')")
                   span {{ $t("revenu.addLine") }}
 
-          v-dialog(v-model='showModal' width='600')
+          v-dialog(v-model='showModalWithdrawal' width='600')
             v-card(width="100%")
-              v-form(@submit.prevent="updateCost")
+              v-form(v-model="validWithdrawal" @submit.prevent="updateWithdrawal")
+                v-card-title.text-center {{ $t("revenu.updateWithdrawal") }}
+                v-card-text.mt-4
+                  v-row(dense justify="center")
+                    v-col(cols="10")
+                      v-row(justify="center")
+                        v-col(cols="5")
+                          v-select(:items="banks" :item-props="itemProps" v-model="mutableWithdrawal.BankId" :rules="[$v.required()]" :label='$t("revenu.bank")')
+                        v-col.mt-3.d-flex.justify-center(cols="2")
+                          v-icon mdi-arrow-right
+                        v-col(cols="5")
+                          v-select(:items="cashPots" :item-props="itemProps" v-model="mutableWithdrawal.CashPotId" :rules="[$v.required()]" :label='$t("revenu.CashPot")')
+                    v-col(cols="10")
+                      v-select(:items="costWIthdrawals" :item-props="itemProps" v-model="mutableWithdrawal.CostId" :rules="[$v.required()]" :label='$t("revenu.costs")')
+                    v-col(cols="10")
+                      DateInput(v-model="mutableWithdrawal.date" :rules="[$v.required()]" :label='$t("revenu.createdAt")')
+                    v-col(cols="10")
+                      v-text-field(v-model="mutableWithdrawal.name" :label='$t("revenu.name")' :rules="[$v.required()]")
+                    v-col(cols="10")
+                      NumberInput(v-model="mutableWithdrawal.amount" :rules="[$v.required(), $v.number()]" :label='$t("revenu.amount")')
+                    v-col(cols="10")
+                      NumberInput(v-model="mutableWithdrawal.exchangeFees" :rules="[$v.number()]" :label='$t("revenu.exchangeFees")')                
+
+                v-card-actions.mb-2
+                  v-row(dense justify="center")
+                    v-col.d-flex.justify-center(cols="12" lg="8")
+                      v-btn.bg-secondary.text-white(type="submit") {{ $t("revenu.update") }}
+
+          v-dialog(v-model='showModalCost' width='600')
+            v-card(width="100%")
+              v-form(v-model="validCost" @submit.prevent="updateCost")
                 v-card-title.text-center {{ $t("revenu.updateCost") }}
                 v-card-text.mt-4
                   v-row(dense justify="center")
@@ -178,23 +236,60 @@ v-container
 
 <script setup lang="ts">
 import dayjs from "dayjs";
-import type { Revenus, Costs, Credits, Invoices, Prisma, Banks, CashPots } from "../../../types/models";
-import { getRevenu, updateRevenu, getBanks, getCashPots, updateRevenuCost } from "../../utils/generated/api-user";
+import type {
+  Revenus,
+  Costs,
+  Credits,
+  Invoices,
+  Quotations,
+  Withdrawal,
+  Prisma,
+  Banks,
+  CashPots,
+} from "../../../types/models";
+import {
+  getRevenu,
+  updateRevenu,
+  getBanks,
+  getCashPots,
+  updateRevenuCost,
+  createRevenuWithdrawal,
+} from "../../utils/generated/api-user";
 import chartColors from "../../utils/chartColors";
 
-type RevenuWithCostsCredits = Revenus & { Costs: Costs[]; Credits: Credits[]; Invoices: Invoices[] };
+type RevenuWithCostsCredits = Revenus & {
+  Costs: Costs[];
+  Credits: Credits[];
+  Invoices: Invoices[];
+  Quotations: Quotations[];
+  Withdrawals: Withdrawal[];
+};
 
 const loadingStore = useLoadingStore();
 const route = useRoute();
 const router = useRouter();
 const valid = ref(false);
-const showModal = ref(false);
+const validWithdrawal = ref(false);
+const validCost = ref(false);
+const showModalCost = ref(false);
+const showModalWithdrawal = ref(false);
 const mutableCost = ref();
+const mutableWithdrawal = ref({
+  date: dayjs().toDate(),
+  name: "",
+  amount: 0,
+  exchangeFees: 0,
+  RevenuId: 0,
+  BankId: 0,
+  CashPotId: 0,
+  CostId: 0,
+});
 const revenu = ref<RevenuWithCostsCredits>();
 const banks = ref<Banks[]>([]);
 const cashPots = ref<CashPots[]>([]);
 const costs = ref<Prisma.CostsUncheckedCreateInput[]>([]);
 const credits = ref<Prisma.CreditsUncheckedCreateInput[]>([]);
+const withdrawals = ref<Prisma.WithdrawalUncheckedCreateInput[]>([]);
 const costCategories = [
   "GENERAL",
   "TAX",
@@ -242,8 +337,15 @@ onMounted(async () => {
     revenu.value.watchers = revenu.value?.watchers?.length ? revenu.value?.watchers?.split(",") : [];
     costs.value = revenu.value.Costs;
     credits.value = revenu.value.Credits;
+    withdrawals.value = revenu.value.Withdrawals;
     creditItemTemplate.RevenuId = revenu.value?.id;
     costItemTemplate.RevenuId = revenu.value?.id;
+    mutableWithdrawal.value.RevenuId = revenu.value?.id;
+    mutableWithdrawal.value.BankId = banks.value[0].id;
+    mutableWithdrawal.value.CashPotId = cashPots.value[0].id;
+    if (costWIthdrawals.value.length) {
+      mutableWithdrawal.value.CostId = costWIthdrawals.value[0].id;
+    }
     groupModelByCategory(costs, "costs", costCategories);
     groupModelByCategory(credits, "credits", creditCategories);
   } finally {
@@ -256,7 +358,7 @@ function addItem(itemName) {
   if (itemName === "Cost") {
     createdAt = costs.value.at(-1)?.createdAt || revenu.value?.createdAt;
     costs.value.push({ createdAt, ...costItemTemplate });
-  } else {
+  } else if (itemName === "Credits") {
     createdAt = credits.value.at(-1)?.createdAt || revenu.value?.createdAt;
     credits.value.push({ createdAt, ...creditItemTemplate });
   }
@@ -267,10 +369,13 @@ function removeItem(item, itemName) {
     const index = costs.value.findIndex((cost) => cost.id === item.id);
     costs.value.splice(index, 1);
     updateTotal();
-  } else {
+  } else if (itemName === "Credits") {
     const index = credits.value.findIndex((credit) => credit.id === item.id);
     credits.value.splice(index, 1);
     updateTotal();
+  } else {
+    const index = withdrawals.value.findIndex((withdrawal) => withdrawal.id === item.id);
+    withdrawals.value.splice(index, 1);
   }
 }
 
@@ -374,6 +479,13 @@ watch(
   () => revenu.value?.expense,
   () => groupModelByCategory(costs, "costs", costCategories),
 );
+watch(
+  () => mutableWithdrawal.value?.CostId,
+  () => {
+    const index = costWIthdrawals.value.findIndex((cw) => cw.id === mutableWithdrawal.value?.CostId);
+    mutableWithdrawal.value.amount = Math.abs(costWIthdrawals.value[index].total);
+  },
+);
 
 const costsNames = computed(() => {
   const arr = costs.value ? costs.value.map((cost) => cost.name.replace(/[\d+/+]/g, "").trim()) : [];
@@ -397,6 +509,11 @@ const recurrentCosts = computed(() => {
   return revenu.value?.Costs?.filter((c) => c.recurrent) || [];
 });
 
+const costWIthdrawals = computed(() => {
+  console.log(costs.value.filter((c) => c.name.includes("DAB") && !c.WithdrawalId));
+  return costs.value.filter((c) => c.name.includes("DAB") && !c.WithdrawalId);
+});
+
 function itemProps(item) {
   return {
     title: item.name,
@@ -405,6 +522,7 @@ function itemProps(item) {
 }
 
 async function updateCost() {
+  if (!validCost.value) return;
   loadingStore.setLoading(true);
   try {
     const res = await updateRevenuCost(revenu.value?.id, mutableCost.value.id, {
@@ -419,7 +537,34 @@ async function updateCost() {
       BankId: mutableCost.value.BankId,
       CashPotId: mutableCost.value.CashPotId,
     };
-    showModal.value = false;
+    showModalCost.value = false;
+  } finally {
+    loadingStore.setLoading(false);
+  }
+}
+
+async function updateWithdrawal() {
+  if (!validWithdrawal.value) return;
+  loadingStore.setLoading(true);
+  try {
+    const { withdrawal, cost, credit } = await createRevenuWithdrawal(revenu.value?.id, {
+      date: mutableWithdrawal.value.date,
+      name: mutableWithdrawal.value.name,
+      amount: mutableWithdrawal.value.amount,
+      exchangeFees: mutableWithdrawal.value.exchangeFees,
+      BankId: mutableWithdrawal.value.BankId,
+      CashPotId: mutableWithdrawal.value.CashPotId,
+      CostId: mutableWithdrawal.value.CostId,
+    });
+    const costIndex = costs.value.findIndex((c) => c.id === cost.id);
+    if (costIndex !== -1) {
+      costs.value.push(cost);
+    } else {
+      costs.value[costIndex] = cost;
+    }
+    credits.value.push(credit);
+    withdrawals.value.push(withdrawal);
+    showModalWithdrawal.value = false;
   } finally {
     loadingStore.setLoading(false);
   }

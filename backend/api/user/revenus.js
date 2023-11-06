@@ -16,12 +16,13 @@ export default async function (app) {
   app.$upload("/revenus/:bankId", createRevenu);
   app.$put("/revenus/:id", updateRevenu);
   app.$put("/revenus/:id/costs/:CostId", updateRevenuCost);
+  app.$post("/revenus/:id/withdrawals", createRevenuWithdrawal);
 }
 
 /**
  * @this {API.This}
  * @param {{ per_page: number, offset: number, force: string, options: any }} params
- * @returns {Promise<{ count: number, rows:Models.Revenus[] & { Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions} }>}
+ * @returns {Promise<{ count: number, rows:Models.Revenus[], Withdrawals: Models.Withdrawals, Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions} }>}
  */
 export async function getRevenus(params) {
   const { per_page, offset, orderBy, options } = setFilters(params);
@@ -39,6 +40,8 @@ export async function getRevenus(params) {
         skip: offset,
         orderBy: orderBy || { createdAt: "desc" },
         include: {
+          Transactions: true,
+          Quotations: true,
           Invoices: true,
           Credits: true,
           Costs: {
@@ -46,8 +49,6 @@ export async function getRevenus(params) {
               createdAt: "desc",
             },
           },
-          Quotations: true,
-          Transactions: true,
         },
       });
 
@@ -94,6 +95,8 @@ export async function getRevenu(revenuId) {
       },
       include: {
         Invoices: true,
+        Quotations: true,
+        Transactions: true,
         Credits: {
           orderBy: {
             createdAt: "asc",
@@ -104,8 +107,11 @@ export async function getRevenu(revenuId) {
             createdAt: "asc",
           },
         },
-        Quotations: true,
-        Transactions: true,
+        Withdrawals: {
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
       },
     });
   });
@@ -121,6 +127,7 @@ let credit_category_cache = {};
  * @param {string} bankId
  * @param {API.UploadData} upload
  */
+// TODO: Prisma transaction
 export async function createRevenu(bankId, upload) {
   const bank = await prisma.banks.findFirst({
     where: {
@@ -346,7 +353,7 @@ export async function createRevenu(bankId, upload) {
  * @returns {Promise<Models.Revenus & {Credits: Models.Credits[], Costs: Models.Costs[]}>}
  */
 export async function updateRevenu(revenuId, body) {
-  const { Credits, Costs, Quotations, Transactions, Invoices, ...revenuBody } = body;
+  const { Credits, Costs, Quotations, Transactions, Invoices, Withdrawals, ...revenuBody } = body;
   let revenu = await prisma.revenus.findUnique({
     where: {
       id: +revenuId,
@@ -355,6 +362,7 @@ export async function updateRevenu(revenuId, body) {
     include: {
       Credits: true,
       Costs: true,
+      Withdrawals: true,
     },
   });
 
@@ -363,6 +371,9 @@ export async function updateRevenu(revenuId, body) {
   }
   if (revenu && Costs) {
     await updateCreateOrDestroyChildItems("Costs", revenu.Costs, Costs);
+  }
+  if (revenu && Withdrawals) {
+    await updateCreateOrDestroyChildItems("Withdrawal", revenu.Withdrawals, Withdrawals);
   }
 
   revenu = await prisma.revenus.update({
@@ -376,6 +387,7 @@ export async function updateRevenu(revenuId, body) {
     include: {
       Credits: true,
       Costs: true,
+      Withdrawals: true,
     },
   });
 
@@ -413,4 +425,58 @@ export async function updateRevenuCost(RevenuId, CostId, body) {
   });
 
   return cost;
+}
+
+/**
+ * @this {API.This}
+ * @param {string} RevenuId
+ * @param {Models.Prisma.WithdrawalUncheckedCreateInput & {BankId: number, CashPotId: number, CostId: number, CreditId: number}} body
+ * @returns {Promise<{ withdrawal: Models.Withdrawal, cost: Models.Costs, credit: Models.Credits }>}
+ */
+// TODO: Prisma transaction
+export async function createRevenuWithdrawal(RevenuId, body) {
+  let revenu = await prisma.revenus.findFirst({
+    where: {
+      id: +RevenuId,
+      UserId: this.request.user.id,
+    },
+  });
+
+  if (!revenu) throw new AppError("Revenu not found!");
+
+  const withdrawal = await prisma.withdrawal.create({
+    data: {
+      date: dayjs(body.date).toDate(),
+      name: body.name,
+      amount: +body.amount,
+      exchangeFees: +body.exchangeFees,
+      RevenuId: +RevenuId,
+    },
+  });
+
+  const credit = await prisma.credits.create({
+    data: {
+      creditor: withdrawal.name,
+      total: withdrawal.amount + withdrawal.exchangeFees,
+      RevenuId: withdrawal.RevenuId,
+      WithdrawalId: withdrawal.id,
+      category: "CASH",
+      BankId: +body.BankId,
+      CashPotId: +body.CashPotId,
+    },
+  });
+
+  const cost = await prisma.costs.update({
+    where: {
+      id: body.CostId,
+    },
+    data: {
+      WithdrawalId: withdrawal.id,
+      category: "WITHDRAWAL",
+      BankId: +body.BankId,
+      CashPotId: +body.CashPotId,
+    },
+  });
+
+  return { withdrawal, cost, credit };
 }

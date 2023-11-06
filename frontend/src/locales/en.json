@@ -217,9 +217,14 @@
     "paymentMean": "Payment Mean",
     "bank": "Bank",
     "CashPot": "Cash pot",
-    "update": "Update",
+    "update": "Create",
     "updateCost": "Update cost",
-    "deposit": "Deposit"
+    "deposit": "Deposit",
+    "exchangeFees": "Exchange fees",
+    "withdrawals": "Withdrawals",
+    "updateWithdrawal": "Create withdrawal",
+    "amount": "Amount",
+    "Withdrawal": "Withdrawal"
   },
   "revenus": {
     "title": "Revenus",
