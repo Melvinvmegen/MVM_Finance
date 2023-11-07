@@ -26,12 +26,17 @@ div
     v-col(v-if="revenu" cols="12" md="4")
       v-card(class="v-col")
         v-card-text
-          v-row(justify="space-around" align="center" v-if="revenu?.pro")
-            v-card-subtitle {{ $t("dashboard.revenuPro") }}
-            v-card-title {{ $n(revenu?.pro, "currency") }}
-          v-row(justify="space-around" align="center" v-if="revenu?.perso")
-            v-card-subtitle {{ $t("dashboard.revenuPerso") }}
-            v-card-title + {{ $n(revenu?.perso, "currency") }}
+          template(v-if="revenu.pro || revenu.perso")
+            v-row(justify="space-around" align="center" v-if="revenu?.pro")
+              v-card-subtitle {{ $t("dashboard.revenuPro") }}
+              v-card-title {{ $n(revenu?.pro, "currency") }}
+            v-row(justify="space-around" align="center" v-if="revenu?.perso")
+              v-card-subtitle {{ $t("dashboard.revenuPerso") }}
+              v-card-title + {{ $n(revenu?.perso, "currency") }}
+          template(v-else)
+            v-row(justify="space-around" align="center" v-if="revenu?.total")
+              v-card-subtitle {{ $t("revenu.total") }}
+              v-card-title {{ $n(revenu?.total, "currency") }}
           v-row(justify="space-around" align="center" v-if="revenu?.refund")
             v-card-subtitle {{ $t("dashboard.refund") }}
             v-card-title + {{ $n(revenu?.refund, "currency") }}

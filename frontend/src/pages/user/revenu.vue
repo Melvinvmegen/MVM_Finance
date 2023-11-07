@@ -74,7 +74,7 @@ v-container
                     v-btn(color="error" href='#' @click.prevent="removeItem(withdrawal, 'Withdrawal')")
                       v-icon mdi-delete
 
-            v-row
+            v-row(v-if="costWithdrawals.length")
               v-col(cols="12" justify="end")
                 v-btn(@click.prevent="showModalWithdrawal = true;")
                   span {{ $t("revenu.addLine") }}
@@ -164,7 +164,7 @@ v-container
                         v-col(cols="5")
                           v-select(:items="cashPots" :item-props="itemProps" v-model="mutableWithdrawal.CashPotId" :rules="[$v.required()]" :label='$t("revenu.CashPot")')
                     v-col(cols="10")
-                      v-select(:items="costWIthdrawals" :item-props="itemProps" v-model="mutableWithdrawal.CostId" :rules="[$v.required()]" :label='$t("revenu.costs")')
+                      v-select(:items="costWithdrawals" :item-props="itemProps" v-model="mutableWithdrawal.CostId" :rules="[$v.required()]" :label='$t("revenu.costs")')
                     v-col(cols="10")
                       DateInput(v-model="mutableWithdrawal.date" :rules="[$v.required()]" :label='$t("revenu.createdAt")')
                     v-col(cols="10")
@@ -274,7 +274,7 @@ const validCost = ref(false);
 const showModalCost = ref(false);
 const showModalWithdrawal = ref(false);
 const mutableCost = ref();
-const mutableWithdrawal = ref({
+let withdrawalTemplate = {
   date: dayjs().toDate(),
   name: "",
   amount: 0,
@@ -283,7 +283,8 @@ const mutableWithdrawal = ref({
   BankId: 0,
   CashPotId: 0,
   CostId: 0,
-});
+};
+const mutableWithdrawal = ref();
 const revenu = ref<RevenuWithCostsCredits>();
 const banks = ref<Banks[]>([]);
 const cashPots = ref<CashPots[]>([]);
@@ -340,12 +341,17 @@ onMounted(async () => {
     withdrawals.value = revenu.value.Withdrawals;
     creditItemTemplate.RevenuId = revenu.value?.id;
     costItemTemplate.RevenuId = revenu.value?.id;
-    mutableWithdrawal.value.RevenuId = revenu.value?.id;
-    mutableWithdrawal.value.BankId = banks.value[0].id;
-    mutableWithdrawal.value.CashPotId = cashPots.value[0].id;
-    if (costWIthdrawals.value.length) {
-      mutableWithdrawal.value.CostId = costWIthdrawals.value[0].id;
-    }
+    withdrawalTemplate = {
+      ...withdrawalTemplate,
+      RevenuId: revenu.value?.id,
+      BankId: banks.value[0].id,
+      CashPotId: cashPots.value[0].id,
+    };
+    mutableWithdrawal.value = {
+      ...withdrawalTemplate,
+      date: dayjs(costWithdrawals.value[0].createdAt).toDate(),
+      ...(costWithdrawals.value.length && { CostId: costWithdrawals.value[0].id }),
+    };
     groupModelByCategory(costs, "costs", costCategories);
     groupModelByCategory(credits, "credits", creditCategories);
   } finally {
@@ -482,8 +488,9 @@ watch(
 watch(
   () => mutableWithdrawal.value?.CostId,
   () => {
-    const index = costWIthdrawals.value.findIndex((cw) => cw.id === mutableWithdrawal.value?.CostId);
-    mutableWithdrawal.value.amount = Math.abs(costWIthdrawals.value[index].total);
+    if (!mutableWithdrawal.value?.CostId) return;
+    const index = costWithdrawals.value.findIndex((cw) => cw.id === mutableWithdrawal.value?.CostId);
+    mutableWithdrawal.value.amount = Math.abs(costWithdrawals.value[index].total);
   },
 );
 
@@ -506,11 +513,10 @@ const splitedWatchers = computed(() => {
 });
 
 const recurrentCosts = computed(() => {
-  return revenu.value?.Costs?.filter((c) => c.recurrent) || [];
+  return costs.value.filter((c) => c.recurrent) || [];
 });
 
-const costWIthdrawals = computed(() => {
-  console.log(costs.value.filter((c) => c.name.includes("DAB") && !c.WithdrawalId));
+const costWithdrawals = computed(() => {
   return costs.value.filter((c) => c.name.includes("DAB") && !c.WithdrawalId);
 });
 
@@ -558,13 +564,18 @@ async function updateWithdrawal() {
     });
     const costIndex = costs.value.findIndex((c) => c.id === cost.id);
     if (costIndex !== -1) {
-      costs.value.push(cost);
-    } else {
       costs.value[costIndex] = cost;
+    } else {
+      costs.value.push(cost);
     }
     credits.value.push(credit);
     withdrawals.value.push(withdrawal);
     showModalWithdrawal.value = false;
+    mutableWithdrawal.value = {
+      ...withdrawalTemplate,
+      date: dayjs(costWithdrawals.value[0].createdAt).toDate(),
+      ...(costWithdrawals.value.length && { CostId: costWithdrawals.value[0].id }),
+    };
   } finally {
     loadingStore.setLoading(false);
   }

@@ -33,13 +33,13 @@ export async function getCashPots(params) {
               (SELECT SUM(costs.total)
               FROM "Costs" costs
               WHERE costs."CashPotId" = cashPots.id
-              AND costs."paymentMean" = 'CARD'
+              AND costs."paymentMean" = 'CASH' 
               AND costs."createdAt" >= cashPots."amountDate"), 0) as sum_costs,
           COALESCE(
               (SELECT SUM(credits.total)
               FROM "Credits" credits
               WHERE credits."CashPotId" = cashPots.id
-              AND credits.category <> 'CASH'
+              AND credits.category = 'CASH'
               AND credits."createdAt" >= cashPots."amountDate"), 0) as sum_credits
         FROM
           "CashPots" as cashPots
