@@ -23,6 +23,7 @@ dayjs.locale("fr");
 const basePaths = [path.dirname(import.meta.url), process.cwd()];
 const app = clientWrapper(
   fastify({
+    bodyLimit: 348576,
     disableRequestLogging: true,
     trustProxy: true,
     // @ts-ignore
