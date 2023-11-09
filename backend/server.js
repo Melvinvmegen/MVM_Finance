@@ -124,15 +124,19 @@ app.addHook("onRequest", async (request) => {
   });
 });
 
-app.addHook("preHandler", async (req) => {
+app.addHook("preHandler", async (request, reply) => {
   try {
-    await req.jwtVerify();
+    await request.jwtVerify({ onlyCookie: true });
   } catch (err) {
-    req.log.debug(err);
+    request.log.debug(err);
   }
-  if (req.url.includes("/api/payment")) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader && !req.user) {
+  if (!request.url.includes("/public") && !request.user) {
+    throw new UnauthorizedError("errors.server.unauthorized");
+  }
+
+  if (request.url.includes("/api/payment")) {
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
       throw new UnauthorizedError("errors.server.missingCredentials");
     }
     if (authHeader) {
@@ -145,8 +149,8 @@ app.addHook("preHandler", async (req) => {
     }
   }
 
-  if (/\/api\/user\/customers\/[a-zA-Z0-9]+\/(?:invoices|quotations)/.test(req.url)) {
-    if (!validateCustomerBelongsToUser(req)) throw new UnauthorizedError("errors.server.unauthorized");
+  if (/\/api\/user\/customers\/[a-zA-Z0-9]+\/(?:invoices|quotations)/.test(request.url)) {
+    if (!validateCustomerBelongsToUser(request)) throw new UnauthorizedError("errors.server.unauthorized");
   }
 });
 
