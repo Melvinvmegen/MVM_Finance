@@ -24,13 +24,13 @@ export async function getCustomers(params) {
   const force = params.force === "true";
 
   const result = await getOrSetCache(
-    "customers",
+    `user_${this.request.user?.id}_customers`,
     async () => {
       const count = await prisma.customers.count();
       const rows = await prisma.customers.findMany({
         where: {
           ...options,
-          UserId: this.request.user?.id,
+          UserId: this.request.user?.id || null,
         },
         orderBy: orderBy || { createdAt: "desc" },
         include: {
@@ -54,11 +54,11 @@ export async function getCustomers(params) {
  * @returns {Promise<Models.Customers>}
  */
 export async function getCustomer(customerId) {
-  const customer = await getOrSetCache(`customer_${customerId}`, async () => {
+  const customer = await getOrSetCache(`user_${this.request.user?.id}_customer_${customerId}`, async () => {
     const customer = await prisma.customers.findFirst({
       where: {
         id: +customerId,
-        UserId: this.request.user?.id,
+        UserId: this.request.user?.id || null,
       },
     });
 
@@ -78,7 +78,7 @@ export async function createCustomer(body) {
   const customer = await prisma.customers.create({
     data: {
       ...body,
-      UserId: this.request.user?.id,
+      UserId: this.request.user?.id || null,
     },
     include: {
       Invoices: true,
@@ -100,7 +100,7 @@ export async function updateCustomer(customerId, body) {
   let customer = await prisma.customers.findFirst({
     where: {
       id: +customerId,
-      UserId: this.request.user?.id,
+      UserId: this.request.user?.id || null,
     },
   });
 
@@ -112,7 +112,7 @@ export async function updateCustomer(customerId, body) {
     },
     data: {
       ...customerBody,
-      UserId: this.request.user?.id,
+      UserId: this.request.user?.id || null,
     },
   });
 
@@ -128,7 +128,7 @@ export async function deleteCustomer(customerId) {
   await prisma.customers.delete({
     where: {
       id: +customerId,
-      UserId: this.request.user?.id,
+      UserId: this.request.user?.id || null,
     },
   });
   await invalidateCache("customers");

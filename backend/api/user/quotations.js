@@ -32,7 +32,7 @@ export async function getQuotations(CustomerId, params) {
   const force = params.force === "true";
 
   const quotations_data = await getOrSetCache(
-    `quotations_customer_${CustomerId}`,
+    `user_${this.request.user?.id}_customer_${CustomerId}_quotations`,
     async () => {
       const count = await prisma.quotations.count({
         where: {
@@ -64,18 +64,21 @@ export async function getQuotations(CustomerId, params) {
  * @returns {Promise<Models.Quotations[] & { InvoiceItems: Models.InvoiceItems}>}
  */
 export async function getQuotation(customerId, quotationId) {
-  const quotation = await getOrSetCache(`quotation_${quotationId}`, async () => {
-    const data = await prisma.quotations.findUnique({
-      where: {
-        id: +quotationId,
-        CustomerId: +customerId,
-      },
-      include: {
-        InvoiceItems: true,
-      },
-    });
-    return data;
-  });
+  const quotation = await getOrSetCache(
+    `user_${this.request.user?.id}_customer_${customerId}_quotation_${quotationId}`,
+    async () => {
+      const data = await prisma.quotations.findUnique({
+        where: {
+          id: +quotationId,
+          CustomerId: +customerId,
+        },
+        include: {
+          InvoiceItems: true,
+        },
+      });
+      return data;
+    }
+  );
 
   if (!quotation) throw new AppError("Quotation not found!");
 
@@ -89,18 +92,21 @@ export async function getQuotation(customerId, quotationId) {
  * @returns {Promise<API.DownloadReturns>}
  */
 export async function downloadQuotation(customerId, quotationId) {
-  const quotation = await getOrSetCache(`quotation_${quotationId}`, async () => {
-    const data = await prisma.quotations.findUnique({
-      where: {
-        id: +quotationId,
-        CustomerId: +customerId,
-      },
-      include: {
-        InvoiceItems: true,
-      },
-    });
-    return data;
-  });
+  const quotation = await getOrSetCache(
+    `user_${this.request.user?.id}_customer_${customerId}_quotation_${quotationId}`,
+    async () => {
+      const data = await prisma.quotations.findUnique({
+        where: {
+          id: +quotationId,
+          CustomerId: +customerId,
+        },
+        include: {
+          InvoiceItems: true,
+        },
+      });
+      return data;
+    }
+  );
 
   if (!quotation) throw new AppError("Quotation not found!");
 

@@ -31,7 +31,7 @@ export async function getInvoices(CustomerId, params) {
   const force = params.force === "true";
 
   const invoices_data = await getOrSetCache(
-    `invoices_customer_${CustomerId}`,
+    `user_${this.request.user?.id}_customer_${CustomerId}_invoices`,
     async () => {
       const count = await prisma.invoices.count({
         where: {
@@ -63,18 +63,21 @@ export async function getInvoices(CustomerId, params) {
  * @returns {Promise<Models.Invoices[] & { InvoiceItems: Models.InvoiceItems}>}
  */
 export async function getInvoice(customerId, invoiceId) {
-  const invoice = await getOrSetCache(`invoice_${invoiceId}`, async () => {
-    const data = await prisma.invoices.findFirst({
-      where: {
-        id: +invoiceId,
-        CustomerId: +customerId,
-      },
-      include: {
-        InvoiceItems: true,
-      },
-    });
-    return data;
-  });
+  const invoice = await getOrSetCache(
+    `user_${this.request.user?.id}_customer_${customerId}_invoice_${invoiceId}`,
+    async () => {
+      const data = await prisma.invoices.findFirst({
+        where: {
+          id: +invoiceId,
+          CustomerId: +customerId,
+        },
+        include: {
+          InvoiceItems: true,
+        },
+      });
+      return data;
+    }
+  );
 
   if (!invoice) throw new AppError("Invoice not found!");
 
@@ -88,18 +91,21 @@ export async function getInvoice(customerId, invoiceId) {
  * @returns {Promise<API.DownloadReturns>}>}
  */
 export async function downloadInvoice(customerId, invoiceId) {
-  const invoice = await getOrSetCache(`invoice_${invoiceId}`, async () => {
-    const data = await prisma.invoices.findFirst({
-      where: {
-        id: +invoiceId,
-        CustomerId: +customerId,
-      },
-      include: {
-        InvoiceItems: true,
-      },
-    });
-    return data;
-  });
+  const invoice = await getOrSetCache(
+    `user_${this.request.user?.id}_customer_${customerId}_invoice_${invoiceId}`,
+    async () => {
+      const data = await prisma.invoices.findFirst({
+        where: {
+          id: +invoiceId,
+          CustomerId: +customerId,
+        },
+        include: {
+          InvoiceItems: true,
+        },
+      });
+      return data;
+    }
+  );
 
   if (!invoice) throw new AppError("Invoice not found!");
 

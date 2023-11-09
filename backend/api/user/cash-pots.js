@@ -21,7 +21,7 @@ export default async function (app) {
 export async function getCashPots(params) {
   const force = params.force === "true";
   const result = await getOrSetCache(
-    "cashPots",
+    `user_${this.request.user?.id}_cashPots`,
     async () => {
       const cashPots = await prisma.$queryRaw`
         SELECT
@@ -62,11 +62,11 @@ export async function getCashPots(params) {
  * @returns {Promise<Models.CashPots>}
  */
 export async function getCashPot(cashPotId) {
-  const cashPot = await getOrSetCache(`cashPot_${cashPotId}`, async () => {
+  const cashPot = await getOrSetCache(`user_${this.request.user?.id}_cashPot_${cashPotId}`, async () => {
     const cashPot = await prisma.cashPots.findFirst({
       where: {
         id: +cashPotId,
-        UserId: this.request.user?.id,
+        UserId: this.request.user?.id || null,
       },
     });
     if (!cashPot) throw new AppError("CashPot not found!");
@@ -85,7 +85,7 @@ export async function createCashPot(body) {
   const cashPot = await prisma.cashPots.create({
     data: {
       ...body,
-      UserId: this.request.user?.id,
+      UserId: this.request.user?.id || null,
     },
   });
   await invalidateCache("cashPots");
@@ -103,7 +103,7 @@ export async function updateCashPot(cashPotId, body) {
   let cashPot = await prisma.cashPots.findFirst({
     where: {
       id: +cashPotId,
-      UserId: this.request.user?.id,
+      UserId: this.request.user?.id || null,
     },
   });
 
@@ -115,7 +115,7 @@ export async function updateCashPot(cashPotId, body) {
     },
     data: {
       ...body,
-      UserId: this.request.user?.id,
+      UserId: this.request.user?.id || null,
     },
   });
 

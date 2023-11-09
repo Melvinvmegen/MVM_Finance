@@ -23,11 +23,11 @@ export default async function (app) {
 export async function getCryptos(params) {
   const force = params.force === "true";
   const cryptos = await getOrSetCache(
-    `cryptos`,
+    `user_${this.request.user?.id}_cryptos`,
     async () => {
       const data = await prisma.cryptoCurrencies.findMany({
         where: {
-          UserId: this.request.user?.id,
+          UserId: this.request.user?.id || null,
         },
         orderBy: [{ sold: "asc" }, { profit: "desc" }],
         include: {
@@ -62,7 +62,7 @@ export async function createCrypto(body) {
           lte: lastDay,
           gte: firstDay,
         },
-        UserId: this.request.user?.id,
+        UserId: this.request.user?.id || null,
       },
     });
 
@@ -90,7 +90,7 @@ export async function createCrypto(body) {
       pricePurchase: totalTransactions / totalQuantityTransactions,
       price: body.price || amounts?.price || 0,
       priceChange: amounts?.percent_change_30d || 0,
-      UserId: this.request.user?.id,
+      UserId: this.request.user?.id || null,
       Transactions: {
         create: await Promise.all(transactionsToCreate),
       },
@@ -113,7 +113,7 @@ export async function updateCrypto(cryptoId, body) {
   let crypto = await prisma.cryptoCurrencies.findFirst({
     where: {
       id: +cryptoId,
-      UserId: this.request.user?.id,
+      UserId: this.request.user?.id || null,
     },
   });
 
@@ -152,7 +152,7 @@ export async function updateCrypto(cryptoId, body) {
             lte: lastDay,
             gte: firstDay,
           },
-          UserId: this.request.user?.id,
+          UserId: this.request.user?.id || null,
         },
       });
 
@@ -193,7 +193,7 @@ export async function refreshCryptos() {
   });
   const cryptos = await prisma.cryptoCurrencies.findMany({
     where: {
-      UserId: this.request.user?.id,
+      UserId: this.request.user?.id || null,
     },
   });
   let updatedCryptos = [];
@@ -205,7 +205,7 @@ export async function refreshCryptos() {
     const updatedCrypto = await prisma.cryptoCurrencies.update({
       where: {
         id: crypto.id,
-        UserId: this.request.user?.id,
+        UserId: this.request.user?.id || null,
       },
       data: {
         price: currentPrice,
