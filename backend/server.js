@@ -110,6 +110,15 @@ app.addHook("onRequest", async (request) => {
     ? (request.method === "GET" ? gray : magenta)(request.method)
     : request.method;
   const path = settings.logger.colorize && request.headers["request-id"] ? gray(request.url) : request.url;
+
+  try {
+    console.log("request.user avant", request.user);
+    await request.jwtVerify({ onlyCookie: true });
+    console.log("request.user après", request.user);
+  } catch (err) {
+    request.log.debug(err);
+  }
+
   request.log[level]({
     http: {
       method: requestMethod,
@@ -125,12 +134,9 @@ app.addHook("onRequest", async (request) => {
 });
 
 app.addHook("preHandler", async (request, reply) => {
-  try {
-    await request.jwtVerify({ onlyCookie: true });
-  } catch (err) {
-    request.log.debug(err);
-  }
-  if (!request.url.includes("/public") && !request.user) {
+  console.log("preHandler request.url", request.url);
+  console.log("preHandler request.user", request.user);
+  if ((!request.url.includes("public") || !request.url.includes("health")) && !request.user) {
     throw new UnauthorizedError("errors.server.unauthorized");
   }
 
