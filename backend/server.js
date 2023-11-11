@@ -2,6 +2,7 @@ import { validateCustomerBelongsToUser } from "./utils/rights.js";
 import { green, yellow, red, magenta, gray } from "colorette";
 import UnauthorizedError from "./utils/unauthorizedError.js";
 import { createRedisClient } from "./utils/cacheManager.js";
+import { rateLimiter } from "./utils/rateLimiter.js";
 import clientWrapper from "./apiClient/wrapper.js";
 import { settings } from "./utils/settings.js";
 import multipart from "@fastify/multipart";
@@ -114,7 +115,15 @@ app.addHook("onRequest", async (request) => {
   try {
     await request.jwtVerify({ onlyCookie: true });
   } catch (err) {
-    request.log.debug(err);
+    console.log(err);
+  }
+
+  if (!request.url.includes("/public") && !request.url.includes("/health") && !request.user) {
+    try {
+      await rateLimiter(request);
+    } catch (err) {
+      throw new UnauthorizedError("errors.server.unauthorized");
+    }
   }
 
   request.log[level]({
@@ -131,8 +140,8 @@ app.addHook("onRequest", async (request) => {
   });
 });
 
-app.addHook("preHandler", async (request, reply) => {
-  if (!request.url.includes("public") && !request.url.includes("health") && !request.user) {
+app.addHook("preHandler", async (request) => {
+  if (!request.url.includes("/public") && !request.url.includes("/health") && !request.user) {
     throw new UnauthorizedError("errors.server.unauthorized");
   }
 

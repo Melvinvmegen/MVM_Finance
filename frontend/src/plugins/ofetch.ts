@@ -16,7 +16,7 @@ export function createOFetch(options = { headers: [] }) {
       const errorData = response._data.error || response._data;
       if (status === 401) {
         console.log("401 Unauthorized", errorData);
-        window.location.href = "/login";
+        if (window.location.pathname !== "/logout") window.location.href = "/logout";
       } else if (status === 400) {
         console.log("Bad request", errorData);
         if (errorData.name === "AppError") {

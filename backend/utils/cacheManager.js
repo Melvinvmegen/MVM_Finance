@@ -47,4 +47,4 @@ const invalidateCache = async (key) => {
   }
 };
 
-export { createRedisClient, getOrSetCache, invalidateCache };
+export { createRedisClient, getOrSetCache, invalidateCache, redisClient };
