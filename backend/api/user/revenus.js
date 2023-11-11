@@ -27,8 +27,10 @@ export default async function (app) {
 export async function getRevenus(params) {
   const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
+  const cacheName =
+    per_page == 1 ? `user_${this.request.user?.id}_dashboard_revenu` : `user_${this.request.user?.id}_revenus`;
   const revenus = await getOrSetCache(
-    `user_${this.request.user?.id}_revenus`,
+    cacheName,
     async () => {
       const count = await prisma.revenus.count();
       const rows = await prisma.revenus.findMany({
