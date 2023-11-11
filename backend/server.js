@@ -10,6 +10,7 @@ import { prisma } from "./utils/prisma.js";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
+import helmet from "@fastify/helmet";
 import pretty from "pino-pretty";
 import { nanoid } from "nanoid";
 import fastify from "fastify";
@@ -97,6 +98,43 @@ app.register(cors, {
   allowedHeaders: "Content-Type, Authorization, Cookie, Content-Length, Sid, Reqid, X-Requested-With, X-Device",
   credentials: true,
   methods: "GET,PUT,POST,DELETE,OPTIONS,PATCH",
+});
+app.register(helmet, {
+  global: true,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      baseUri: ["'self'"],
+      fontSrc: ["'self'", "https:", "data:"],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+      imgSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      scriptSrc: ["'self'"],
+      scriptSrcAttr: ["'none'"],
+      styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginEmbedderPolicy: {
+    policy: "unsafe-none",
+  },
+  crossOriginOpenerPolicy: {
+    policy: "same-origin",
+  },
+  crossOriginResourcePolicy: {
+    policy: "same-site",
+  },
+  originAgentCluster: true,
+  referrerPolicy: {
+    policy: "no-referrer",
+  },
+  strictTransportSecurity: {
+    maxAge: 15552000,
+    includeSubDomains: true,
+  },
+  xContentTypeOptions: false,
+  xDnsPrefetchControl: { allow: true },
 });
 
 // TODO: check request
