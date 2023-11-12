@@ -139,7 +139,7 @@ v-container
                   v-col.px-0(cols="1")
                     NumberInput(v-model="cost.total" :positive="false" @change="(event) => updateTotal(index, event, 'Costs', 'total')" :rules="[$v.required(), $v.number()]")
                   v-col.d-flex(cols="1")
-                    v-btn.mr-2(color="primary" href='#' @click.prevent="showModalCost = true; mutableCost = cost")
+                    v-btn.mr-2(color="primary" href='#' :disabled="!cost.name || !cost.total" @click.prevent="showModalCost = true; mutableCost = cost")
                       v-icon mdi-bank
                     v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
                       v-icon mdi-delete
@@ -182,7 +182,7 @@ v-container
           v-dialog(v-model='showModalCost' width='600')
             v-card(width="100%")
               v-form(v-model="validCost" @submit.prevent="updateCost")
-                v-card-title.text-center {{ $t("revenu.updateCost") }}
+                v-card-title.text-center {{ mutableCost.id ? $t("revenu.updateCost") : $t("revenu.createCost") }}
                 v-card-text.mt-4
                   v-row(dense justify="center")
                     v-col(cols="10")
@@ -193,7 +193,7 @@ v-container
                 v-card-actions.mb-2
                   v-row(dense justify="center")
                     v-col.d-flex.justify-center(cols="12" lg="8")
-                      v-btn.bg-secondary.text-white(type="submit") {{ $t("revenu.update") }}
+                      v-btn.bg-secondary.text-white(type="submit") {{ mutableCost.id ? $t("revenu.update") : $t("revenu.create") }}
 
           v-card-actions
             v-row(dense justify="center")
@@ -252,7 +252,7 @@ import {
   updateRevenu,
   getBanks,
   getCashPots,
-  updateRevenuCost,
+  updateOrCreateRevenuCost,
   createRevenuWithdrawal,
 } from "../../utils/generated/api-user";
 import chartColors from "../../utils/chartColors";
@@ -349,8 +349,10 @@ onMounted(async () => {
     };
     mutableWithdrawal.value = {
       ...withdrawalTemplate,
-      date: dayjs(costWithdrawals.value[0].createdAt).toDate(),
-      ...(costWithdrawals.value.length && { CostId: costWithdrawals.value[0].id }),
+      ...(costWithdrawals.value.length && {
+        CostId: costWithdrawals.value[0].id,
+        date: dayjs(costWithdrawals.value[0].createdAt).toDate(),
+      }),
     };
     groupModelByCategory(costs, "costs", costCategories);
     groupModelByCategory(credits, "credits", creditCategories);
@@ -364,7 +366,7 @@ function addItem(itemName) {
   if (itemName === "Cost") {
     createdAt = costs.value.at(-1)?.createdAt || revenu.value?.createdAt;
     costs.value.push({ createdAt, ...costItemTemplate });
-  } else if (itemName === "Credits") {
+  } else if (itemName === "Credit") {
     createdAt = credits.value.at(-1)?.createdAt || revenu.value?.createdAt;
     credits.value.push({ createdAt, ...creditItemTemplate });
   }
@@ -375,7 +377,7 @@ function removeItem(item, itemName) {
     const index = costs.value.findIndex((cost) => cost.id === item.id);
     costs.value.splice(index, 1);
     updateTotal();
-  } else if (itemName === "Credits") {
+  } else if (itemName === "Credit") {
     const index = credits.value.findIndex((credit) => credit.id === item.id);
     credits.value.splice(index, 1);
     updateTotal();
@@ -531,8 +533,15 @@ async function updateCost() {
   if (!validCost.value) return;
   loadingStore.setLoading(true);
   try {
-    const res = await updateRevenuCost(revenu.value?.id, mutableCost.value.id, {
+    const res = await updateOrCreateRevenuCost(revenu.value?.id, mutableCost.value.id, {
+      createdAt: mutableCost.value.createdAt,
+      name: mutableCost.value.name,
+      total: mutableCost.value.total,
+      tvaAmount: mutableCost.value.tvaAmount,
+      recurrent: mutableCost.value.recurrent,
+      category: mutableCost.value.category,
       paymentMean: mutableCost.value.paymentMean,
+      RevenuId: revenu.value?.id,
       BankId: mutableCost.value.BankId,
       CashPotId: mutableCost.value.CashPotId,
     });

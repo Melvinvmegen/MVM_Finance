@@ -15,7 +15,7 @@ export default async function (app) {
   app.$get("/revenus/:id", getRevenu);
   app.$upload("/revenus/:bankId", createRevenu);
   app.$put("/revenus/:id", updateRevenu);
-  app.$put("/revenus/:id/costs/:CostId", updateRevenuCost);
+  app.$post("/revenus/:id/costs/:CostId", updateOrCreateRevenuCost);
   app.$post("/revenus/:id/withdrawals", createRevenuWithdrawal);
 }
 
@@ -403,19 +403,47 @@ export async function updateRevenu(revenuId, body) {
  * @this {API.This}
  * @param {string} RevenuId
  * @param {string} CostId
- * @param {Models.Prisma.CostsUncheckedUpdateInput} body
+ * @param {Models.Prisma.CostsUncheckedUpdateInput | Models.Prisma.CostsUncheckedCreateInput} body
  * @returns {Promise<Models.Costs>}
  */
-export async function updateRevenuCost(RevenuId, CostId, body) {
-  let cost = await prisma.costs.findFirst({
-    where: {
-      id: +CostId,
-      RevenuId: +RevenuId,
-    },
-  });
+export async function updateOrCreateRevenuCost(RevenuId, CostId, body) {
+  let cost;
+  if (CostId && CostId !== "undefined") {
+    cost = await prisma.costs.findFirst({
+      where: {
+        id: +CostId,
+        RevenuId: +RevenuId,
+      },
+    });
 
-  if (!cost) throw new AppError("Cost not found!");
+    if (!cost) throw new AppError("Cost not found!");
 
+    cost = await prisma.costs.update({
+      where: {
+        id: +CostId,
+      },
+      data: {
+        paymentMean: body.paymentMean,
+        BankId: body.BankId,
+        CashPotId: body.CashPotId,
+      },
+    });
+  } else {
+    cost = await prisma.costs.create({
+      data: {
+        createdAt: dayjs(body.createdAt).toDate(),
+        name: "" + body.name,
+        total: +body.total,
+        tvaAmount: +body.tvaAmount,
+        recurrent: !!body.recurrent,
+        paymentMean: "" + body.paymentMean,
+        category: "" + body.category,
+        RevenuId: +RevenuId,
+        BankId: +body.BankId,
+        CashPotId: +body.CashPotId,
+      },
+    });
+  }
 
   await invalidateCache(`user_${this.request.user?.id}_revenus`);
   await invalidateCache(`user_${this.request.user?.id}_revenu_${RevenuId}`);

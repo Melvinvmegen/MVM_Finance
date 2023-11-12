@@ -352,12 +352,12 @@ export async function updateRevenu(id, body = undefined, query = undefined) {
 /**
  * @param {string|string[]|number} id
  * @param {string|string[]|number} CostId
- * @param {Parameters<import("../../../../backend/api/user/revenus.js").updateRevenuCost>[2]} body
+ * @param {Parameters<import("../../../../backend/api/user/revenus.js").updateOrCreateRevenuCost>[2]} body
  * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").updateRevenuCost>>}
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").updateOrCreateRevenuCost>>}
 **/
-export async function updateRevenuCost(id, CostId, body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/revenus/${id}/costs/${CostId}`, { method: "PUT", body, query });
+export async function updateOrCreateRevenuCost(id, CostId, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/revenus/${id}/costs/${CostId}`, { method: "POST", body, query });
 }
 /**
  * @param {string|string[]|number} id
