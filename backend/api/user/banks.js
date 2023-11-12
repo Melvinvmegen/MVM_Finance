@@ -87,7 +87,7 @@ export async function createBank(body) {
       UserId: this.request.user?.id || null,
     },
   });
-  await invalidateCache("banks");
+  await invalidateCache(`user_${this.request.user?.id}_banks`);
   return bank;
 }
 
@@ -118,6 +118,6 @@ export async function updateBank(bankId, body) {
     },
   });
 
-  await invalidateCache(`bank_${bank.id}`);
+  await invalidateCache(`user_${this.request.user?.id}_bank_${bank.id}`);
   return bank;
 }

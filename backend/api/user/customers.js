@@ -84,7 +84,7 @@ export async function createCustomer(body) {
       Invoices: true,
     },
   });
-  await invalidateCache("customers");
+  await invalidateCache(`user_${this.request.user?.id}_customers`);
   return customer;
 }
 
@@ -116,7 +116,7 @@ export async function updateCustomer(customerId, body) {
     },
   });
 
-  await invalidateCache(`customer_${customer.id}`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customer.id}`);
   return customer;
 }
 
@@ -131,5 +131,5 @@ export async function deleteCustomer(customerId) {
       UserId: this.request.user?.id || null,
     },
   });
-  await invalidateCache("customers");
+  await invalidateCache(`user_${this.request.user?.id}_customers`);
 }

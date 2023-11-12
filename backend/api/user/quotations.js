@@ -160,7 +160,7 @@ export async function createQuotation(customerId, body) {
     },
   });
 
-  await invalidateCache(`quotations_customer_${quotation.CustomerId}`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_quotations`);
   return quotation;
 }
 
@@ -202,8 +202,8 @@ export async function updateQuotation(customerId, quotationId, body) {
     await updateCreateOrDestroyChildItems("InvoiceItems", existing_invoice_items, InvoiceItems);
   }
 
-  await invalidateCache(`quotations_customer_${quotation.CustomerId}`);
-  await invalidateCache(`quotation_${quotation.id}`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_quotations`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_quotation_${quotation.id}`);
   return quotation;
 }
 
@@ -270,8 +270,8 @@ export async function convertQuotationToInvoice(customerId, quotationId) {
     data: { InvoiceId: invoice.id },
   });
 
-  await invalidateCache(`quotations_customer_${quotation.CustomerId}`);
-  await invalidateCache(`invoices_customer_${invoice.CustomerId}`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_quotations`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoices`);
   return invoice;
 }
 
@@ -301,12 +301,12 @@ export async function sendQuotation(customerId, quotationId) {
  * @param {string} quotationId
  */
 export async function deleteQuotation(customerId, quotationId) {
-  const quotation = await prisma.quotations.delete({
+  await prisma.quotations.delete({
     where: { id: +quotationId, CustomerId: +customerId },
     select: {
       CustomerId: true,
     },
   });
 
-  await invalidateCache(`quotations_customer_${quotation.CustomerId}`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_quotations`);
 }

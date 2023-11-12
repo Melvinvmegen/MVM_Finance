@@ -100,7 +100,7 @@ export async function createCrypto(body) {
     },
   });
 
-  await invalidateCache(`cryptos`);
+  await invalidateCache(`user_${this.request.user?.id}_cryptos`);
   return crypto;
 }
 
@@ -178,7 +178,7 @@ export async function updateCrypto(cryptoId, body) {
     },
   });
 
-  await invalidateCache(`cryptos`);
+  await invalidateCache(`user_${this.request.user?.id}_cryptos`);
   return crypto;
 }
 
@@ -215,6 +215,6 @@ export async function refreshCryptos() {
     updatedCryptos.push(updatedCrypto);
   }
 
-  await invalidateCache(`cryptos`);
+  await invalidateCache(`user_${this.request.user?.id}_cryptos`);
   return updatedCryptos;
 }

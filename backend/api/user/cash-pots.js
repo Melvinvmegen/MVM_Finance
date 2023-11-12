@@ -88,7 +88,7 @@ export async function createCashPot(body) {
       UserId: this.request.user?.id || null,
     },
   });
-  await invalidateCache("cashPots");
+  await invalidateCache(`user_${this.request.user?.id}_cashPots`);
   return cashPot;
 }
 
@@ -119,6 +119,6 @@ export async function updateCashPot(cashPotId, body) {
     },
   });
 
-  await invalidateCache(`cashPot_${cashPot.id}`);
+  await invalidateCache(`user_${this.request.user?.id}_cashPot_${cashPot.id}`);
   return cashPot;
 }

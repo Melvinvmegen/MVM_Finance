@@ -341,7 +341,8 @@ export async function createRevenu(bankId, upload) {
         });
       }
 
-      await invalidateCache("revenus");
+      await invalidateCache(`user_${this.request.user?.id}_revenus`);
+      await invalidateCache(`user_${this.request.user?.id}_dashboard_revenu`);
     })
     .on("error", (error) => {
       throw error;
@@ -393,8 +394,8 @@ export async function updateRevenu(revenuId, body) {
     },
   });
 
-  await invalidateCache("revenus");
-  await invalidateCache(`revenu_${revenu?.id}`);
+  await invalidateCache(`user_${this.request.user?.id}_revenus`);
+  await invalidateCache(`user_${this.request.user?.id}_revenu_${revenu?.id}`);
   return revenu;
 }
 
@@ -415,17 +416,9 @@ export async function updateRevenuCost(RevenuId, CostId, body) {
 
   if (!cost) throw new AppError("Cost not found!");
 
-  cost = await prisma.costs.update({
-    where: {
-      id: +CostId,
-    },
-    data: {
-      paymentMean: body.paymentMean,
-      BankId: body.BankId,
-      CashPotId: body.CashPotId,
-    },
-  });
 
+  await invalidateCache(`user_${this.request.user?.id}_revenus`);
+  await invalidateCache(`user_${this.request.user?.id}_revenu_${RevenuId}`);
   return cost;
 }
 
@@ -480,5 +473,7 @@ export async function createRevenuWithdrawal(RevenuId, body) {
     },
   });
 
+  await invalidateCache(`user_${this.request.user?.id}_revenus`);
+  await invalidateCache(`user_${this.request.user?.id}_revenu_${RevenuId}`);
   return { withdrawal, cost, credit };
 }

@@ -159,7 +159,7 @@ export async function createInvoice(customerId, body) {
     },
   });
 
-  await invalidateCache(`invoices_customer_${invoice.CustomerId}`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoices`);
   return invoice;
 }
 
@@ -200,8 +200,8 @@ export async function updateInvoice(customerId, invoiceId, body) {
 
   if (InvoiceItems) await updateCreateOrDestroyChildItems("InvoiceItems", existingInvoiceItems, InvoiceItems);
 
-  await invalidateCache(`invoices_customer_${invoice.CustomerId}`);
-  await invalidateCache(`invoice_${invoice.id}`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoices`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoice_${invoiceId}`);
   return invoice;
 }
 
@@ -231,12 +231,12 @@ export async function sendInvoice(customerId, invoiceId) {
  * @param {string} invoiceId
  */
 export async function deleteInvoice(customerId, invoiceId) {
-  const invoice = await prisma.invoices.delete({
+  await prisma.invoices.delete({
     where: { id: +invoiceId, CustomerId: +customerId },
     select: {
       CustomerId: true,
     },
   });
 
-  await invalidateCache(`invoices_customer_${invoice.CustomerId}`);
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoices`);
 }
