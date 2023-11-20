@@ -1,0 +1,17 @@
+{
+  "name": "cron",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "cron-tasks",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "MVM",
+  "license": "ISC",
+  "dependencies": {
+    "dayjs": "^1.11.10",
+    "knex": "^3.0.1",
+    "pg": "^8.11.3"
+  }
+}

@@ -106,6 +106,7 @@ model Invoices {
   paymentDate   DateTime?      @db.Timestamptz(6)
   total         Float          @default(0)
   paid          Boolean?       @default(false)
+  recurrent     Boolean?       @default(false)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   CustomerId    Int
@@ -200,6 +201,7 @@ model Users {
   CashPots              CashPots[]
   CryptoCurrencies      CryptoCurrencies[]
   Customers             Customers[]
+  CronTasks             CronTask[]
 }
 
 model Banks {
@@ -290,6 +292,21 @@ model Withdrawal {
   Revenus      Revenus  @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_withdrawal_revenu")
   Cost         Costs?
   Credit       Credits?
+}
+model CronTask {
+  id                Int         @id @default(autoincrement())
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  date              DateTime    
+  dateIntervalType  String      @db.VarChar(10) @default("month")
+  dateIntervalValue Int         @default(1)
+  active            Boolean     @default(true)
+  function          String      @db.VarChar(50)
+  errorMessage      String?     @db.VarChar(500)
+  tryCounts         Int         @default(0)
+  params            Json?
+  UserId            Int?
+  Users             Users?      @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 enum CostCategory {
