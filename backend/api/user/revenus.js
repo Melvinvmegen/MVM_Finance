@@ -339,6 +339,7 @@ export async function createRevenu(bankId, upload) {
             expense: totalCosts,
           },
         });
+        await invalidateCache(`user_${this.request.user?.id}_revenu_${revenu.id}`);
       }
 
       await invalidateCache(`user_${this.request.user?.id}_revenus`);
