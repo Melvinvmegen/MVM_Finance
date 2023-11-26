@@ -22,7 +22,7 @@ export const pdfGenerator = function (invoice) {
     cloudinary.uploader.upload_stream(
       {
         resource_type: "raw",
-        public_id: `${"cautionPaid" in invoice ? "invoice" : "quotation"}-${invoice.id}`,
+        public_id: `${"cautionPaid" in invoice ? "quotation" : "invoice"}-${invoice.id}`,
         folder: "finance",
       },
       async (error, result) => {
