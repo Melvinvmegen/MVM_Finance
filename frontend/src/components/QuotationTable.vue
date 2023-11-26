@@ -45,9 +45,9 @@ v-card.pa-4(elevation="3")
         template( v-slot:[`item.tvaAmount`]="{ item }")
           span {{ $n(item.tvaAmount, "currency") }}
         template(v-slot:item.actions="{ item }")
-          v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openQuotationModel = true; selectedQuotation = item" v-if='!item.cautionPaid' )
+          v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openQuotationModal = true; selectedQuotation = item" v-if='!item.cautionPaid' )
           v-btn(variant="text" size="small" icon="mdi-receipt" @click.stop="download(item)")
-          v-btn(variant="text" size="small" icon="mdi-email" @click.stop="sendEmail(item)")
+          v-btn(variant="text" size="small" icon="mdi-email" @click.stop="openPendingModal(item)")
           v-btn(
             v-if="!item.cautionPaid && !item.InvoiceId"
             variant="text" size="small" 
@@ -69,8 +69,10 @@ v-card.pa-4(elevation="3")
             :key="item.id"
           )
 
-  v-dialog(v-model="openQuotationModel" width='800')
+  v-dialog(v-model="openQuotationModal" width='800')
     PaymentForm(:model='selectedQuotation' @close="closePaymentForm")
+v-dialog(v-model="openPendingEmailModal")
+  PendingEmailForm(:model="selectedPendingEmail" @close="closePendingEmail")
 </template>
 
 <script setup lang="ts">
@@ -80,17 +82,18 @@ import {
   deleteQuotation,
   downloadQuotation,
   convertQuotationToInvoice,
-  sendQuotation,
 } from "../utils/generated/api-user";
 
-import type { Revenus, Quotations, Query } from "../../types/models";
+import type { Revenus, Quotations, Query, PendingEmail } from "../../types/models";
 
 const loadingStore = useLoadingStore();
 const { filterAll, items } = useFilter(getQuotations);
 const { deleteItem } = useDelete(deleteQuotation);
 const searchFrom = ref<HTMLFormElement | null>(null);
 const selectedQuotation = ref(null);
-const openQuotationModel = ref(false);
+const openQuotationModal = ref(false);
+const selectedPendingEmail = ref(null);
+const openPendingEmailModal = ref(false);
 const valid = ref(false);
 const { t: $t } = useI18n();
 const query = ref<Query>({});
@@ -172,25 +175,9 @@ async function download(quotation: Quotations) {
   }
 }
 
-async function sendEmail(quotation: Quotations) {
-  loadingStore.setLoading(true);
-  try {
-    await sendQuotation(quotation.CustomerId, quotation.id);
-    useMessageStore().i18nMessage("success", "quotations.emailSent");
-  } finally {
-    loadingStore.setLoading(false);
-  }
-}
-
 function revenuDate(revenu: Revenus) {
   if (!revenu) return;
   return dayjs(revenu.createdAt).format("MMMM YYYY");
-}
-
-async function closePaymentForm() {
-  openQuotationModel.value = false;
-  selectedQuotation.value = null;
-  await searchQuotations();
 }
 
 async function resetAll() {
@@ -210,6 +197,31 @@ async function convertToInvoice(quotation: Quotations, confirmString: string) {
     } finally {
       loadingStore.setLoading(false);
     }
+  }
+}
+
+async function closePaymentForm() {
+  openQuotationModal.value = false;
+  selectedQuotation.value = null;
+  await searchQuotations();
+}
+
+async function closePendingEmail() {
+  openPendingEmailModal.value = false;
+  selectedPendingEmail.value = null;
+  await searchQuotations();
+}
+
+function openPendingModal(quotation: Quotations & { PendingEmails: PendingEmail[]; Customers: { email: string } }) {
+  openPendingEmailModal.value = true;
+  if (quotation.PendingEmails?.length) {
+    selectedPendingEmail.value = { ...quotation.PendingEmails[0], QuotationId: quotation.id };
+  } else {
+    selectedPendingEmail.value = {
+      recipientEmail: quotation.Customers.email,
+      QuotationId: quotation.id,
+      CronTask: { active: true },
+    };
   }
 }
 </script>

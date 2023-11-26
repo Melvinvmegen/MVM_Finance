@@ -1,4 +1,7 @@
+import { transporter } from "../utils/transporter.js";
 import { database } from "../utils/database.js";
+import { settings } from "./settings.js";
+import { ofetch } from "ofetch";
 import dayjs from "dayjs";
 
 export const functions = {
@@ -92,6 +95,80 @@ export const functions = {
         `[Cron task] createCustomerRecurrentInvoice An error occured`
       );
       throw new Error(err);
+    }
+  },
+  sendPendingEmail: async (pendingEmailId) => {
+    try {
+      const pending_email = await database
+        .select("*")
+        .from("PendingEmail")
+        .where("id", pendingEmailId)
+        .first();
+
+      if (!pending_email) {
+        throw new Error(`PendingEmail not found #${pendingEmailId}`);
+      }
+
+      let model;
+      if (pending_email.InvoiceId) {
+        model = await database
+          .select("id", "uploadUrl")
+          .from("Invoices")
+          .where("id", pending_email.InvoiceId)
+          .first();
+      } else {
+        model = await database
+          .select("id", "uploadUrl")
+          .from("Quotations")
+          .where("id", pending_email.QuotationId)
+          .first();
+      }
+
+      const data = await ofetch(model.uploadUrl, {
+        method: "GET",
+        headers: { "Content-Type": "application/pdf" },
+      });
+
+      const res = await transporter.sendMail({
+        to: settings.email.replace || pending_email.recipientEmail,
+        bcc: pending_email.bbcRecipientEmail
+          ? [pending_email.bbcRecipientEmail]
+          : undefined,
+        from: {
+          name: pending_email.fromName,
+          address: pending_email.fromAddress,
+        },
+        replyTo: {
+          name: pending_email.fromName,
+          address: pending_email.fromAddress,
+        },
+        subject: pending_email.subject,
+        text: pending_email.content,
+        attachments: [
+          {
+            filename: `mvm-${"cautionPaid" in model ? "facture" : "devis"}-${
+              model.id
+            }.pdf`,
+            content: Buffer.from(await data.arrayBuffer()),
+          },
+        ],
+      });
+
+      if (res.accepted?.length) {
+        console.log(
+          `[Notifications Cron] Email sent to ${pending_email.recipientEmail}`
+        );
+
+        await database
+          .from("PendingEmail")
+          .where("id", pending_email.id)
+          .update({ sent: true });
+      }
+    } catch (err) {
+      console.error(
+        `Failed to send message through smtp for pendingEmailId #${pendingEmailId}`
+      );
+      throw new Error("Transporter failed to send email " + err);
     }
   },
 };

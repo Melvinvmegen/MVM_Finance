@@ -194,19 +194,43 @@ export async function updateInvoice(CustomerId, id, body = undefined, query = un
  * @param {string|string[]|number} CustomerId
  * @param {string|string[]|number} id
  * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").sendInvoice>>}
-**/
-export async function sendInvoice(CustomerId, id, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/invoices/${id}/send-invoice`, { method: "GET", query });
-}
-/**
- * @param {string|string[]|number} CustomerId
- * @param {string|string[]|number} id
- * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").deleteInvoice>>}
 **/
 export async function deleteInvoice(CustomerId, id, query = undefined) {
   return await useOFetch(`/api/user/customers/${CustomerId}/invoices/${id}`, { method: "DELETE", query });
+}
+/**
+ * @param {string|string[]|number} id
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/pending-emails.js").getPendingEmail>>}
+**/
+export async function getPendingEmail(id, query = undefined) {
+  return await useOFetch(`/api/user/pending_emails/${id}`, { method: "GET", query });
+}
+/**
+ * @param {Parameters<import("../../../../backend/api/user/pending-emails.js").createPendingEmail>[0]} body
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/pending-emails.js").createPendingEmail>>}
+**/
+export async function createPendingEmail(body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/pending_emails`, { method: "POST", body, query });
+}
+/**
+ * @param {string|string[]|number} id
+ * @param {Parameters<import("../../../../backend/api/user/pending-emails.js").updatePendingEmail>[1]} body
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/pending-emails.js").updatePendingEmail>>}
+**/
+export async function updatePendingEmail(id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/pending_emails/${id}`, { method: "PUT", body, query });
+}
+/**
+ * @param {string|string[]|number} id
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/pending-emails.js").deletePendingEmail>>}
+**/
+export async function deletePendingEmail(id, query = undefined) {
+  return await useOFetch(`/api/user/pending_emails/${id}`, { method: "DELETE", query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -271,15 +295,6 @@ export async function updateQuotation(CustomerId, id, body = undefined, query = 
 **/
 export async function convertQuotationToInvoice(CustomerId, id, body = undefined, query = undefined) {
   return await useOFetch(`/api/user/customers/${CustomerId}/quotations/convert-quotation/${id}`, { method: "POST", body, query });
-}
-/**
- * @param {string|string[]|number} CustomerId
- * @param {string|string[]|number} id
- * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").sendQuotation>>}
-**/
-export async function sendQuotation(CustomerId, id, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/quotations/${id}/send-quotation`, { method: "GET", query });
 }
 /**
  * @param {string|string[]|number} CustomerId

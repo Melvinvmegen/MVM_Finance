@@ -318,5 +318,18 @@
     "warm": "Warm",
     "cold": "Cold",
     "search": "Search for a city then press enter..."
+  },
+  "pendingEmail": {
+    "edit": "Edit email",
+    "create": "Create email",
+    "recipientEmail": "Email du destinataire",
+    "subject": "Sujet du mail",
+    "content": "Contenu du mail",
+    "save": "Save",
+    "date": "Sending date",
+    "active": "Active",
+    "created": "Email successfully created!",
+    "updated": "Email successfully updated!",
+    "time": "Sending time"
   }
 }

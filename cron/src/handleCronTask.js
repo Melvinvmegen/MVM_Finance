@@ -4,29 +4,35 @@ import dayjs from "dayjs";
 
 export async function handleCronTask() {
   console.log("[Cron task] ...Querying cron tasks");
+  // TODO: send with file
   const cronTasks = await database
     .select("*")
     .from("CronTask")
     .where("active", "=", 1)
-    .andWhere("date", ">=", dayjs().startOf("day").toDate())
-    .andWhere("date", "<=", dayjs().endOf("day").toDate())
+    .andWhere("date", ">=", dayjs().startOf("hour").toDate())
+    .andWhere("date", "<=", dayjs().endOf("hour").toDate())
     .orWhere("tryCounts", ">", 0)
     .andWhere("tryCounts", "<", 5);
 
   if (cronTasks.length) {
     console.log(`[Cron task] Found ${cronTasks.length} cronTasks to handle`);
+  } else {
+    console.log(`[Cron task] 0 cronTasks to handle`);
   }
 
   for (let cronTask of cronTasks) {
     try {
       if (cronTask.params) {
-        await functions[cronTask.function](...cronTask.params);
+        await functions[cronTask.function](
+          ...Object.values(JSON.parse(cronTask.params))
+        );
       } else {
         await functions[cronTask.function]();
       }
       await database("CronTask")
         .where({ id: cronTask.id })
         .update({
+          active: !!cronTask.dateIntervalValue,
           tryCounts: 0,
           errorMessage: null,
           date: dayjs(cronTask.date)

@@ -115,11 +115,13 @@ model Invoices {
   tvaApplicable Boolean        @default(false)
   totalTTC      Float          @default(0)
   tvaAmount     Float          @default(0)
+  uploadUrl     String?        @db.VarChar(255)
   InvoiceItems  InvoiceItems[]
   Payments      Payments[]
   Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   Revenus       Revenus?       @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   Quotations    Quotations[]
+  PendingEmails PendingEmail[]
 }
 
 model Quotations {
@@ -140,10 +142,12 @@ model Quotations {
   totalTTC      Float          @default(0)
   tvaAmount     Float          @default(0)
   paymentDate   DateTime?      @db.Timestamptz(6)
+  uploadUrl     String?        @db.VarChar(255)
   InvoiceItems  InvoiceItems[]
   Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   Invoices      Invoices?      @relation(fields: [InvoiceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   Revenus       Revenus?       @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  PendingEmails PendingEmail[]
 }
 
 model Revenus {
@@ -202,6 +206,7 @@ model Users {
   CryptoCurrencies      CryptoCurrencies[]
   Customers             Customers[]
   CronTasks             CronTask[]
+  PendingEmails         PendingEmail[]
 }
 
 model Banks {
@@ -293,20 +298,43 @@ model Withdrawal {
   Cost         Costs?
   Credit       Credits?
 }
-model CronTask {
+
+model PendingEmail {
   id                Int         @id @default(autoincrement())
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
-  date              DateTime    
-  dateIntervalType  String      @db.VarChar(10) @default("month")
-  dateIntervalValue Int         @default(1)
-  active            Boolean     @default(true)
-  function          String      @db.VarChar(50)
-  errorMessage      String?     @db.VarChar(500)
-  tryCounts         Int         @default(0)
+  recipientEmail    String      @db.VarChar(100)
+  fromName          String      @db.VarChar(100)
+  fromAddress       String      @db.VarChar(100)
+  subject           String      @db.VarChar(100)
+  bbcRecipientEmail String      @db.VarChar(100)
+  content           String      @db.VarChar(400)
+  sent              Boolean     @default(false)
+  InvoiceId         Int?
+  QuotationId       Int?
+  UserId            Int?
+  Invoice           Invoices?   @relation(fields: [InvoiceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Quotation         Quotations? @relation(fields: [QuotationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  User              Users?      @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  CronTask          CronTask?
+}
+
+model CronTask {
+  id                Int           @id @default(autoincrement())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  date              DateTime
+  dateIntervalType  String        @default("month") @db.VarChar(10)
+  dateIntervalValue Int           @default(1)
+  active            Boolean       @default(true)
+  function          String        @db.VarChar(50)
+  errorMessage      String?       @db.VarChar(500)
+  tryCounts         Int           @default(0)
   params            Json?
   UserId            Int?
-  Users             Users?      @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  PendingEmailId    Int?          @unique
+  User              Users?        @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  PendingEmail      PendingEmail? @relation(fields: [PendingEmailId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 enum CostCategory {

@@ -1,10 +1,10 @@
 import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
 import { pdfGenerator } from "../../utils/pdfGenerator.js";
-import { createInvoiceEmail } from "../../utils/mailer.js";
 import { setFilters } from "../../utils/filter.js";
 import { AppError } from "../../utils/AppError.js";
 import { updateCreateOrDestroyChildItems } from "../../utils/childItemsHandler.js";
 import { prisma, Models } from "../../utils/prisma.js";
+import { ofetch } from "ofetch";
 
 /**
  * @param {API.ServerInstance} app
@@ -15,7 +15,6 @@ export default async function (app) {
   app.$download("/customers/:CustomerId/invoices/:id/download", downloadInvoice);
   app.$post("/customers/:CustomerId/invoices", createInvoice);
   app.$put("/customers/:CustomerId/invoices/:id", updateInvoice);
-  app.$get("/customers/:CustomerId/invoices/:id/send-invoice", sendInvoice);
   app.$delete("/customers/:CustomerId/invoices/:id", deleteInvoice);
 }
 
@@ -45,6 +44,16 @@ export async function getInvoices(CustomerId, params) {
         orderBy: orderBy || { createdAt: "desc" },
         include: {
           Revenus: true,
+          Customers: {
+            select: {
+              email: true,
+            },
+          },
+          PendingEmails: {
+            include: {
+              CronTask: true,
+            },
+          },
         },
       });
 
@@ -109,11 +118,24 @@ export async function downloadInvoice(customerId, invoiceId) {
 
   if (!invoice) throw new AppError("Invoice not found!");
 
-  return {
-    filename: "mvm-invoice-" + invoiceId + ".pdf",
-    type: "application/pdf",
-    stream: pdfGenerator(invoice),
-  };
+  if (invoice.uploadUrl) {
+    const data = await ofetch(invoice.uploadUrl, {
+      method: "GET",
+      headers: { "Content-Type": "application/pdf" },
+    });
+
+    return {
+      stream: Buffer.from(await data.arrayBuffer()),
+      filename: "mvm-invoice-" + invoiceId + ".pdf",
+    };
+  } else {
+    await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoice_${invoice.id}`);
+    return {
+      filename: "mvm-invoice-" + invoiceId + ".pdf",
+      type: "application/pdf",
+      stream: pdfGenerator(invoice),
+    };
+  }
 }
 
 /**
@@ -159,6 +181,7 @@ export async function createInvoice(customerId, body) {
     },
   });
 
+  pdfGenerator(invoice);
   await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoices`);
   return invoice;
 }
@@ -168,7 +191,7 @@ export async function createInvoice(customerId, body) {
  * @param {string} customerId
  * @param {string} invoiceId
  * @param {Models.Prisma.InvoicesUpdateInput & {RevenuId: string, InvoiceItems: Models.Prisma.InvoiceItemsUpdateInput}} body
- * @returns {Promise<Models.Invoices & {Revenus: Models.Revenus}>}
+ * @returns {Promise<Models.Invoices & {Revenus: Models.Revenus, PendingEmails: Models.PendingEmail}>}
  */
 export async function updateInvoice(customerId, invoiceId, body) {
   const { InvoiceItems, ...invoiceBody } = body;
@@ -200,29 +223,10 @@ export async function updateInvoice(customerId, invoiceId, body) {
 
   if (InvoiceItems) await updateCreateOrDestroyChildItems("InvoiceItems", existingInvoiceItems, InvoiceItems);
 
+  pdfGenerator(invoice);
   await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoices`);
   await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoice_${invoiceId}`);
   return invoice;
-}
-
-// TODO: this should use an email service
-/**
- * @this {API.This}
- * @param {string} customerId
- * @param {string} invoiceId
- */
-export async function sendInvoice(customerId, invoiceId) {
-  const invoice = await prisma.invoices.findFirst({
-    where: { id: +invoiceId, CustomerId: +customerId },
-    include: {
-      InvoiceItems: true,
-      Customers: true,
-    },
-  });
-
-  if (!invoice) throw new AppError("Invoice not found!");
-
-  await createInvoiceEmail(invoice);
 }
 
 /**

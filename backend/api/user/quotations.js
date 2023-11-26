@@ -1,10 +1,10 @@
 import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
+import { ofetch } from "ofetch";
 import { pdfGenerator } from "../../utils/pdfGenerator.js";
 import { setFilters } from "../../utils/filter.js";
 import { AppError } from "../../utils/AppError.js";
 import { updateCreateOrDestroyChildItems } from "../../utils/childItemsHandler.js";
 import { prisma, Models } from "../../utils/prisma.js";
-import { createInvoiceEmail } from "../../utils/mailer.js";
 
 /**
  * @param {API.ServerInstance} app
@@ -16,7 +16,6 @@ export default async function (app) {
   app.$post("/customers/:CustomerId/quotations", createQuotation);
   app.$put("/customers/:CustomerId/quotations/:id", updateQuotation);
   app.$post("/customers/:CustomerId/quotations/convert-quotation/:id", convertQuotationToInvoice);
-  app.$get("/customers/:CustomerId/quotations/:id/send-quotation", sendQuotation);
   app.$delete("/customers/:CustomerId/quotations/:id", deleteQuotation);
 }
 
@@ -46,6 +45,16 @@ export async function getQuotations(CustomerId, params) {
         orderBy: orderBy || { createdAt: "desc" },
         include: {
           Revenus: true,
+          Customers: {
+            select: {
+              email: true,
+            },
+          },
+          PendingEmails: {
+            include: {
+              CronTask: true,
+            },
+          },
         },
       });
 
@@ -110,11 +119,24 @@ export async function downloadQuotation(customerId, quotationId) {
 
   if (!quotation) throw new AppError("Quotation not found!");
 
-  return {
-    filename: "mvm-quotation-" + quotationId + ".pdf",
-    type: "application/pdf",
-    stream: pdfGenerator(quotation),
-  };
+  if (quotation.uploadUrl) {
+    const data = await ofetch(quotation.uploadUrl, {
+      method: "GET",
+      headers: { "Content-Type": "application/pdf" },
+    });
+
+    return {
+      stream: Buffer.from(await data.arrayBuffer()),
+      filename: "mvm-quotation-" + quotationId + ".pdf",
+    };
+  } else {
+    await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_quotation_${quotation.id}`);
+    return {
+      filename: "mvm-quotation-" + quotationId + ".pdf",
+      type: "application/pdf",
+      stream: pdfGenerator(quotation),
+    };
+  }
 }
 
 /**
@@ -160,6 +182,7 @@ export async function createQuotation(customerId, body) {
     },
   });
 
+  pdfGenerator(quotation);
   await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_quotations`);
   return quotation;
 }
@@ -202,6 +225,7 @@ export async function updateQuotation(customerId, quotationId, body) {
     await updateCreateOrDestroyChildItems("InvoiceItems", existing_invoice_items, InvoiceItems);
   }
 
+  pdfGenerator(quotation);
   await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_quotations`);
   await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_quotation_${quotation.id}`);
   return quotation;
@@ -273,26 +297,6 @@ export async function convertQuotationToInvoice(customerId, quotationId) {
   await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_quotations`);
   await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoices`);
   return invoice;
-}
-
-// TODO: this should use an email service
-/**
- * @this {API.This}
- * @param {string} customerId
- * @param {string} quotationId
- */
-export async function sendQuotation(customerId, quotationId) {
-  const quotation = await prisma.quotations.findFirst({
-    where: { id: +quotationId, CustomerId: +customerId },
-    include: {
-      InvoiceItems: true,
-      Customers: true,
-    },
-  });
-
-  if (!quotation) throw new AppError("Quotation not found!");
-
-  await createInvoiceEmail(quotation);
 }
 
 /**

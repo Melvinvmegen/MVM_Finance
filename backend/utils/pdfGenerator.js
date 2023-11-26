@@ -1,8 +1,15 @@
+/* eslint-disable no-console */
+import { cloudinary } from "./cloudinary.js";
+import { prisma } from "./prisma.js";
+import { PassThrough } from "stream";
 import PDFDocument from "pdfkit";
 import dayjs from "dayjs";
 
 export const pdfGenerator = function (invoice) {
   let doc = new PDFDocument({ margin: 50 });
+
+  const pdfStream = new PassThrough();
+  doc.pipe(pdfStream);
 
   generateHeader(doc, invoice);
   generateTableHeader(doc, invoice);
@@ -10,7 +17,44 @@ export const pdfGenerator = function (invoice) {
   generateFooter(doc, invoice);
 
   doc.end();
-  return doc;
+
+  pdfStream.pipe(
+    cloudinary.uploader.upload_stream(
+      {
+        resource_type: "raw",
+        public_id: `${"cautionPaid" in invoice ? "invoice" : "quotation"}-${invoice.id}`,
+        folder: "finance",
+      },
+      async (error, result) => {
+        if (error) {
+          console.error(`[Cloudinary] Error uploading for model ${invoice.id}, error: ${error}`);
+        } else {
+          console.log(`[Cloudinary] Upload successful for model ${invoice.id}, secure_url: ${result.secure_url}`);
+          if ("cautionPaid" in invoice) {
+            await prisma.quotations.update({
+              where: {
+                id: invoice.id,
+              },
+              data: {
+                uploadUrl: result.secure_url,
+              },
+            });
+          } else {
+            await prisma.invoices.update({
+              where: {
+                id: invoice.id,
+              },
+              data: {
+                uploadUrl: result.secure_url,
+              },
+            });
+          }
+        }
+      }
+    )
+  );
+
+  return pdfStream;
 };
 
 function generateHeader(doc, invoice) {
@@ -38,7 +82,7 @@ function generateTableHeader(doc, invoice) {
   doc
     .fillColor("#444444")
     .fontSize(20)
-    .text(`${invoice.hasOwnProperty("cautionPaid") ? "Devis" : "Facture"} n° : ${invoice.id}`, 50, 260)
+    .text(`${"cautionPaid" in invoice ? "Devis" : "Facture"} n° : ${invoice.id}`, 50, 260)
     .fontSize(10)
     .text(`Le : ${date}`, 50, 290)
     .text(`Mode de réglement : paiement à réception (RIB ci-dessous).`, 50, 310);

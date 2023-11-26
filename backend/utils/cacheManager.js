@@ -40,7 +40,7 @@ const invalidateCache = async (key) => {
   try {
     const result = await redisClient.del(key);
     const message = result ? "[CACHE] INVALIDATED" : "[CACHE] NOT FOUND";
-    console.log(green(`${result}: ${key} ${message}`));
+    console.log(green(`${message} ${key}`));
     return result;
   } catch (error) {
     new AppError(500, `[CACHE] ERROR: ${error}`);

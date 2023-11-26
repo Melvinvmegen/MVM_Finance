@@ -27,9 +27,8 @@ export const settings = {
     host: process.env.HOST || "0.0.0.0",
   },
   email: {
-    sendinblueApiKey:
-      process.env.SENDINBLUE_API_KEY ||
-      "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",
+    from: process.env.MAIL_FROM || "melvin.vmegen@gmail.com",
+    from_name: process.env.MAIL_FROM_NAME || "Melvin Van Megen",
     replace: process.env.MAIL_REPLACE_EMAIL || null, //do not fill this in dev env, use .env instead
   },
   cache: {
@@ -59,5 +58,11 @@ export const settings = {
   coinmarketcap: {
     apiBaseUrl: process.env.COINMARKETCAP_URL || "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
     apiKey: process.env.COINMARKETCAP_KEY || "9a874839-5e36-4cec-bcbe-ac2f7927c74f",
+  },
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || "",
+    apiKey: process.env.CLOUDINARY_API_KEY || "",
+    apiPass: process.env.CLOUDINARY_API_PASS || "",
+    secure: !!process.env.CLOUDINARY_SECURE || false,
   },
 };

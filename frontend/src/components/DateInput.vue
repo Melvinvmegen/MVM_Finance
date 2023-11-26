@@ -17,13 +17,17 @@
           append-inner-icon="mdi-calendar"
         ></v-text-field>
       </template>
-      <v-date-picker :modelValue="getDate" @update:modelValue="updateDate"></v-date-picker>
+      <v-date-picker
+        :modelValue="getDate"
+        @update:modelValue="updateDate"
+        show-adjacent-months
+        location="bottom"
+      ></v-date-picker>
     </v-menu>
   </div>
 </template>
 
 <script setup lang="ts">
-import { VDatePicker } from "vuetify/labs/VDatePicker";
 import dayjs from "dayjs";
 
 const componentProps = defineProps({

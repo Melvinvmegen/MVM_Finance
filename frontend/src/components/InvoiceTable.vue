@@ -43,9 +43,9 @@ v-card.pa-4(elevation="3")
         template( v-slot:[`item.tvaAmount`]="{ item }")
           span {{ $n(item.tvaAmount, "currency") }}
         template(v-slot:item.actions="{ item }")
-          v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openInvoiceModel = true; selectedInvoice = item")
+          v-btn(variant="text" size="small" icon="mdi-cash" @click.stop="openInvoiceModal = true; selectedInvoice = item")
           v-btn(variant="text" size="small" icon="mdi-receipt" @click.stop="download(item)")
-          v-btn(variant="text" size="small" icon="mdi-email" @click.stop="sendEmail(item)")
+          v-btn(variant="text" size="small" icon="mdi-email" @click.stop="openPendingModal(item)")
           v-btn(
             v-if="!item.paid"
             variant="text" size="small" 
@@ -59,13 +59,15 @@ v-card.pa-4(elevation="3")
             @click.stop="deleteItem(item, $t('invoices.confirmDelete', [item.id]))",
           )
 
-v-dialog(v-model="openInvoiceModel")
+v-dialog(v-model="openInvoiceModal")
   PaymentForm(:model='selectedInvoice' @close="closePaymentForm")
+v-dialog(v-model="openPendingEmailModal")
+  PendingEmailForm(:model="selectedPendingEmail" @close="closePendingEmail")
 </template>
 
 <script setup lang="ts">
-import { getInvoices, deleteInvoice, downloadInvoice, sendInvoice } from "../utils/generated/api-user";
-import type { Revenus, Invoices, Query } from "../../types/models";
+import { getInvoices, deleteInvoice, downloadInvoice } from "../utils/generated/api-user";
+import type { Revenus, Invoices, Query, PendingEmail } from "../../types/models";
 import dayjs from "dayjs";
 
 const loadingStore = useLoadingStore();
@@ -73,7 +75,9 @@ const { filterAll, items } = useFilter(getInvoices);
 const { deleteItem } = useDelete(deleteInvoice);
 const searchFrom = ref<HTMLFormElement | null>(null);
 const selectedInvoice = ref(null);
-const openInvoiceModel = ref(false);
+const openInvoiceModal = ref(false);
+const selectedPendingEmail = ref(null);
+const openPendingEmailModal = ref(false);
 const valid = ref(false);
 const { t: $t } = useI18n();
 const query = ref<Query>({});
@@ -151,16 +155,6 @@ async function download(invoice: Invoices) {
   }
 }
 
-async function sendEmail(invoice: Invoices) {
-  loadingStore.setLoading(true);
-  try {
-    await sendInvoice(invoice.CustomerId, invoice.id);
-    useMessageStore().i18nMessage("success", "invoices.emailSent");
-  } finally {
-    loadingStore.setLoading(false);
-  }
-}
-
 async function resetAll() {
   searchFrom.value?.reset();
   query.value = {};
@@ -173,8 +167,27 @@ function revenuDate(revenu: Revenus) {
 }
 
 async function closePaymentForm() {
-  openInvoiceModel.value = false;
+  openInvoiceModal.value = false;
   selectedInvoice.value = null;
   await searchInvoices();
+}
+
+async function closePendingEmail() {
+  openPendingEmailModal.value = false;
+  selectedPendingEmail.value = null;
+  await searchInvoices();
+}
+
+function openPendingModal(invoice: Invoices & { PendingEmails: PendingEmail[]; Customers: { email: string } }) {
+  openPendingEmailModal.value = true;
+  if (invoice.PendingEmails?.length) {
+    selectedPendingEmail.value = { ...invoice.PendingEmails[0], InvoiceId: invoice.id };
+  } else {
+    selectedPendingEmail.value = {
+      recipientEmail: invoice.Customers.email,
+      InvoiceId: invoice.id,
+      CronTask: { active: true },
+    };
+  }
 }
 </script>

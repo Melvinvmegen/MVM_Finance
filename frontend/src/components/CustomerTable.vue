@@ -31,7 +31,7 @@ v-col(cols="12")
     template( v-slot:[`item.vatCollected`]="{ item }")
       span {{ $n(returnTvaAmount(item), "currency") }}
     template(v-slot:item.actions="{ item }")
-      v-row(align="center")
+      v-row.flex-nowrap(align="center")
         v-btn(icon="mdi-pencil" variant="plain" size="small" :to="`/customers/${item.id}`")
         v-btn(icon="mdi-delete" variant="plain" size="small" @click.stop="deleteItem(item, $t('customers.confirmDelete', [`${item.firstName} ${item.lastName}`]) )")
 </template>
