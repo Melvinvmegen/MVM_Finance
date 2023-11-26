@@ -57,3 +57,16 @@ jobs:
           export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
           export DOCKER_PASSWORD="${{ secrets.DOCKER_PASSWORD }}"
           bash ./buildMigration.sh
+
+  build-cron:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build cron
+        run: |
+          export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+          export DOCKER_PASSWORD="${{ secrets.DOCKER_PASSWORD }}"
+          bash ./buildCron.sh
