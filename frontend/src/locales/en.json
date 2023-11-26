@@ -179,7 +179,8 @@
     "addLigne": "+ Add a new line",
     "paymentDate": "Payment Date",
     "save": "Save",
-    "searchByTotal": "Search by total"
+    "searchByTotal": "Search by total",
+    "recurrent": "Recurrent"
   },
   "quotation": {
     "editQuotation": "Edit a quotation",

@@ -191,7 +191,7 @@ export async function createInvoice(customerId, body) {
  * @param {string} customerId
  * @param {string} invoiceId
  * @param {Models.Prisma.InvoicesUpdateInput & {RevenuId: string, InvoiceItems: Models.Prisma.InvoiceItemsUpdateInput}} body
- * @returns {Promise<Models.Invoices & {Revenus: Models.Revenus, PendingEmails: Models.PendingEmail}>}
+ * @returns {Promise<Models.Invoices & {Revenus: Models.Revenus, InvoiceItems: Models.InvoiceItems}>}
  */
 export async function updateInvoice(customerId, invoiceId, body) {
   const { InvoiceItems, ...invoiceBody } = body;
@@ -209,19 +209,16 @@ export async function updateInvoice(customerId, invoiceId, body) {
       tvaAmount: invoiceBody.tvaAmount,
       paymentDate: invoiceBody.paymentDate,
       paid: invoiceBody.paid,
+      recurrent: invoiceBody.recurrent,
       ...(invoiceBody.RevenuId && { RevenuId: +invoiceBody.RevenuId }),
     },
     include: {
       Revenus: true,
-    },
-  });
-  const existingInvoiceItems = await prisma.invoiceItems.findMany({
-    where: {
-      InvoiceId: +invoiceId,
+      InvoiceItems: true,
     },
   });
 
-  if (InvoiceItems) await updateCreateOrDestroyChildItems("InvoiceItems", existingInvoiceItems, InvoiceItems);
+  if (InvoiceItems) await updateCreateOrDestroyChildItems("InvoiceItems", invoice.InvoiceItems, InvoiceItems);
 
   pdfGenerator(invoice);
   await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoices`);

@@ -12,9 +12,11 @@ v-container
           v-card-text
             v-row(dense)
               v-col(cols="3" lg="2")
-                v-switch(name='tvaApplicable' hide-details :label='$t("invoice.vatApplicable")' v-model="invoice.tvaApplicable" @change="updateTotal(invoice)" color="secondary" )
+                v-switch(hide-details :label='$t("invoice.vatApplicable")' v-model="invoice.tvaApplicable" @change="updateTotal(invoice)" color="secondary")
               v-col(cols="3" lg="2")
-                v-switch(name='paid' hide-details :label='$t("invoice.paid")' v-model="invoice.paid" color="secondary" )
+                v-switch(hide-details :label='$t("invoice.paid")' v-model="invoice.paid" color="secondary")
+              v-col(cols="3" lg="2")
+                v-switch(hide-details :label='$t("invoice.recurrent")' v-model="invoice.recurrent" color="secondary")
               template(v-if="invoice.paid")
                 v-col(cols="4" lg="3" xl="2")
                   v-select(:items="revenus" hide-details :item-props="itemProps" name='revenuId' v-model="invoice.RevenuId" :label='$t("invoice.revenu")' :rules="[$v.required()]")
