@@ -353,11 +353,11 @@ export async function createRevenu(bankId, upload) {
 /**
  * @this {API.This}
  * @param {number} revenuId
- * @param {Models.Prisma.RevenusUpdateInput} body
+ * @param {Models.Prisma.RevenusUncheckedUpdateInput} body
  * @returns {Promise<Models.Revenus & {Credits: Models.Credits[], Costs: Models.Costs[]}>}
  */
 export async function updateRevenu(revenuId, body) {
-  const { Credits, Costs, Quotations, Transactions, Invoices, Withdrawals, ...revenuBody } = body;
+  const { Credits, Costs, Quotations, Transactions, Invoices, Withdrawals, id, ...revenuBody } = body;
   let revenu = await prisma.revenus.findUnique({
     where: {
       id: +revenuId,
