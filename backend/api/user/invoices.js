@@ -160,6 +160,7 @@ export async function createInvoice(customerId, body) {
       tvaAmount: invoiceBody.tvaAmount,
       tvaApplicable: invoiceBody.tvaApplicable,
       paid: invoiceBody.paid,
+      recurrent: invoiceBody.recurrent,
       Customers: {
         connect: {
           id: +customerId,
