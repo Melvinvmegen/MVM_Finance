@@ -149,7 +149,7 @@ export async function createRevenu(bankId, upload) {
     .pipe(parse({ delimiter: ",", from_line: 5 }))
     .on("data", (row) => {
       const total = +`${row[4]}.${row[5]}`;
-      const [day, month, year] = row[0].split("/");
+      const [day, month, year] = row[0].trim().split("/");
       const date = dayjs(`${year}-${month}-${day}`).toDate();
       const name = row[2];
       if (total < 0) {
@@ -316,7 +316,7 @@ export async function createRevenu(bankId, upload) {
           revenu.Credits.push(credit);
         }
 
-        const revenuIndex = revenus.findIndex((i) => i.id === 2);
+        const revenuIndex = revenus.findIndex((i) => i.id == revenu.id);
         if (revenuIndex > -1) {
           revenus[revenuIndex] = revenu;
         } else {
