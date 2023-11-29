@@ -161,6 +161,7 @@ export async function createInvoice(customerId, body) {
       tvaApplicable: invoiceBody.tvaApplicable,
       paid: invoiceBody.paid,
       recurrent: invoiceBody.recurrent,
+      vatNumber: invoiceBody.vatNumber,
       Customers: {
         connect: {
           id: +customerId,
@@ -211,6 +212,7 @@ export async function updateInvoice(customerId, invoiceId, body) {
       paymentDate: invoiceBody.paymentDate,
       paid: invoiceBody.paid,
       recurrent: invoiceBody.recurrent,
+      vatNumber: invoiceBody.vatNumber,
       ...(invoiceBody.RevenuId && { RevenuId: +invoiceBody.RevenuId }),
     },
     include: {

@@ -111,6 +111,7 @@ onMounted(async () => {
         company: customer.value.company,
         address: customer.value.address,
         city: customer.value.city,
+        vatNumber: customer.value.vatNumber,
         paymentDate: null,
         total: 0,
         totalDue: 0,

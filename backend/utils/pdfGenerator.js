@@ -73,8 +73,11 @@ function generateHeader(doc, invoice) {
     .text("A l'attention de M. ou Mme", 50, 170, { align: "right" })
     .text(`${invoice.firstName} ${invoice.lastName}`, 50, 190, { align: "right" })
     .text(`${invoice.address}`, 50, 210, { align: "right" })
-    .text(`${invoice.city}`, 50, 230, { align: "right" })
-    .moveDown();
+    .text(`${invoice.city}`, 50, 230, { align: "right" });
+  if (invoice.vatNumber) {
+    doc.text(`N°TVA ${invoice.vatNumber}`, 50, 250, { align: "right" });
+  }
+  doc.moveDown();
 }
 
 function generateTableHeader(doc, invoice) {
@@ -168,7 +171,7 @@ function generateFooter(doc, invoice) {
     .fontSize(8)
     .text(tvaText, 50, 650, { align: "left", width: 500 })
     .moveDown()
-    .text("Code IBAN : FR76 3005 6002 7102 7100 5042 249", 50, 700, { align: "center" })
+    .text("Code IBAN : FR76 4061 8803 9600 0407 6132 406", 50, 700, { align: "center" })
     .text("Code BIC : CCFRFRPP", 50, 710, { align: "center" })
     .text("Titulaire : VAN MEGEN Melvin", 50, 720, { align: "center" })
     .text(`SIRET : 87975576700016${tvaNumber}`, 50, 730, { align: "center" });

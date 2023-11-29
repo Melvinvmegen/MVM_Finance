@@ -71,6 +71,7 @@ model Customers {
   address      String?        @db.VarChar(255)
   city         String?        @db.VarChar(255)
   siret        String?        @db.VarChar(255)
+  vatNumber    String?        @unique @db.VarChar(15)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   stripeId     String?        @unique
@@ -103,6 +104,7 @@ model Invoices {
   company       String?        @db.VarChar(255)
   address       String?        @db.VarChar(255)
   city          String?        @db.VarChar(255)
+  vatNumber     String?        @unique @db.VarChar(15)
   paymentDate   DateTime?      @db.Timestamptz(6)
   total         Float          @default(0)
   paid          Boolean?       @default(false)
@@ -131,6 +133,7 @@ model Quotations {
   company       String?        @db.VarChar(255)
   address       String?        @db.VarChar(255)
   city          String?        @db.VarChar(255)
+  vatNumber     String?        @unique @db.VarChar(15)
   total         Float          @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

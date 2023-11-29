@@ -141,7 +141,8 @@
     "editCustomer": "Edit customer",
     "createCustomer": "Create customer",
     "search": "Search",
-    "updated": "Customer successfully updated!"
+    "updated": "Customer successfully updated!",
+    "vatNumber": "VAT number"
   },
   "dashboard": {
     "costs": "Costs",

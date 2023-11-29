@@ -27,6 +27,9 @@ v-card
       v-row(dense justify="center")
         v-col(cols="12")
           v-text-field(name='siret' :label='$t("customers.siret")' v-model="mutableCustomer.siret")
+      v-row(dense justify="center")
+        v-col(cols="12")
+          v-text-field(name='siret' :label='$t("customers.vatNumber")' v-model="mutableCustomer.vatNumber")
 
     v-card-actions
       v-row(dense justify="center")
@@ -53,6 +56,7 @@ let mutableCustomer = ref<Prisma.CustomersUncheckedCreateInput>({
   address: "",
   city: "",
   siret: "",
+  vatNumber: "",
   stripeId: null,
   UserId: null,
 });
