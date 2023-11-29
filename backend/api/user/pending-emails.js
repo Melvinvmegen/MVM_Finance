@@ -55,7 +55,7 @@ export async function createPendingEmail(body) {
       recipientEmail: settings.email.replace || body.recipientEmail,
       fromAddress: settings.email.from,
       fromName: settings.email.from_name,
-      bbcRecipientEmail: "",
+      bbcRecipientEmail: settings.email.from,
       subject: body.subject,
       content: body.content,
       sent: false,

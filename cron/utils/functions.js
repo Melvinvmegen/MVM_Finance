@@ -132,7 +132,7 @@ export const functions = {
       const res = await transporter.sendMail({
         to: settings.email.replace || pending_email.recipientEmail,
         bcc: pending_email.bbcRecipientEmail
-          ? [pending_email.bbcRecipientEmail]
+          ? pending_email.bbcRecipientEmail.split(",")
           : undefined,
         from: {
           name: pending_email.fromName,
@@ -146,7 +146,7 @@ export const functions = {
         text: pending_email.content,
         attachments: [
           {
-            filename: `mvm-${"cautionPaid" in model ? "facture" : "devis"}-${
+            filename: `mvm-${"cautionPaid" in model ? "devis" : "facture"}-${
               model.id
             }.pdf`,
             content: Buffer.from(await data.arrayBuffer()),
