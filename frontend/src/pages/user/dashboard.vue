@@ -27,14 +27,14 @@ div
       v-card(class="v-col")
         v-card-text
           template(v-if="revenu.pro || revenu.perso")
-            v-row(justify="space-around" align="center" v-if="revenu?.pro")
+            v-row(justify="space-around" align="center")
               v-card-subtitle {{ $t("dashboard.revenuPro") }}
               v-card-title {{ $n(revenu?.pro, "currency") }}
-            v-row(justify="space-around" align="center" v-if="revenu?.perso")
+            v-row(justify="space-around" align="center")
               v-card-subtitle {{ $t("dashboard.revenuPerso") }}
               v-card-title + {{ $n(revenu?.perso, "currency") }}
           template(v-else)
-            v-row(justify="space-around" align="center" v-if="revenu?.total")
+            v-row(justify="space-around" align="center")
               v-card-subtitle {{ $t("revenu.total") }}
               v-card-title {{ $n(revenu?.total, "currency") }}
           v-row(justify="space-around" align="center" v-if="revenu?.refund")
@@ -54,7 +54,7 @@ div
             v-card-subtitle {{ $t("dashboard.balance") }}
             v-card-title {{ $n(revenuBalance, "currency") }}
 
-      v-carousel(v-if="revenuBalance && banks.length"      
+      v-carousel(v-if="banks.length"      
         :continuous="!!banks.length"
         :show-arrows="banks.length > 1"
         hide-delimiters
@@ -95,7 +95,7 @@ div
                 .text-overline.text-center.text-decoration-underline(@click="showModalBank = true") {{ $t("dashboard.addBank") }}
               br
 
-      v-carousel(v-if="revenuBalance && cashPots.length"      
+      v-carousel(v-if="cashPots.length"      
         :continuous="!!cashPots.length"
         :show-arrows="cashPots.length > 1"
         hide-delimiters
@@ -110,7 +110,7 @@ div
             @click="props.onClick")
 
         v-carousel-item(v-for="cashPot in cashPots" :key="cashPot.id")
-          v-card(class="v-col mt-4" v-if="revenuBalance")
+          v-card(class="v-col mt-4")
             v-card-text
               v-card-subtitle.text-h6 {{ cashPot.name }}
               br

@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 
 export const functions = {
   createMonthlyRevenu: async () => {
-    const beginningOfMonth = dayjs().startOf("month").toDate();
+    const beginningOfMonth = dayjs().startOf("month").add(6, "hours").toDate();
     console.log(
       `[Cron task] createMonthlyRevenu starting for date ${beginningOfMonth}`
     );
