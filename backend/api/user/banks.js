@@ -10,6 +10,7 @@ export default async function (app) {
   app.$get("/banks/:bankId", getBank);
   app.$post("/banks", createBank);
   app.$put("/banks/:bankId", updateBank);
+  app.$get("/banks/account-types", getAccountTypes);
 }
 
 /**
@@ -24,10 +25,13 @@ export async function getBanks(params) {
     async () => {
       const banks = await prisma.$queryRaw`
         SELECT
+          account_type.*,
+          account_type.name as "account_type_name",
           banks.id,
           banks.amount,
           banks.name,
           banks."amountDate",
+          banks."AccountTypeId",
           COALESCE(
               (SELECT SUM(costs.total)
               FROM "Costs" costs
@@ -43,6 +47,7 @@ export async function getBanks(params) {
         FROM
           "Banks" as banks
         JOIN "Users" as users ON users.id = banks."UserId"
+        JOIN "AccountType" as account_type ON account_type.id = banks."AccountTypeId"
         WHERE
           users.id = ${this.request.user?.id}
         ORDER BY banks.amount DESC`;
@@ -97,7 +102,6 @@ export async function createBank(body) {
  * @param {Models.Prisma.BanksUncheckedUpdateInput} body
  * @returns
  */
-
 export async function updateBank(bankId, body) {
   let bank = await prisma.banks.findFirst({
     where: {
@@ -118,6 +122,27 @@ export async function updateBank(bankId, body) {
     },
   });
 
+  await invalidateCache(`user_${this.request.user?.id}_banks`);
   await invalidateCache(`user_${this.request.user?.id}_bank_${bank.id}`);
   return bank;
+}
+
+/**
+ * @this {API.This}
+ * @returns {Promise<Models.AccountType[]>}
+ */
+export async function getAccountTypes() {
+  const account_types = await getOrSetCache(
+    `user_${this.request.user?.id}_account_types`,
+    async () => {
+      const account_types = await prisma.accountType.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+
+      return account_types;
+    },
+    false
+  );
+
+  return account_types;
 }

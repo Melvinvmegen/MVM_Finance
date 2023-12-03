@@ -50,9 +50,9 @@ v-table.pt-3
                 v-col(cols="12" sm="2")
                   v-text-field(:label='$t("cryptos.exchange")' v-model="transaction.exchange" :rules="[$v.required()]")
                 v-col(cols="12" sm="2")
-                  NumberInput(:label='$t("cryptos.price")' v-model="transaction.price"  @change="updateTotal(transaction)" :rules="[$v.required(), $v.number()]")
+                  NumberInput(:label='$t("cryptos.price")' v-model="transaction.price"  @change="updateTotal(transaction)" :rules="[$v.number()]")
                 v-col(cols="12" sm="2")
-                  NumberInput(:label='$t("cryptos.quantity")' v-model="transaction.quantity"  @change="updateTotal(transaction)" :rules="[$v.required(), $v.number()]")
+                  NumberInput(:label='$t("cryptos.quantity")' v-model="transaction.quantity"  @change="updateTotal(transaction)" :rules="[$v.number()]")
                 v-col(cols="12" sm="2")
                   NumberInput(:label='$t("cryptos.fees")' v-model="transaction.fees" @change="updateTotal(transaction)"  :rules="[$v.required(), $v.number()]")
 

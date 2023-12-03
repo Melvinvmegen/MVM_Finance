@@ -71,7 +71,9 @@ div
         v-carousel-item(v-for="bank in banks" :key="bank.id")
           v-card(class="v-col mt-4")
             v-card-text
-              v-card-subtitle.text-h6 {{ bank.name }}
+              .d-flex.justify-space-between
+                v-card-subtitle.text-h6.pa-0 {{ bank.name }} ({{ bank.account_type_name }})
+                v-badge.ml-1(v-if="bank.interestRate" color="success" size="x-large" :content='$n((bank.interestRate / 100), "percent")')
               br
               v-card-title
                 .d-flex.justify-center.align-center
@@ -140,24 +142,7 @@ div
         br
         v-btn.bg-secondary.text-white(type="submit" to="/revenus") {{ $t("dashboard.createRevenu") }}
 
-  v-dialog(v-model='showModalBank' width='600')
-    v-card(width="100%")
-      v-form(v-model="valid" @submit.prevent="handleBankSubmit")
-        v-card-title.text-center {{ mutableBank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
-        v-card-text.mt-4
-          v-row(dense justify="center")
-            v-col(cols="10")
-              v-text-field(name='name' :label='$t("dashboard.name")' v-model='mutableBank.name' :rules="[$v.required()]")
-            v-col(cols="10")
-              NumberInput(name='amount' :label='$t("dashboard.amount")' v-model='mutableBank.amount' :rules="[$v.required(),$v.number()]")
-            v-col(cols="10")
-              DateInput(v-model='mutableBank.amountDate' :label='$t("dashboard.amountDate")' :rules="[$v.required()]")
-
-        v-card-actions.mb-2
-          v-row(dense justify="center")
-            v-col.d-flex.justify-center(cols="12" lg="8")
-              v-btn.bg-secondary.text-white(type="submit") {{ mutableBank?.id ? $t("dashboard.editBank") : $t("dashboard.addBank") }}
-
+  BankModal(v-if="showModalBank" :model="mutableBank" :show="showModalBank" @close="showModalBank = false" :account-types="accountTypes")
   v-dialog(v-model='showModalCashPot' width='600')
     v-card(width="100%")
       v-form(v-model="valid" @submit.prevent="handleCashPotSubmit")
@@ -182,23 +167,23 @@ div
 import dayjs from "dayjs";
 import {
   getBanks,
-  createBank,
-  updateBank,
   getRevenus,
   getCashPots,
   createCashPot,
   updateCashPot,
+  getAccountTypes,
 } from "../../utils/generated/api-user";
-import type { Revenus, Costs, Credits, Banks, CashPots } from "../../../types/models";
+import type { Revenus, Costs, Credits, Banks, CashPots, AccountType } from "../../../types/models";
 
 const loadingStore = useLoadingStore();
 const ready = ref(false);
+const valid = ref(false);
 let banks: Banks[] = reactive([]);
 let cashPots: CashPots[] = reactive([]);
+let accountTypes: AccountType[] = reactive([]);
 const { filterAll, items } = useFilter(getRevenus);
 const showModalBank = ref(false);
 const showModalCashPot = ref(false);
-const valid = ref(false);
 let mutableBank: Ref<Banks> = ref({});
 let mutableCashPot: Ref<CashPots> = ref({});
 const dates: string[] = [];
@@ -221,6 +206,7 @@ onMounted(async () => {
   await filterAll({
     perPage: 1,
   });
+  accountTypes = await getAccountTypes();
 
   revenu.value = items.value.rows[0];
   const today = dayjs(revenu?.value?.Costs?.at(0)?.createdAt);
@@ -371,25 +357,6 @@ const lineChartData = computed(() => {
 
   return chartData;
 });
-
-async function handleBankSubmit(): Promise<void> {
-  if (!valid.value) return;
-  loadingStore.setLoading(true);
-  try {
-    if (mutableBank.value.id) {
-      await updateBank(mutableBank.value.id, {
-        name: mutableBank.value.name,
-        amount: mutableBank.value.amount,
-        amountDate: dayjs(mutableBank.value.amountDate),
-      });
-    } else {
-      await createBank(mutableBank.value);
-    }
-    window.location.reload();
-  } finally {
-    loadingStore.setLoading(false);
-  }
-}
 
 async function handleCashPotSubmit(): Promise<void> {
   if (!valid.value) return;

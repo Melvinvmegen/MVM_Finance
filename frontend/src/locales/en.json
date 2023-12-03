@@ -165,7 +165,9 @@
     "editCashPot": "Edit cash pot",
     "cashPot": "Cash pot",
     "addCashPot": "Add cash pot",
-    "amountDate": "Amount date"
+    "amountDate": "Amount date",
+    "cancel": "Cancel",
+    "accountType": "Type de compte"
   },
   "invoice": {
     "editInvoice": "Edit an invoice",

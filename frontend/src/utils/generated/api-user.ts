@@ -35,6 +35,13 @@ export async function updateBank(bankId, body = undefined, query = undefined) {
 }
 /**
  * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").getAccountTypes>>}
+**/
+export async function getAccountTypes(query = undefined) {
+  return await useOFetch(`/api/user/banks/account-types`, { method: "GET", query });
+}
+/**
+ * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/cash-pots.js").getCashPots>>}
 **/
 export async function getCashPots(query = undefined) {
