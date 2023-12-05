@@ -40,11 +40,16 @@ const { filterAll, items } = useFilter(getCustomers);
 
 async function refreshCustomers(value) {
   loadingStore.setLoading(true);
-  await filterAll({
-    ...value,
-    force: !!items.value.count,
-  });
-  loadingStore.setLoading(false);
+  try {
+    await filterAll({
+      ...value,
+      force: !!items.value.count,
+    });
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loadingStore.setLoading(false);
+  }
 }
 
 const chartData = computed(() => {

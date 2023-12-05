@@ -25,10 +25,9 @@ const getOrSetCache = async (key, cb, force = false) => {
       console.log(green(`[CACHE] HIT: ${key}`));
       return JSON.parse(result);
     } else {
-      const redisKey = force ? `filtered_${key}` : key;
-      console.log(yellow(`[CACHE] MISS: ${redisKey}`));
+      console.log(yellow(`[CACHE] MISS: ${key}`));
       const freshData = await cb();
-      redisClient.setEx(redisKey, 3600, JSON.stringify(freshData));
+      redisClient.setEx(key, 3600, JSON.stringify(freshData));
       return freshData;
     }
   } catch (error) {

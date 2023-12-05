@@ -2,8 +2,10 @@
 v-form(@submit.prevent ref="searchFrom")
   v-row(align="center")
     v-col(cols="12" sm="3" md="3")
-      v-select(hide-details :items="props.items?.rows" clearable :item-props="itemProps" :label='$t("revenu.search")' v-model="revenuId")
-    v-btn.bg-secondary {{ $t("revenus.search") }}
+      v-select(hide-details :items="props.items?.rows" clearable :item-props="itemProps" :label='$t("revenu.search")' v-model="revenuId" @blur='searchRevenu')
+    v-btn.bg-secondary(@click="searchRevenu") {{ $t("revenus.search") }}
+    v-icon.ml-2(@click="resetAll()") mdi-restore
+
 
 v-col(cols="12")
   v-data-table-server(
@@ -48,7 +50,7 @@ type RevenuWithCostsInvoicesTransactions = Revenus & {
 };
 
 const loadingStore = useLoadingStore();
-
+const searchFrom = ref<HTMLFormElement | null>(null);
 const props = defineProps<{
   items: {
     rows: Array<RevenuWithCostsInvoicesTransactions>;
@@ -127,12 +129,13 @@ function itemProps(item) {
 
 const emit = defineEmits(["filter"]);
 const revenuId = ref();
-watch(revenuId, (newId) => {
+
+function searchRevenu() {
   emit("filter", {
-    id: newId,
+    id: revenuId.value,
     force: true,
   });
-});
+}
 
 function getRevenus({ page, itemsPerPage, sortBy }) {
   emit("filter", {
@@ -179,5 +182,13 @@ function returnTVABalance(revenu: RevenuWithCostsInvoicesTransactions) {
 function returnBalance(revenu: RevenuWithCostsInvoicesTransactions) {
   const revenuAmount = returnRevenuNet(revenu) + revenu.perso || revenu.total;
   return Math.round(revenuAmount - Math.abs(revenu.expense));
+}
+
+function resetAll() {
+  searchFrom.value?.reset();
+  revenuId.value = null;
+  emit("filter", {
+    force: true,
+  });
 }
 </script>

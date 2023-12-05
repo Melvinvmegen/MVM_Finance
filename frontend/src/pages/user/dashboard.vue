@@ -19,8 +19,10 @@ div
   v-row  
     v-col(v-if="lineChartData" cols="12" md="8")
       v-card(elevation="3")
-        v-card-title
-          v-col.text-uppercase(cols="11") {{ $t("dashboard.evolution") }} ({{ revenuDate }})
+        .d-flex.justify-space-between
+          v-card-title
+            v-col.text-uppercase(cols="11") {{ $t("dashboard.evolution") }} ({{ revenuDate }})
+          v-icon.mr-4.mt-4(@click="resetAll('revenu')") mdi-restore
         v-card-text
           LineChart(:chart-data='lineChartData' :chart-options='chartOptions')
     v-col(v-if="revenu" cols="12" md="4")
@@ -73,7 +75,9 @@ div
             v-card-text
               .d-flex.justify-space-between
                 v-card-subtitle.text-h6.pa-0 {{ bank.name }} ({{ bank.account_type_name }})
-                v-badge.ml-1(v-if="bank.interestRate" color="success" size="x-large" :content='$n((bank.interestRate / 100), "percent")')
+                .d-flex
+                  v-icon(@click="resetAll('bank')") mdi-restore
+                  v-badge.ml-4(v-if="bank.interestRate" color="success" size="x-large" :content='$n((bank.interestRate / 100), "percent")')
               br
               v-card-title
                 .d-flex.justify-center.align-center
@@ -112,7 +116,9 @@ div
         v-carousel-item(v-for="cashPot in cashPots" :key="cashPot.id")
           v-card(class="v-col mt-4")
             v-card-text
-              v-card-subtitle.text-h6 {{ cashPot.name }}
+              .d-flex.justify-space-between
+                v-card-subtitle.text-h6 {{ cashPot.name }}
+                v-icon.ml-2(@click="resetAll('cashPot')") mdi-restore
               br
               v-card-title
                 .d-flex.justify-center.align-center
@@ -375,5 +381,27 @@ async function handleCashPotSubmit(): Promise<void> {
 
 function returnBalance(model): number {
   return model.sum_costs + model.sum_credits;
+}
+
+async function resetAll(model): void {
+  loadingStore.setLoading(true);
+  try {
+    if (model === "bank") {
+      banks = await getBanks({ force: "true" });
+      mutableBank.value = banks[0];
+    } else if (model === "cashPot") {
+      cashPots = await getCashPots({ force: "true" });
+      mutableCashPot.value = cashPots[0];
+    } else if (model === "revenu") {
+      await filterAll({
+        perPage: 1,
+        force: true,
+      });
+    }
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loadingStore.setLoading(false);
+  }
 }
 </script>

@@ -145,12 +145,17 @@ const dataTable = {
 async function searchQuotations() {
   if (!valid.value) return;
   loadingStore.setLoading(true);
-  await filterAll({
-    CustomerId: +route.params.customerId,
-    ...query.value,
-    force: true,
-  });
-  loadingStore.setLoading(false);
+  try {
+    await filterAll({
+      CustomerId: +route.params.customerId,
+      ...query.value,
+      force: true,
+    });
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loadingStore.setLoading(false);
+  }
 }
 
 async function getQuotationsData({ page, itemsPerPage, sortBy }) {
