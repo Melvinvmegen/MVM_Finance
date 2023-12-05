@@ -74,7 +74,7 @@ v-container
                     v-btn(color="error" href='#' @click.prevent="removeItem(withdrawal, 'Withdrawal')")
                       v-icon mdi-delete
 
-            v-row(v-if="costWithdrawals.length")
+            v-row
               v-col(cols="12" justify="end")
                 v-btn(@click.prevent="showModalWithdrawal = true;")
                   span {{ $t("revenu.addLine") }}

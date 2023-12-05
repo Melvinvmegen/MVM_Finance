@@ -24,6 +24,7 @@ dayjs.locale("fr");
 // Init web server
 const basePaths = [path.dirname(import.meta.url), process.cwd()];
 const app = clientWrapper(
+  // @ts-ignore
   fastify({
     bodyLimit: 348576,
     disableRequestLogging: true,
@@ -54,15 +55,14 @@ const app = clientWrapper(
             return arg;
           });
           if (settings.logger.json) return method.apply(this, inputArgs);
-          // @ts-ignore
+
           if (inputArgs[0]?.http) {
-            // @ts-ignore
             if (inputArgs[0].http.status) {
-              // @ts-ignore
               inputArgs[0] = `<- ${inputArgs[0]?.http.method} ${inputArgs[0]?.http.path} ${inputArgs[0]?.http.status}`;
             } else {
-              // @ts-ignore
-              inputArgs[0] = `-> ${inputArgs[0]?.http.method} ${inputArgs[0]?.http.path}`;
+              inputArgs[0] = `-> ${inputArgs[0]?.http.method} ${inputArgs[0]?.http.path} ${
+                inputArgs[0]?.http.user ? inputArgs[0]?.http.user : inputArgs[0]?.http.client
+              }`;
             }
           }
           if (settings.logger.colorize) {
@@ -153,7 +153,10 @@ app.addHook("onRequest", async (request) => {
   try {
     await request.jwtVerify({ onlyCookie: true });
   } catch (err) {
-    console.log(err);
+    if (!request.url.includes("/public") && !request.url.includes("/health")) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
   }
 
   if (!request.url.includes("/public") && !request.url.includes("/health") && !request.user) {
@@ -173,7 +176,7 @@ app.addHook("onRequest", async (request) => {
       referrer: request.headers["referer"],
       agent: request.headers["user-agent"],
       // @ts-ignore
-      user: request.user?.login,
+      user: request.user?.email,
     },
   });
 });
