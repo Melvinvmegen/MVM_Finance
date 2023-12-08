@@ -137,11 +137,44 @@ app.register(helmet, {
   xDnsPrefetchControl: { allow: true },
 });
 
-// TODO: check request
-// app.use("/api/payment/webhooks", bodyParser.raw({ type: "*/*" }), paymentWehbooks);
+await app.register(import("fastify-raw-body"), {
+  field: "rawBody",
+  global: false,
+  encoding: "utf8",
+  runFirst: true,
+  routes: ["/api/payment/webhooks"],
+  jsonContentTypes: [],
+});
 
-// TODO: handle formData
-// app.use(bodyParser.urlencoded({ extended: false }));
+app.addHook("preHandler", async (request) => {
+  if (
+    !request.url?.includes("/public") &&
+    !request.url?.includes("/health") &&
+    !request.url?.includes("/payment") &&
+    !request.raw?.url?.includes("/payment") &&
+    !request.user
+  ) {
+    throw new UnauthorizedError("errors.server.unauthorized");
+  }
+
+  if (request?.url.includes("/payment") && !request?.url.includes("/webhooks")) {
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
+      throw new UnauthorizedError("errors.server.missingCredentials");
+    } else {
+      const encodedCreds = authHeader.split(" ")[1];
+      const decodedCreds = Buffer.from(encodedCreds, "base64").toString();
+      const [username, password] = decodedCreds.split(":");
+      if (username !== settings.basicAuth.user || password !== settings.basicAuth.password) {
+        throw new UnauthorizedError("errors.server.unauthorized");
+      }
+    }
+  }
+
+  if (/\/api\/user\/customers\/[a-zA-Z0-9]+\/(?:invoices|quotations)/.test(request?.url)) {
+    if (!validateCustomerBelongsToUser(request)) throw new UnauthorizedError("errors.server.unauthorized");
+  }
+});
 
 app.addHook("onRequest", async (request) => {
   const level = request.url !== "/health" && request.method !== "OPTIONS" ? "info" : "debug";
@@ -153,13 +186,18 @@ app.addHook("onRequest", async (request) => {
   try {
     await request.jwtVerify({ onlyCookie: true });
   } catch (err) {
-    if (!request.url.includes("/public") && !request.url.includes("/health")) {
+    if (!request.url?.includes("/public") && !request.url?.includes("/health") && !request.url?.includes("/payment")) {
       // eslint-disable-next-line no-console
       console.error(err);
     }
   }
 
-  if (!request.url.includes("/public") && !request.url.includes("/health") && !request.user) {
+  if (
+    !request.url?.includes("/public") &&
+    !request.url?.includes("/health") &&
+    !request.url?.includes("/payment") &&
+    !request.user
+  ) {
     try {
       await rateLimiter(request);
     } catch (err) {
@@ -181,40 +219,15 @@ app.addHook("onRequest", async (request) => {
   });
 });
 
-app.addHook("preHandler", async (request) => {
-  if (!request.url.includes("/public") && !request.url.includes("/health") && !request.user) {
-    throw new UnauthorizedError("errors.server.unauthorized");
-  }
-
-  if (request.url.includes("/api/payment")) {
-    const authHeader = request.headers.authorization;
-    if (!authHeader) {
-      throw new UnauthorizedError("errors.server.missingCredentials");
-    }
-    if (authHeader) {
-      const encodedCreds = authHeader.split(" ")[1];
-      const decodedCreds = Buffer.from(encodedCreds, "base64").toString();
-      const [username, password] = decodedCreds.split(":");
-      if (username !== settings.basicAuth.username || password !== settings.basicAuth.password) {
-        throw new UnauthorizedError("errors.server.unauthorized");
-      }
-    }
-  }
-
-  if (/\/api\/user\/customers\/[a-zA-Z0-9]+\/(?:invoices|quotations)/.test(request.url)) {
-    if (!validateCustomerBelongsToUser(request)) throw new UnauthorizedError("errors.server.unauthorized");
-  }
-});
-
 app.addHook("onResponse", async (request, reply) => {
-  const level = request.url !== "/health" && request.method !== "OPTIONS" ? "info" : "debug";
+  const level = request?.url !== "/health" && request.method !== "OPTIONS" ? "info" : "debug";
   const statusCode = settings.logger.colorize
     ? (reply.statusCode < 400 ? green : reply.statusCode < 500 ? yellow : red)(reply.statusCode)
     : reply.statusCode;
   const requestMethod = settings.logger.colorize
     ? (["GET", "OPTIONS"].includes(request.method) ? gray : magenta)(request.method)
     : request.method;
-  const path = settings.logger.colorize && request.headers["request-id"] ? gray(request.url) : request.url;
+  const path = settings.logger.colorize && request.headers["request-id"] ? gray(request?.url) : request?.url;
   request.log[level]({
     http: {
       method: requestMethod,

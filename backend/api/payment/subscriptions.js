@@ -8,8 +8,8 @@ import dayjs from "dayjs";
  */
 export default async function (app) {
   app.$post("/subscriptions", createSubscription);
-  app.$put("/subscription/:subscriptionId", refundSubscription);
   app.$get("/subscriptions/:subscriptionId", getSubscription);
+  app.$put("/subscriptions/:subscriptionId/refund", refundSubscription);
 }
 
 /**
