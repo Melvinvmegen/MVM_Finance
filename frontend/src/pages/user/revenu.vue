@@ -97,11 +97,11 @@ v-container
                   v-col(cols="3")
                     v-text-field(v-model="credit.creditor" :rules="[$v.required()]")
                   v-col(cols="2")
-                    v-select(v-model="credit.category" :items="creditCategories" @update:modelValue="updateTotal" )
+                    v-select(v-model="credit.CreditCategoryId" :items="creditCategories" @update:modelValue="updateTotal" item-title="name" item-value="id")
                   v-col(cols="2")
                     NumberInput(v-model="credit.total" @change="(event) => updateTotal(index, event, 'Credits', 'total')" :rules="[$v.required(), $v.number()]")
                   v-col(cols="2")
-                    v-select(v-if="credit.category === 'CASH'" :items="cashPots" :item-props="itemProps" v-model="credit.CashPotId")
+                    v-select(v-if="credit.CreditCategoryId === 15" :items="cashPots" :item-props="itemProps" v-model="credit.CashPotId")
                     v-select(v-else :items="banks" :item-props="itemProps" v-model="credit.BankId")
                   v-col.d-flex(cols="1")
                     v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
@@ -125,7 +125,7 @@ v-container
                 v-col(cols="1")
               br
               TransitionGroup(name='slide-up')
-                v-row(v-for='(cost, index) in costs' :key="index" :class="{'bg-red-darken-4': cost.category === 'TODEFINE'}")
+                v-row(v-for='(cost, index) in costs' :key="index" :class="{'bg-red-darken-4': cost.CostCategoryId === 1}")
                   v-col(cols="1")
                     v-checkbox(v-model="cost.recurrent" color="secondary")
                   v-col(cols="2")
@@ -133,7 +133,7 @@ v-container
                   v-col(cols="3")
                     v-text-field(v-model="cost.name" :rules="[$v.required()]")
                   v-col(cols="2")
-                    v-select(v-model="cost.category" :items="costCategories")
+                    v-select(v-model="cost.CostCategoryId" :items="costCategories" item-title="name" item-value="id")
                   v-col.pl-0(cols="1")
                     NumberInput(v-model="cost.tvaAmount" @change="(event) => updateTotal(index, event, 'Costs', 'tvaAmount')" :rules="[$v.number()]")
                   v-col.px-0(cols="1")
@@ -246,6 +246,8 @@ import type {
   Prisma,
   Banks,
   CashPots,
+  cost_category,
+  credit_category,
 } from "../../../types/models";
 import {
   getRevenu,
@@ -254,8 +256,8 @@ import {
   getCashPots,
   updateOrCreateRevenuCost,
   createRevenuWithdrawal,
+  getCategories,
 } from "../../utils/generated/api-user";
-import chartColors from "../../utils/chartColors";
 
 type RevenuWithCostsCredits = Revenus & {
   Costs: Costs[];
@@ -291,23 +293,12 @@ const cashPots = ref<CashPots[]>([]);
 const costs = ref<Prisma.CostsUncheckedCreateInput[]>([]);
 const credits = ref<Prisma.CreditsUncheckedCreateInput[]>([]);
 const withdrawals = ref<Prisma.WithdrawalUncheckedCreateInput[]>([]);
-const costCategories = [
-  "GENERAL",
-  "TAX",
-  "INTERESTS",
-  "TRIP",
-  "HEALTH",
-  "SERVICES",
-  "HOUSING",
-  "INVESTMENT",
-  "WITHDRAWAL",
-  "TODEFINE",
-];
-const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER", "CASH"];
+const costCategories = ref<cost_category[]>([]);
+const creditCategories = ref<credit_category[]>([]);
 const creditItemTemplate = {
   total: 0,
   creditor: "",
-  category: "SALARY",
+  CreditCategoryId: 1,
   reason: "",
   RevenuId: 0,
 };
@@ -322,7 +313,7 @@ const chartOptions = {
 const costItemTemplate: Prisma.CostsUncheckedCreateInput = {
   total: 0,
   name: "",
-  category: "GENERAL",
+  CostCategoryId: 1,
   tvaAmount: 0,
   RevenuId: 0,
   recurrent: false,
@@ -334,6 +325,9 @@ onMounted(async () => {
     banks.value = await getBanks();
     cashPots.value = await getCashPots();
     revenu.value = await getRevenu(route.params.id);
+    const { cost_categories, credit_categories } = await getCategories();
+    costCategories.value = cost_categories;
+    creditCategories.value = credit_categories;
     if (!revenu.value) return;
     revenu.value.watchers = revenu.value?.watchers?.length ? revenu.value?.watchers?.split(",") : [];
     costs.value = revenu.value.Costs;
@@ -354,8 +348,6 @@ onMounted(async () => {
         date: dayjs(costWithdrawals.value[0].createdAt).toDate(),
       }),
     };
-    groupModelByCategory(costs, "costs", costCategories);
-    groupModelByCategory(credits, "credits", creditCategories);
   } finally {
     loadingStore.setLoading(false);
   }
@@ -395,9 +387,11 @@ function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
   const tvaCollected = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.tvaAmount, 0);
   const tvaDispatched = costs.value.reduce((sum, cost) => sum + Number(cost.tvaAmount), 0);
   const totalInvoices = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.total, 0);
-  const totalPro = credits.value.filter((c) => c.category === "SALARY").reduce((sum, credit) => sum + +credit.total, 0);
+  const totalPro = credits.value
+    .filter((c) => c.CreditCategoryId === 11)
+    .reduce((sum, credit) => sum + +credit.total, 0);
   const totalPerso = credits.value
-    .filter((c) => c.category !== "SALARY")
+    .filter((c) => c.CreditCategoryId !== 11)
     .reduce((sum, credit) => sum + +credit.total, 0);
   const totalCosts = costs.value.reduce((sum, cost) => sum + Number(cost.total), 0);
 
@@ -428,53 +422,46 @@ const revenuMonth = computed(() => {
 });
 
 const computedCostCategories = computed(() => {
-  return costs.value ? costs.value.map((cost) => cost.category) : [];
+  return costs.value ? costs.value.map((cost) => cost.CostCategoryId) : [];
 });
 
 const computedCreditCategories = computed(() => {
-  return credits.value ? credits.value.map((credit) => credit.category) : [];
+  return credits.value ? credits.value.map((credit) => credit.CreditCategoryId) : [];
 });
 
-function groupModelByCategory(model, model_name, items) {
-  const groupedModel = model.value.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = {
-        category: item.category,
+function groupModelByCategory(models, model_name, items) {
+  const groupedModel = models.value.reduce((acc, item) => {
+    const category = model_name === "credits" ? "CreditCategoryId" : "CostCategoryId";
+    if (!acc[item[category]]) {
+      acc[item[category]] = {
+        category: item[category],
         [`${model_name}`]: [],
       };
     }
 
-    acc[item.category][`${model_name}`].push(item);
+    acc[item[category]][`${model_name}`].push(item);
     return acc;
   }, {});
 
-  const modelTotalByCategory = items.map((category) => {
-    if (groupedModel[category]) {
-      return groupedModel[category][`${model_name}`].reduce((sum, model) => sum + model.total, 0);
+  const modelTotalByCategory = items.value.map((category) => {
+    if (groupedModel[category.id]) {
+      return groupedModel[category.id][`${model_name}`].reduce((sum, model) => sum + model.total, 0);
     } else {
       return 0;
     }
   });
 
-  return model_name === "costs"
-    ? (costChartData.value = {
-        labels: items,
-        datasets: [
-          {
-            data: modelTotalByCategory,
-            backgroundColor: chartColors,
-          },
-        ],
-      })
-    : (creditChartData.value = {
-        labels: items,
-        datasets: [
-          {
-            data: modelTotalByCategory,
-            backgroundColor: chartColors,
-          },
-        ],
-      });
+  const chart = {
+    labels: items.value.map((i) => i.name),
+    datasets: [
+      {
+        data: modelTotalByCategory,
+        backgroundColor: items.value.map((i) => i.color),
+      },
+    ],
+  };
+
+  return model_name === "costs" ? (costChartData.value = chart) : (creditChartData.value = chart);
 }
 
 watch(computedCostCategories, () => groupModelByCategory(costs, "costs", costCategories));
@@ -539,7 +526,7 @@ async function updateCost() {
       total: mutableCost.value.total,
       tvaAmount: mutableCost.value.tvaAmount,
       recurrent: mutableCost.value.recurrent,
-      category: mutableCost.value.category,
+      CostCategoryId: mutableCost.value.CostCategoryId,
       paymentMean: mutableCost.value.paymentMean,
       RevenuId: revenu.value?.id,
       BankId: mutableCost.value.BankId,

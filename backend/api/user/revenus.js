@@ -17,6 +17,7 @@ export default async function (app) {
   app.$put("/revenus/:id", updateRevenu);
   app.$post("/revenus/:id/costs/:CostId", updateOrCreateRevenuCost);
   app.$post("/revenus/:id/withdrawals", createRevenuWithdrawal);
+  app.$get("/revenus/categories", getCategories);
 }
 
 /**
@@ -211,13 +212,13 @@ export async function createRevenu(bankId, upload) {
         if (obj.total < 0) {
           const cost_category = cost_category_cache[name];
           if (cost_category) {
-            newObj.category = cost_category.category;
+            newObj.CostCategoryId = cost_category.CostCategoryId;
             newObj.recurrent = cost_category.recurrent;
           } else {
             const previousCost = await prisma.costs.findFirst({
               orderBy: { createdAt: "desc" },
               select: {
-                category: true,
+                CostCategoryId: true,
                 recurrent: true,
               },
               where: {
@@ -230,7 +231,7 @@ export async function createRevenu(bankId, upload) {
 
             if (previousCost) {
               cost_category_cache[name] = {
-                category: previousCost.category,
+                CostCategoryId: previousCost.CostCategoryId,
                 recurrent: previousCost.recurrent,
               };
             }
@@ -266,13 +267,12 @@ export async function createRevenu(bankId, upload) {
         } else {
           let credit_category = credit_category_cache[name];
           if (credit_category) {
-            newObj.category = credit_category.category;
-            newObj.recurrent = credit_category.recurrent;
+            newObj.CreditCategoryId = credit_category.CreditCategoryId;
           } else {
             const previousCredit = await prisma.credits.findFirst({
               orderBy: { createdAt: "desc" },
               select: {
-                category: true,
+                CreditCategoryId: true,
               },
               where: {
                 creditor: {
@@ -283,7 +283,7 @@ export async function createRevenu(bankId, upload) {
             });
             if (previousCredit) {
               credit_category = {
-                category: previousCredit.category,
+                CreditCategoryId: previousCredit.CreditCategoryId,
               };
             }
           }
@@ -438,7 +438,7 @@ export async function updateOrCreateRevenuCost(RevenuId, CostId, body) {
         tvaAmount: +body.tvaAmount,
         recurrent: !!body.recurrent,
         paymentMean: "" + body.paymentMean,
-        category: "" + body.category,
+        CostCategoryId: +body.CostCategoryId,
         RevenuId: +RevenuId,
         BankId: +body.BankId,
         CashPotId: +body.CashPotId,
@@ -484,7 +484,7 @@ export async function createRevenuWithdrawal(RevenuId, body) {
       total: withdrawal.amount + withdrawal.exchangeFees,
       RevenuId: withdrawal.RevenuId,
       WithdrawalId: withdrawal.id,
-      category: "CASH",
+      CreditCategoryId: 15,
       BankId: +body.BankId,
       CashPotId: +body.CashPotId,
     },
@@ -496,7 +496,7 @@ export async function createRevenuWithdrawal(RevenuId, body) {
     },
     data: {
       WithdrawalId: withdrawal.id,
-      category: "WITHDRAWAL",
+      CostCategoryId: 9,
       BankId: +body.BankId,
       CashPotId: +body.CashPotId,
     },
@@ -505,4 +505,25 @@ export async function createRevenuWithdrawal(RevenuId, body) {
   await invalidateCache(`user_${this.request.user?.id}_revenus`);
   await invalidateCache(`user_${this.request.user?.id}_revenu_${RevenuId}`);
   return { withdrawal, cost, credit };
+}
+
+export async function getCategories() {
+  const cost_categories = await prisma.cost_category.findMany({
+    select: {
+      id: true,
+      name: true,
+      icon: true,
+      color: true,
+    },
+  });
+  const credit_categories = await prisma.credit_category.findMany({
+    select: {
+      id: true,
+      name: true,
+      icon: true,
+      color: true,
+    },
+  });
+
+  return { cost_categories, credit_categories };
 }

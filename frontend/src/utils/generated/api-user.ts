@@ -390,3 +390,10 @@ export async function updateOrCreateRevenuCost(id, CostId, body = undefined, que
 export async function createRevenuWithdrawal(id, body = undefined, query = undefined) {
   return await useOFetch(`/api/user/revenus/${id}/withdrawals`, { method: "POST", body, query });
 }
+/**
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").getCategories>>}
+**/
+export async function getCategories(query = undefined) {
+  return await useOFetch(`/api/user/revenus/categories`, { method: "GET", query });
+}

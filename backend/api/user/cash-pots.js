@@ -39,7 +39,7 @@ export async function getCashPots(params) {
               (SELECT SUM(credits.total)
               FROM "Credits" credits
               WHERE credits."CashPotId" = cashPots.id
-              AND credits.category = 'CASH'
+              AND credits."CreditCategoryId" <> 15
               AND credits."createdAt" >= cashPots."amountDate"), 0) as sum_credits
         FROM
           "CashPots" as cashPots

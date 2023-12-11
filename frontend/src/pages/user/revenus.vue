@@ -86,15 +86,16 @@ v-row(v-if="items.rows")
 
 <script setup lang="ts">
 import dayjs from "dayjs";
-import { getBanks, getRevenus, createRevenu } from "../../utils/generated/api-user";
-import type { Banks } from "../../../types/models";
-import chartColors from "../../utils/chartColors";
+import { getBanks, getRevenus, createRevenu, getCategories } from "../../utils/generated/api-user";
+import type { Banks, cost_category, credit_category } from "../../../types/models";
 
 const loadingStore = useLoadingStore();
 const banks = ref<Banks[]>([]);
 const { filterAll, items } = useFilter(getRevenus);
 const showModal = ref(false);
 const mutableImport = ref();
+const costCategories = ref<cost_category[]>([]);
+const creditCategories = ref<credit_category[]>([]);
 
 onMounted(async () => {
   banks.value = await getBanks();
@@ -103,6 +104,9 @@ onMounted(async () => {
     file: null,
   };
   await filterAll();
+  const { cost_categories, credit_categories } = await getCategories();
+  costCategories.value = cost_categories;
+  creditCategories.value = credit_categories;
 });
 
 async function refreshRevenus(value) {
@@ -116,34 +120,22 @@ async function refreshRevenus(value) {
 
 const costPieChartData = computed(() => {
   if (!items.value.count) return;
-  const costCategories = [
-    "GENERAL",
-    "TAX",
-    "INTERESTS",
-    "TRIP",
-    "HEALTH",
-    "SERVICES",
-    "HOUSING",
-    "INVESTMENT",
-    "WITHDRAWAL",
-    "TODEFINE",
-  ];
   const costs = items.value.rows.flatMap((revenu) => revenu.Costs);
   const groupedModel = costs.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = {
-        category: item.category,
+    if (!acc[item.CostCategoryId]) {
+      acc[item.CostCategoryId] = {
+        CostCategoryId: item.CostCategoryId,
         costs: [],
       };
     }
 
-    acc[item.category].costs.push(item);
+    acc[item.CostCategoryId].costs.push(item);
     return acc;
   }, {});
 
-  const modelTotalByCategory = costCategories.map((category) => {
-    if (groupedModel[category]) {
-      return groupedModel[category].costs.reduce((sum, model) => sum + model.total, 0);
+  const modelTotalByCategory = costCategories.value.map((category) => {
+    if (groupedModel[category.id]) {
+      return groupedModel[category.id].costs.reduce((sum, model) => sum + model.total, 0);
     } else {
       return 0;
     }
@@ -152,11 +144,11 @@ const costPieChartData = computed(() => {
   const total = modelTotalByCategory.reduce((sum, model) => sum + model, 0);
 
   return {
-    labels: costCategories,
+    labels: costCategories.value.map((i) => i.name),
     datasets: [
       {
         data: modelTotalByCategory.map((model) => Math.round((model / total) * 100)),
-        backgroundColor: chartColors,
+        backgroundColor: costCategories.value.map((i) => i.color),
       },
     ],
   };
@@ -164,23 +156,22 @@ const costPieChartData = computed(() => {
 
 const creditPieChartData = computed(() => {
   if (!items.value.count) return;
-  const creditCategories = ["SALARY", "REFUND", "CRYPTO", "STOCK", "RENTAL", "TRANSFER", "CASH"];
   const credits = items.value.rows.flatMap((revenu) => revenu.Credits);
   const groupedModel = credits.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = {
-        category: item.category,
+    if (!acc[item.CreditCategoryId]) {
+      acc[item.CreditCategoryId] = {
+        CreditCategoryId: item.CreditCategoryId,
         credits: [],
       };
     }
 
-    acc[item.category].credits.push(item);
+    acc[item.CreditCategoryId].credits.push(item);
     return acc;
   }, {});
 
-  const modelTotalByCategory = creditCategories.map((category) => {
-    if (groupedModel[category]) {
-      return groupedModel[category].credits.reduce((sum, model) => sum + model.total, 0);
+  const modelTotalByCategory = creditCategories.value.map((category) => {
+    if (groupedModel[category.id]) {
+      return groupedModel[category.id].credits.reduce((sum, model) => sum + model.total, 0);
     } else {
       return 0;
     }
@@ -189,11 +180,11 @@ const creditPieChartData = computed(() => {
   const total = modelTotalByCategory.reduce((sum, model) => sum + model, 0);
 
   return {
-    labels: creditCategories,
+    labels: creditCategories.value.map((i) => i.name),
     datasets: [
       {
         data: modelTotalByCategory.map((model) => Math.round((model / total) * 100)),
-        backgroundColor: chartColors,
+        backgroundColor: creditCategories.value.map((i) => i.color),
       },
     ],
   };
