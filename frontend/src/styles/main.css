@@ -92,3 +92,7 @@ footer span {
 .v-dialog > .v-overlay__content {
   align-items: center;
 }
+
+.v-virtual-scroll {
+  overflow-x: hidden !important;
+}

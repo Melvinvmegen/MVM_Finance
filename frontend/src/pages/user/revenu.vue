@@ -60,19 +60,20 @@ v-container
                 v-col(cols="2") {{ $t("revenu.exchangeFees") }}
                 v-col(cols="1")
               br
-              TransitionGroup(name='slide-up')
-                v-row(v-for='(withdrawal, index) in withdrawals' :key="index")
-                  v-col(cols="2")
-                    DateInput(v-model="withdrawal.date" :rules="[$v.required()]")
-                  v-col(cols="3")
-                    v-text-field(v-model="withdrawal.name" :rules="[$v.required()]")
-                  v-col(cols="2")
-                    NumberInput(v-model="withdrawal.amount" :rules="[$v.required(), $v.number()]")
-                  v-col(cols="2")
-                    NumberInput(v-model="withdrawal.exchangeFees" :rules="[$v.number()]")  
-                  v-col.d-flex(cols="1")
-                    v-btn(color="error" href='#' @click.prevent="removeItem(withdrawal, 'Withdrawal')")
-                      v-icon mdi-delete
+              v-virtual-scroll.mb-4(:items="withdrawals" :height="400" item-height="86" ref="virtualScrollWithdrawal")
+                template(v-slot:default="{ item }")
+                  v-row
+                    v-col(cols="2")
+                      DateInput(v-model="item.date" :rules="[$v.required()]")
+                    v-col(cols="3")
+                      v-text-field(v-model="item.name" :rules="[$v.required()]")
+                    v-col(cols="2")
+                      NumberInput(v-model="item.amount" :rules="[$v.required(), $v.number()]")
+                    v-col(cols="2")
+                      NumberInput(v-model="item.exchangeFees" :rules="[$v.number()]")  
+                    v-col.d-flex(cols="1")
+                      v-btn(color="error" href='#' @click.prevent="removeItem(item, 'Withdrawal')")
+                        v-icon mdi-delete
 
             v-row
               v-col(cols="12" justify="end")
@@ -90,22 +91,23 @@ v-container
                 v-col(cols="2") {{ $t("revenu.bank") }}
                 v-col(cols="1")
               br
-              TransitionGroup(name='slide-up')
-                v-row(v-for='(credit, index) in credits' :key="index")
-                  v-col(cols="2")
-                    DateInput(v-model="credit.createdAt")
-                  v-col(cols="3")
-                    v-text-field(v-model="credit.creditor" :rules="[$v.required()]")
-                  v-col(cols="2")
-                    v-select(v-model="credit.CreditCategoryId" :items="creditCategories" @update:modelValue="updateTotal" item-title="name" item-value="id")
-                  v-col(cols="2")
-                    NumberInput(v-model="credit.total" @change="(event) => updateTotal(index, event, 'Credits', 'total')" :rules="[$v.required(), $v.number()]")
-                  v-col(cols="2")
-                    v-select(v-if="credit.CreditCategoryId === 15" :items="cashPots" :item-props="itemProps" v-model="credit.CashPotId")
-                    v-select(v-else :items="banks" :item-props="itemProps" v-model="credit.BankId")
-                  v-col.d-flex(cols="1")
-                    v-btn(color="error" href='#' @click.prevent="removeItem(credit, 'Credit')")
-                      v-icon mdi-delete
+              v-virtual-scroll.mb-4(:items="credits" :height="400" item-height="86" ref="virtualScrollCredit")
+                template(v-slot:default="{ item, index }")
+                  v-row(:class="{'bg-red-darken-4': item.CreditCategoryId === 1}")
+                    v-col(cols="2")
+                      DateInput(v-model="item.createdAt")
+                    v-col(cols="3")
+                      v-text-field(v-model="item.creditor" :rules="[$v.required()]")
+                    v-col(cols="2")
+                      v-select(v-model="item.CreditCategoryId" :items="creditCategories" @update:modelValue="updateTotal" item-title="name" item-value="id")
+                    v-col(cols="2")
+                      NumberInput(v-model="item.total" @change="(event) => updateTotal(index, event, 'Credits', 'total')" :rules="[$v.required(), $v.number()]")
+                    v-col(cols="2")
+                      v-select(v-if="item.CreditCategoryId === 15" :items="cashPots" :item-props="itemProps" v-model="item.CashPotId")
+                      v-select(v-else :items="banks" :item-props="itemProps" v-model="item.BankId")
+                    v-col.d-flex(cols="1")
+                      v-btn(color="error" href='#' @click.prevent="removeItem(item, 'Credit')")
+                        v-icon mdi-delete
 
             v-row
               v-col(cols="12" justify="end")
@@ -124,25 +126,26 @@ v-container
                 v-col(cols="2") {{ $t("revenu.total") }}
                 v-col(cols="1")
               br
-              TransitionGroup(name='slide-up')
-                v-row(v-for='(cost, index) in costs' :key="index" :class="{'bg-red-darken-4': cost.CostCategoryId === 1}")
-                  v-col(cols="1")
-                    v-checkbox(v-model="cost.recurrent" color="secondary")
-                  v-col(cols="2")
-                    DateInput(v-model="cost.createdAt")
-                  v-col(cols="3")
-                    v-text-field(v-model="cost.name" :rules="[$v.required()]")
-                  v-col(cols="2")
-                    v-select(v-model="cost.CostCategoryId" :items="costCategories" item-title="name" item-value="id")
-                  v-col.pl-0(cols="1")
-                    NumberInput(v-model="cost.tvaAmount" @change="(event) => updateTotal(index, event, 'Costs', 'tvaAmount')" :rules="[$v.number()]")
-                  v-col.px-0(cols="1")
-                    NumberInput(v-model="cost.total" :positive="false" @change="(event) => updateTotal(index, event, 'Costs', 'total')" :rules="[$v.required(), $v.number()]")
-                  v-col.d-flex(cols="1")
-                    v-btn.mr-2(color="primary" href='#' :disabled="!cost.name || !cost.total" @click.prevent="showModalCost = true; mutableCost = cost")
-                      v-icon mdi-bank
-                    v-btn(color="error" href='#' @click.prevent="removeItem(cost, 'Cost')")
-                      v-icon mdi-delete
+              v-virtual-scroll.mb-4(:items="costs" :height="400" item-height="86" ref="virtualScrollCost")
+                template(v-slot:default="{ item, index }")
+                  v-row(:class="{'bg-red-darken-4': item.CostCategoryId === 1}")
+                    v-col(cols="1")
+                      v-checkbox(v-model="item.recurrent" color="secondary")
+                    v-col(cols="2")
+                      DateInput(v-model="item.createdAt")
+                    v-col(cols="3")
+                      v-text-field(v-model="item.name" :rules="[$v.required()]")
+                    v-col(cols="2")
+                      v-select(v-model="item.CostCategoryId" :items="costCategories" item-title="name" item-value="id")
+                    v-col.pl-0(cols="1")
+                      NumberInput(v-model="item.tvaAmount" @change="(event) => updateTotal(index, event, 'Costs', 'tvaAmount')" :rules="[$v.number()]")
+                    v-col.px-0(cols="1")
+                      NumberInput(v-model="item.total" :positive="false" @change="(event) => updateTotal(index, event, 'Costs', 'total')" :rules="[$v.required(), $v.number()]")
+                    v-col.d-flex(cols="1")
+                      v-btn.mr-2(color="primary" href='#' :disabled="!item.name || !item.total" @click.prevent="showModalCost = true; mutableCost = item")
+                        v-icon mdi-bank
+                      v-btn(color="error" href='#' @click.prevent="removeItem(item, 'Cost')")
+                        v-icon mdi-delete
 
             v-row
               v-col(cols="12" justify="end")
@@ -276,7 +279,7 @@ const validCost = ref(false);
 const showModalCost = ref(false);
 const showModalWithdrawal = ref(false);
 const mutableCost = ref();
-let withdrawalTemplate = {
+let withdrawalItemTemplate = {
   date: dayjs().toDate(),
   name: "",
   amount: 0,
@@ -303,7 +306,9 @@ const creditItemTemplate = {
   RevenuId: 0,
 };
 const paymentMeans = ["CARD", "CASH"];
-
+const virtualScrollCost = ref();
+const virtualScrollCredit = ref();
+const virtualScrollWithdrawal = ref();
 const costChartData = ref();
 const creditChartData = ref();
 const chartOptions = {
@@ -335,14 +340,14 @@ onMounted(async () => {
     withdrawals.value = revenu.value.Withdrawals;
     creditItemTemplate.RevenuId = revenu.value?.id;
     costItemTemplate.RevenuId = revenu.value?.id;
-    withdrawalTemplate = {
-      ...withdrawalTemplate,
+    withdrawalItemTemplate = {
+      ...withdrawalItemTemplate,
       RevenuId: revenu.value?.id,
       BankId: banks.value[0].id,
       CashPotId: cashPots.value[0].id,
     };
     mutableWithdrawal.value = {
-      ...withdrawalTemplate,
+      ...withdrawalItemTemplate,
       ...(costWithdrawals.value.length && {
         CostId: costWithdrawals.value[0].id,
         date: dayjs(costWithdrawals.value[0].createdAt).toDate(),
@@ -354,13 +359,24 @@ onMounted(async () => {
 });
 
 function addItem(itemName) {
-  let createdAt;
   if (itemName === "Cost") {
-    createdAt = costs.value.at(-1)?.createdAt || revenu.value?.createdAt;
+    const createdAt = costs.value.at(-1)?.createdAt || revenu.value?.createdAt;
     costs.value.push({ createdAt, ...costItemTemplate });
+    setTimeout(() => {
+      virtualScrollCost.value.scrollToIndex(costs.value.length);
+    }, 0);
   } else if (itemName === "Credit") {
-    createdAt = credits.value.at(-1)?.createdAt || revenu.value?.createdAt;
+    const createdAt = credits.value.at(-1)?.createdAt || revenu.value?.createdAt;
     credits.value.push({ createdAt, ...creditItemTemplate });
+    setTimeout(() => {
+      virtualScrollCredit.value.scrollToIndex(credits.value.length);
+    }, 0);
+  } else {
+    const createdAt = withdrawals.value.at(-1)?.createdAt || revenu.value?.createdAt;
+    withdrawals.value.push({ createdAt, ...withdrawalItemTemplate });
+    setTimeout(() => {
+      virtualScrollWithdrawal.value.scrollToIndex(withdrawals.value.length);
+    }, 0);
   }
 }
 
@@ -430,6 +446,7 @@ const computedCreditCategories = computed(() => {
 });
 
 function groupModelByCategory(models, model_name, items) {
+  if (!models) return;
   const groupedModel = models.value.reduce((acc, item) => {
     const category = model_name === "credits" ? "CreditCategoryId" : "CostCategoryId";
     if (!acc[item[category]]) {
@@ -568,7 +585,7 @@ async function updateWithdrawal() {
     withdrawals.value.push(withdrawal);
     showModalWithdrawal.value = false;
     mutableWithdrawal.value = {
-      ...withdrawalTemplate,
+      ...withdrawalItemTemplate,
       date: dayjs(costWithdrawals.value[0].createdAt).toDate(),
       ...(costWithdrawals.value.length && { CostId: costWithdrawals.value[0].id }),
     };
