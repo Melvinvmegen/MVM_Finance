@@ -106,7 +106,7 @@ model Invoices {
   company       String?        @db.VarChar(255)
   address       String?        @db.VarChar(255)
   city          String?        @db.VarChar(255)
-  vatNumber     String?        @unique @db.VarChar(15)
+  vatNumber     String?        @db.VarChar(15)
   paymentDate   DateTime?      @db.Timestamptz(6)
   total         Float          @default(0)
   paid          Boolean?       @default(false)
@@ -135,7 +135,7 @@ model Quotations {
   company       String?        @db.VarChar(255)
   address       String?        @db.VarChar(255)
   city          String?        @db.VarChar(255)
-  vatNumber     String?        @unique @db.VarChar(15)
+  vatNumber     String?        @db.VarChar(15)
   total         Float          @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -365,7 +365,7 @@ model cost_category {
   updatedAt DateTime @default(now()) @updatedAt
   name      String   @db.VarChar(50)
   icon      String?  @db.VarChar(100)
-  color      String?  @db.VarChar(10)
+  color     String?  @db.VarChar(10)
   Costs     Costs[]
 }
 
@@ -375,7 +375,7 @@ model credit_category {
   updatedAt DateTime  @default(now()) @updatedAt
   name      String    @db.VarChar(50)
   icon      String?   @db.VarChar(100)
-  color      String?  @db.VarChar(10)
+  color     String?   @db.VarChar(10)
   Credits   Credits[]
 }
 

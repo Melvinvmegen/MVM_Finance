@@ -35,6 +35,8 @@ export const functions = {
       const lastRecurrentInvoices = await database
         .select("*")
         .from("Invoices")
+        .join("PendingEmail", "PendingEmail.InvoiceId", "=", "Invoices.id")
+        .join("CronTask", "CronTask.PendingEmailId", "=", "PendingEmail.id")
         .where("recurrent", true)
         .whereIn(["CustomerId", "createdAt"], function () {
           this.select("CustomerId")
@@ -51,7 +53,7 @@ export const functions = {
       }
 
       for (let recurrentInvoice of lastRecurrentInvoices) {
-        // TODO: return result of this insert
+        // TODO: this should generate the pdf by calling the generate endpoint
         const [invoice] = await database("Invoices")
           .insert({
             createdAt: dayjs().toDate(),
@@ -70,6 +72,7 @@ export const functions = {
             paid: recurrentInvoice.paid,
             recurrent: recurrentInvoice.recurrent,
             CustomerId: +recurrentInvoice.CustomerId,
+            vatNumber: recurrentInvoice.vatNumber,
           })
           .returning("id");
 
@@ -86,6 +89,34 @@ export const functions = {
             InvoiceId: invoice.id,
           });
         }
+
+        const pending_email = await knex("PendingEmail")
+          .insert({
+            recipientEmail: recurrentInvoice.recipientEmail,
+            fromAddress: recurrentInvoice.fromAddress,
+            fromName: recurrentInvoice.fromName,
+            bbcRecipientEmail: recurrentInvoice.bbcRecipientEmail,
+            subject: recurrentInvoice.subject,
+            content: recurrentInvoice.content,
+            sent: false,
+            InvoiceId: recurrentInvoice.InvoiceId,
+            QuotationId: recurrentInvoice.QuotationId,
+            UserId: recurrentInvoice.UserId,
+          })
+          .returning("id");
+
+        await knex("cronTask").insert({
+          date: recurrentInvoice.date,
+          dateIntervalType: recurrentInvoice.dateIntervalType,
+          dateIntervalValue: recurrentInvoice.dateIntervalValue,
+          active: true,
+          function: recurrentInvoice.function,
+          params: recurrentInvoice.params,
+          errorMessage: null,
+          tryCounts: 0,
+          UserId: recurrentInvoice.UserId,
+          PendingEmailId: pending_email.id,
+        });
         console.log(
           `[Cron task] createCustomerRecurrentInvoice finished successfully`
         );
