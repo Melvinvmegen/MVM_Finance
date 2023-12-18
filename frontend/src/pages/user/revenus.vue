@@ -271,12 +271,7 @@ const revenusTotal = computed(() => {
 
 const revenusCostTotal = computed(() => {
   if (!items.value.count) return 0;
-  let total = 0;
-  for (let revenu of items.value.rows) {
-    if (revenu.Costs) {
-      total += revenu.Costs.reduce((sum, cost) => sum + cost.total, 0);
-    }
-  }
+  const total = items.value.rows.reduce((sum, revenu) => sum + revenu.expense, 0);
   return Math.round(total);
 });
 

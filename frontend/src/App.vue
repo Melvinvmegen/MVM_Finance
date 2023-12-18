@@ -19,7 +19,7 @@ v-app
     transition(name='slide-fade' mode='out-in')
       Component(:is="Component")
 
-  v-footer.pa-0(app bottom absolute color='primary' width='100%')
+  v-footer.pa-0.relative(app color='primary' width='100%')
     v-card.text-center(elevation='0' rounded='0' color='primary' width='100%')
       v-divider(color='white')
       v-card-text.text-white

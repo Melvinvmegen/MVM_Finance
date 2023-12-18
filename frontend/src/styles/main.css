@@ -96,3 +96,7 @@ footer span {
 .v-virtual-scroll {
   overflow-x: hidden !important;
 }
+
+.relative {
+  position: relative !important;
+}
