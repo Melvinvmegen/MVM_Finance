@@ -106,7 +106,7 @@ export const functions = {
           .returning("id");
 
         await knex("cronTask").insert({
-          date: recurrentInvoice.date,
+          date: dayjs(recurrentInvoice.date).add(1, "month").toDate(),
           dateIntervalType: recurrentInvoice.dateIntervalType,
           dateIntervalValue: recurrentInvoice.dateIntervalValue,
           active: true,

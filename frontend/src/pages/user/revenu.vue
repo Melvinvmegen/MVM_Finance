@@ -103,7 +103,7 @@ v-container
                     v-col(cols="2")
                       NumberInput(v-model="item.total" @change="(event) => updateTotal(index, event, 'Credits', 'total')" :rules="[$v.required(), $v.number()]")
                     v-col(cols="2")
-                      v-select(v-if="item.CreditCategoryId === 15" :items="cashPots" :item-props="itemProps" v-model="item.CashPotId")
+                      v-select(v-if="item.CreditCategoryId === 14" :items="cashPots" :item-props="itemProps" v-model="item.CashPotId")
                       v-select(v-else :items="banks" :item-props="itemProps" v-model="item.BankId")
                     v-col.d-flex(cols="1")
                       v-btn(color="error" href='#' @click.prevent="removeItem(item, 'Credit')")
@@ -404,10 +404,10 @@ function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
   const tvaDispatched = costs.value.reduce((sum, cost) => sum + Number(cost.tvaAmount), 0);
   const totalInvoices = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.total, 0);
   const totalPro = credits.value
-    .filter((c) => c.CreditCategoryId === 11)
+    .filter((c) => c.CreditCategoryId === 10)
     .reduce((sum, credit) => sum + +credit.total, 0);
   const totalPerso = credits.value
-    .filter((c) => c.CreditCategoryId !== 11)
+    .filter((c) => c.CreditCategoryId !== 10)
     .reduce((sum, credit) => sum + +credit.total, 0);
   const totalCosts = costs.value.reduce((sum, cost) => sum + Number(cost.total), 0);
 

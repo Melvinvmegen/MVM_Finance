@@ -42,7 +42,7 @@ export async function getBanks(params) {
               (SELECT SUM(credits.total)
               FROM "Credits" credits
               WHERE credits."BankId" = banks.id
-              AND credits."CreditCategoryId" <> 15
+              AND credits."CreditCategoryId" <> 14
               AND credits."createdAt" >= banks."amountDate"), 0) as sum_credits
         FROM
           "Banks" as banks

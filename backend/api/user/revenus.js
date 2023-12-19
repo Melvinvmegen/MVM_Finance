@@ -149,7 +149,7 @@ export async function createRevenu(bankId, upload) {
   upload.file
     .pipe(parse({ delimiter: ",", from_line: 5 }))
     .on("data", (row) => {
-      const total = +`${row[4]}.${row[5]}`;
+      const total = +row[5] ? +`${row[4]}.${row[5]}` : +row[4];
       const [day, month, year] = row[0].trim().split("/");
       const date = dayjs(`${year}-${month}-${day}`).toDate();
       const name = row[2];
@@ -484,7 +484,7 @@ export async function createRevenuWithdrawal(RevenuId, body) {
       total: withdrawal.amount + withdrawal.exchangeFees,
       RevenuId: withdrawal.RevenuId,
       WithdrawalId: withdrawal.id,
-      CreditCategoryId: 15,
+      CreditCategoryId: 14,
       BankId: +body.BankId,
       CashPotId: +body.CashPotId,
     },
