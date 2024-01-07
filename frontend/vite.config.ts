@@ -4,7 +4,6 @@ import vue from "@vitejs/plugin-vue";
 import vuetify from "vite-plugin-vuetify";
 import Components from "unplugin-vue-components/vite";
 import AutoImport from "unplugin-auto-import/vite";
-import eslintPlugin from "@nabla/vite-plugin-eslint";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -21,6 +20,9 @@ export default defineConfig({
       },
     },
   },
+  optimizeDeps: {
+    exclude: ["vuetify"],
+  },
   plugins: [
     vue(),
     vuetify(),
@@ -33,7 +35,6 @@ export default defineConfig({
       dirs: ["./src/stores", "./src/composables"],
       dts: "./types/composables.d.ts",
     }),
-    eslintPlugin(),
   ],
   resolve: {
     alias: {
