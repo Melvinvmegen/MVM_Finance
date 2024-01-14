@@ -52,9 +52,9 @@ div
             v-card-subtitle {{ $t("dashboard.costs") }}
             v-card-title {{ $n(revenu?.expense, "currency") }}
           hr.mx-2.my-4
-          v-row(justify="space-around" align="center" v-if="revenuBalance")
+          v-row(justify="space-around" align="center" v-if="revenu.balance")
             v-card-subtitle {{ $t("dashboard.balance") }}
-            v-card-title {{ $n(revenuBalance, "currency") }}
+            v-card-title {{ $n(revenu.balance, "currency") }}
 
       v-carousel(v-if="banks.length"      
         :continuous="!!banks.length"
@@ -201,8 +201,6 @@ const revenuDate = computed(() => {
   if (!revenu.value) return;
   return dayjs(revenu.value.createdAt).format("MMMM YYYY");
 });
-
-const revenuBalance = computed(() => (revenu.value ? revenu.value?.total + revenu.value?.expense : 0));
 
 onMounted(async () => {
   banks = await getBanks();

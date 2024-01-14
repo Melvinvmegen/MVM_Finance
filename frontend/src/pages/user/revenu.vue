@@ -220,7 +220,7 @@ v-container
         v-card-title.text-center.mb-2 {{ $t("revenu.recurrents") }}
         v-card-text
           v-row(align="center" class="ml-1 mt-1" v-for='recurrentCost in recurrentCosts' closable-chips :key="recurrentCost.id")
-            v-card-subtitle - {{ recurrentCost.name }}
+            .text-caption - {{ recurrentCost.name }}
             v-card-title {{ $n(recurrentCost.total, "currency") }}
 
       v-card.mt-4
@@ -233,7 +233,7 @@ v-container
             multiple)
 
           v-row(align="center" class="ml-1 mt-1" v-for='watcher in splitedWatchers' closable-chips :key="watcher")
-            v-card-subtitle - {{ watcher }}
+            .text-caption - {{ watcher }}
             v-card-title {{ $n(revenu.Costs.filter((c) => c.name.includes(watcher)).reduce((sum, c) => sum + c.total, 0), "currency") }}
 </template>
 

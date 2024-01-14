@@ -235,7 +235,7 @@
   "revenus": {
     "title": "Revenus",
     "averageMonthlySpending": "Average Monthly spending",
-    "averageRecurrentSpending": "Average Monthly recurrent spending",
+    "averageRecurrentSpending": "(Average Monthly recurrent spending)",
     "averageRevenu": "Average monthly revenu",
     "turnover": "Turnover",
     "totalSpending": "Total spending",
@@ -255,7 +255,10 @@
     "revenuTotal": "Total",
     "import": "File import",
     "fileInput": "File",
-    "banks": "Banks"
+    "banks": "Banks",
+    "vatBalance": "VAT Balance",
+    "averageRecurrentCredits": "Average Monthly recurrent credits",
+    "investment_capacity": "Investment Capacity"
   },
   "invoices": {
     "title": "Invoices:",

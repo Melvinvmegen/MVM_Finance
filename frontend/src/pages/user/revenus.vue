@@ -30,21 +30,25 @@ v-row(v-if="items.rows")
         v-card(elevation="3" class="mt-4")
           v-card-text
             v-row(justify="space-around" align="center")
-                v-row.my-2(justify="space-around" align="center")   
+                v-row.my-2(justify="space-between" align="center")   
                   template(v-if="expensesAverage")
-                    v-card-subtitle {{ $t("revenus.averageMonthlySpending") }}
-                    v-card-title {{ $n(expensesAverage, "currency") }}
+                    v-card-subtitle.pl-10 {{ $t("revenus.averageMonthlySpending") }}
+                    v-card-title.pr-10 {{ $n(expensesAverage, "currency") }}
                   template(v-if="recurrentCosts")
-                    v-card-subtitle {{ $t("revenus.averageRecurrentSpending") }}
-                    v-card-title {{ $n(recurrentCosts, "currency") }}
+                    .text-caption.text-disabled.pl-10 {{ $t("revenus.averageRecurrentSpending") }}
+                    v-card-subtitle.pr-10 {{ $n(recurrentCosts, "currency") }}
                 BarChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
       v-col(cols="12" md="6")
         v-card(elevation="3" class="mt-4")
           v-card-text
             v-row(justify="space-around" align="center")
-                v-row.my-2(v-if="revenusAverage" justify="space-around" align="center")
-                  v-card-subtitle {{ $t("revenus.averageRevenu") }}
-                  v-card-title {{ $n(revenusAverage, "currency") }}
+                v-row.my-2(justify="space-between" align="center")
+                  template(v-if="revenusAverage")
+                    v-card-subtitle.pl-10 {{ $t("revenus.averageRevenu") }}
+                    v-card-title.pr-10 {{ $n(revenusAverage, "currency") }}
+                  template(v-if="recurrentCredits")
+                    .text-caption.text-disabled.pl-10 {{ $t("revenus.averageRecurrentCredits") }}
+                    v-card-subtitle.pr-10 {{ $n(recurrentCredits, "currency") }}
                 BarChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
 
   v-col(cols="12" md="4")
@@ -276,35 +280,18 @@ const revenusCostTotal = computed(() => {
 });
 
 const taxAmount = computed(() => {
-  // Abattement de 30% avant impots sur le CA
-  const taxable_income = revenusTotal.value / 1.3;
-  // Pas d'impôts jusqu'à 10 225€
-  const first_cap = 10226;
-  // 11% entre 10 226€ & 26 070€
-  const cap_first_batch = 26070;
-  // On passe au cap au dessus soit 26 071€
-  const second_cap = cap_first_batch + 1;
-  // 30 % entre 26 071€ & 74 545€, Au delà faut prendre un comptable sinon ça va chier
-  let tax_total = 0;
-  if (taxable_income >= first_cap && taxable_income < cap_first_batch) {
-    tax_total = (taxable_income - first_cap) * 0.11;
-  } else if (taxable_income >= second_cap) {
-    const tax_first_batch = (cap_first_batch - first_cap) * 0.11;
-    const tax_second_batch = (taxable_income - second_cap) * 0.3;
-    tax_total = tax_first_batch + tax_second_batch;
-  }
-  return Math.round(tax_total);
+  if (!items.value.count) return 0;
+  const total_tax_amount = items.value.rows.reduce((sum: number, revenu) => sum - revenu.tax_amount, 0);
+  return Math.round(total_tax_amount);
 });
 
 const expensesAverage = computed(() => {
-  // TODO: exclude internal transfer
   if (!items.value.count) return 0;
   const total_expense = items.value.rows.reduce((sum: number, revenu) => sum - revenu.expense, 0);
   return Math.round(total_expense / items.value.rows.length);
 });
 
 const revenusAverage = computed(() => {
-  // TODO: exclude internal transfer
   if (!items.value.count) return 0;
   const total_revenu = items.value.rows.reduce((sum: number, revenu) => sum + revenu.total, 0);
   return Math.round(total_revenu / items.value.rows.length);
@@ -312,7 +299,14 @@ const revenusAverage = computed(() => {
 
 const recurrentCosts = computed(() => {
   if (!items.value.count) return 0;
-  return items.value.rows[0]?.Costs?.filter((c) => c.recurrent).reduce((sum, cost) => sum + cost.total, 0) || 0;
+  const total_reccurent_costs = items.value.rows.reduce((sum: number, revenu) => sum + revenu.recurrent_costs, 0);
+  return Math.round(total_reccurent_costs / items.value.rows.length);
+});
+
+const recurrentCredits = computed(() => {
+  if (!items.value.count) return 0;
+  const total_reccurent_credits = items.value.rows.reduce((sum: number, revenu) => sum + revenu.recurrent_credits, 0);
+  return Math.round(total_reccurent_credits / items.value.rows.length);
 });
 
 function itemProps(item) {

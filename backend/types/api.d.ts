@@ -16,6 +16,8 @@ declare global {
       cryptosModuleActive: boolean;
       customersModuleActive: boolean;
       revenusModuleActive: boolean;
+      investment_goal: number;
+      withholding_tax_active: boolean;
     };
 
     export type DownloadReturns =

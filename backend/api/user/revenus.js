@@ -43,11 +43,21 @@ export async function getRevenus(params) {
         skip: offset,
         orderBy: orderBy || { createdAt: "desc" },
         include: {
-          Transactions: true,
-          Quotations: true,
-          Invoices: true,
-          Credits: true,
+          Credits: {
+            select: {
+              createdAt: true,
+              CreditCategoryId: true,
+              total: true,
+            },
+          },
           Costs: {
+            select: {
+              CostCategoryId: true,
+              createdAt: true,
+              recurrent: true,
+              total: true,
+              tvaAmount: true,
+            },
             orderBy: {
               createdAt: "desc",
             },
@@ -325,20 +335,14 @@ export async function createRevenu(bankId, upload) {
       }
 
       for (let revenu of revenus) {
-        const totalCredits = revenu.Credits.reduce((sum, credit) => sum + +credit.total, 0);
-        const totalCosts = revenu.Costs.reduce((sum, cost) => sum + +cost.total, 0);
-
+        const revenuUpdated = updateRevenuStats(revenu, this.request.user);
         revenu = await prisma.revenus.update({
           where: {
             id: revenu.id,
           },
-          data: {
-            pro: 0,
-            perso: 0,
-            total: totalCredits,
-            expense: totalCosts,
-          },
+          data: revenuUpdated,
         });
+
         await invalidateCache(`user_${this.request.user?.id}_revenu_${revenu.id}`);
       }
 
@@ -353,7 +357,7 @@ export async function createRevenu(bankId, upload) {
 /**
  * @this {API.This}
  * @param {number} revenuId
- * @param {Models.Prisma.RevenusUncheckedUpdateInput} body
+ * @param {Models.Prisma.RevenusUncheckedUpdateInput & {Credits: Models.Credits[], Costs: Models.Costs[], Invoices: Models.Invoices[], Quotations: Models.Quotations[], Transactions: Models.Transactions[], Withdrawals: Models.Withdrawal[]}} body
  * @returns {Promise<Models.Revenus & {Credits: Models.Credits[], Costs: Models.Costs[]}>}
  */
 export async function updateRevenu(revenuId, body) {
@@ -370,22 +374,34 @@ export async function updateRevenu(revenuId, body) {
     },
   });
 
-  if (revenu && Credits) {
+  if (!revenu) throw new AppError(401, "Revenu not found!");
+
+  if (Credits) {
     await updateCreateOrDestroyChildItems("Credits", revenu.Credits, Credits);
   }
-  if (revenu && Costs) {
+  if (Costs) {
     await updateCreateOrDestroyChildItems("Costs", revenu.Costs, Costs);
   }
-  if (revenu && Withdrawals) {
+  if (Withdrawals) {
     await updateCreateOrDestroyChildItems("Withdrawal", revenu.Withdrawals, Withdrawals);
   }
+
+  const revenuUpdated = updateRevenuStats(
+    {
+      ...revenuBody,
+      Credits: Credits,
+      Costs: Costs,
+      Invoices: Invoices,
+    },
+    this.request.user
+  );
 
   revenu = await prisma.revenus.update({
     where: {
       id: +revenuId,
     },
     data: {
-      ...revenuBody,
+      ...revenuUpdated,
       watchers: [revenuBody.watchers].join(),
     },
     include: {
@@ -526,4 +542,124 @@ export async function getCategories() {
   });
 
   return { cost_categories, credit_categories };
+}
+
+/**
+ * @param {Models.Prisma.RevenusUncheckedUpdateInput & {Credits: Models.Credits[], Costs: Models.Costs[], Invoices: Models.Invoices[]}} revenu
+ * @param {API.LoggedUser} user
+ * @returns {Models.Prisma.RevenusUncheckedUpdateInput & {Credits: Models.Credits[], Costs: Models.Costs[], Invoices: Models.Invoices[]}}
+ */
+function updateRevenuStats(revenu, user) {
+  let pro = 0;
+  let perso = 0;
+  let expense = 0;
+  let refund = 0;
+  let tva_collected = 0;
+  let tva_dispatched = 0;
+  let total_costs = 0;
+  let total_credits = 0;
+  let recurrent_costs = 0;
+  let recurrent_credits = 0;
+  let investments = 0;
+  if (revenu.Credits) {
+    for (let credit of revenu.Credits) {
+      total_credits += +credit.total;
+      if (credit.CreditCategoryId === 6) continue;
+      if (credit.CreditCategoryId === 10) {
+        pro += +credit.total;
+      } else if (credit.CreditCategoryId === 8) {
+        refund += +credit.total;
+      } else if (credit.CreditCategoryId !== 10) {
+        perso += +credit.total;
+      }
+
+      if (credit.recurrent) {
+        recurrent_credits += credit.total;
+      }
+    }
+  }
+
+  if (revenu.Costs) {
+    for (let cost of revenu.Costs) {
+      total_costs += +cost.total;
+      if (cost.CostCategoryId === 15) continue;
+      if (cost.tvaAmount) {
+        tva_dispatched += +cost.tvaAmount;
+      }
+
+      if (cost.recurrent) {
+        recurrent_costs += cost.total;
+      }
+
+      if (cost.CostCategoryId === 19) {
+        investments += cost.total;
+      }
+
+      expense += +cost.total;
+    }
+  }
+
+  if (revenu.Invoices) {
+    for (let invoice of revenu.Invoices) {
+      if (invoice.tvaAmount) {
+        tva_dispatched += +invoice.tvaAmount;
+      }
+    }
+  }
+
+  revenu.pro = pro || 0;
+  revenu.perso = perso || 0;
+  revenu.total = pro + perso || 0;
+  revenu.expense = expense || 0;
+  revenu.refund = refund || 0;
+  revenu.tva_collected = tva_collected || 0;
+  revenu.tva_dispatched = tva_dispatched || 0;
+  revenu.tva_balance = tva_collected - tva_dispatched || 0;
+  revenu.total_costs = total_costs || 0;
+  revenu.total_credits = total_credits || 0;
+  revenu.recurrent_costs = recurrent_costs || 0;
+  revenu.recurrent_credits = recurrent_credits || 0;
+  revenu.average_costs = expense / revenu.Costs.length || 0;
+  revenu.average_credits = revenu.total / revenu.Credits.length || 0;
+  revenu.tax_amount = calculateTaxAmount(revenu.total);
+  let total_net = pro || 0;
+  if (user.withholding_tax_active) {
+    revenu.total_net -= revenu.tax_amount;
+  }
+  revenu.total_net = total_net || 0;
+  console.log("revenu.total_net * user.investment_goal || 0", revenu.total_net, user.investment_goal);
+  revenu.investment_capacity = revenu.total_net * user.investment_goal || 0;
+  revenu.investments = investments || 0;
+  revenu.balance = expense + revenu.total || 0;
+  delete revenu.id;
+  delete revenu.Costs;
+  delete revenu.Credits;
+  delete revenu.Invoices;
+
+  return revenu;
+}
+
+/**
+ * @param {Number} total
+ */
+function calculateTaxAmount(total) {
+  // Abattement de 30% avant impots sur le CA
+  const taxable_income = total / 1.3;
+  // Pas d'impôts jusqu'à 10 225€
+  const first_cap = 10226;
+  // 11% entre 10 226€ & 26 070€
+  const cap_first_batch = 26070;
+  // On passe au cap au dessus soit 26 071€
+  const second_cap = cap_first_batch + 1;
+  // 30 % entre 26 071€ & 74 545€, Au delà faut prendre un comptable sinon ça va chier
+  let tax_total = 0;
+  if (taxable_income >= first_cap && taxable_income < cap_first_batch) {
+    tax_total = (taxable_income - first_cap) * 0.11;
+  } else if (taxable_income >= second_cap) {
+    const tax_first_batch = (cap_first_batch - first_cap) * 0.11;
+    const tax_second_batch = (taxable_income - second_cap) * 0.3;
+    tax_total = tax_first_batch + tax_second_batch;
+  }
+
+  return Math.round(tax_total);
 }

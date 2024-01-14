@@ -22,38 +22,34 @@ v-col(cols="12")
     template( v-slot:[`item.pro`]="{ item }")
       span {{ $n(Math.round(item.pro), "currency") }}
     template( v-slot:[`item.revenuNet`]="{ item }")
-      span {{ $n(returnRevenuNet(item), "currency") }}
+      span {{ $n(Math.round(item.total_net), "currency") }}
     template( v-slot:[`item.perso`]="{ item }")
       span {{ $n(Math.round(item.perso), "currency") }}
     template( v-slot:[`item.total`]="{ item }")
       span {{ $n(Math.round(item.total), "currency") }}
+    template( v-slot:[`item.investment_capacity`]="{ item }")
+      span {{ $n(Math.round(item.investment_capacity), "currency") }}
     template( v-slot:[`item.investments`]="{ item }")
-      span {{ $n(returnInvestmentTotal(item), "currency") }}
+      span {{ $n(Math.round(item.investments), "currency") }}
     template( v-slot:[`item.expense`]="{ item }")
       span {{ $n(Math.round(item.expense), "currency") }}
-    template( v-slot:[`item.vatCollected`]="{ item }")
-      span {{ $n(returnTVABalance(item), "currency") }}
+    template( v-slot:[`item.vatBalance`]="{ item }")
+      span {{ $n(Math.round(item.tva_balance), "currency") }}
     template( v-slot:[`item.balance`]="{ item }")
-      span {{ $n(returnBalance(item), "currency") }}
+      span {{ $n(Math.round(item.balance), "currency") }}
     template(v-slot:item.actions="{ item }")
       v-btn(icon="mdi-pencil" variant="plain" size="small" :to="`/revenus/${item.id}`")
 </template>
 
 <script setup lang="ts">
-import type { Revenus, Invoices, Costs, Transactions } from "../../types/models";
+import type { Revenus } from "../../types/models";
 import dayjs from "dayjs";
-
-type RevenuWithCostsInvoicesTransactions = Revenus & {
-  Invoices: Invoices[];
-  Costs: Costs[];
-  Transactions: Transactions[];
-};
 
 const loadingStore = useLoadingStore();
 const searchFrom = ref<HTMLFormElement | null>(null);
 const props = defineProps<{
   items: {
-    rows: Array<RevenuWithCostsInvoicesTransactions>;
+    rows: Array<Revenus>;
     count: number;
   };
 }>();
@@ -76,7 +72,6 @@ const dataTable = {
       key: "revenuNet",
       value: "revenuNet",
       title: $t("revenus.revenuNet"),
-      sortable: false,
     },
     {
       key: "perso",
@@ -89,27 +84,29 @@ const dataTable = {
       title: $t("revenus.revenuTotal"),
     },
     {
+      key: "investment_capacity",
+      value: "investment_capacity",
+      title: $t("revenus.investment_capacity"),
+    },
+    {
       key: "investments",
       value: "investments",
       title: $t("revenus.investments"),
-      sortable: false,
     },
     {
       key: "expense",
       value: "expense",
       title: $t("revenus.expenses"),
     },
-    {
-      key: "vatCollected",
-      value: "vatCollected",
-      title: $t("revenus.vatCollected"),
-      sortable: false,
-    },
+    // {
+    //   key: "vatBalance",
+    //   value: "vatBalance",
+    //   title: $t("revenus.vatBalance"),
+    // },
     {
       key: "balance",
       value: "balance",
       title: $t("revenus.balance"),
-      sortable: false,
     },
     {
       key: "actions",
@@ -146,42 +143,9 @@ function getRevenus({ page, itemsPerPage, sortBy }) {
   });
 }
 
-function revenuDate(revenu: RevenuWithCostsInvoicesTransactions) {
+function revenuDate(revenu: Revenus) {
   if (!revenu) return;
   return dayjs(revenu.createdAt).format("MMMM YYYY");
-}
-
-function returnRevenuNet(revenu: RevenuWithCostsInvoicesTransactions) {
-  if (revenu.taxPercentage) {
-    return Math.round(revenu.pro / (1 + revenu.taxPercentage / 100));
-  } else {
-    return Math.round(revenu.pro);
-  }
-}
-
-function returnInvestmentTotal(revenu: RevenuWithCostsInvoicesTransactions) {
-  if (revenu.Transactions) {
-    const total = revenu.Transactions.reduce((sum, investment) => sum + investment.total, 0);
-    return +total.toFixed(2);
-  } else {
-    return 0;
-  }
-}
-
-function returnTVABalance(revenu: RevenuWithCostsInvoicesTransactions) {
-  const tvaDispatched = revenu.Costs?.reduce((sum, cost) => sum + (cost.tvaAmount || 0), 0);
-  const tvaCollected = revenu.Invoices?.reduce((sum, invoice) => sum + invoice.tvaAmount, 0);
-
-  if (revenu.Invoices) {
-    return +(tvaDispatched - tvaCollected).toFixed(2);
-  } else {
-    return 0;
-  }
-}
-
-function returnBalance(revenu: RevenuWithCostsInvoicesTransactions) {
-  const revenuAmount = returnRevenuNet(revenu) + revenu.perso || revenu.total;
-  return Math.round(revenuAmount - Math.abs(revenu.expense));
 }
 
 function resetAll() {

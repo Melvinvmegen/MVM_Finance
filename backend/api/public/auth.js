@@ -70,6 +70,8 @@ export async function signIn({ email, password }) {
     cryptosModuleActive: user.cryptosModuleActive,
     customersModuleActive: user.customersModuleActive,
     revenusModuleActive: user.revenusModuleActive,
+    investment_goal: user.investment_goal,
+    withholding_tax_active: user.withholding_tax_active,
   };
 
   this.reply.setCookie("MVMTOKEN", await this.reply.jwtSign(me), {
