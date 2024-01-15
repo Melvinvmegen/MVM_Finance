@@ -230,7 +230,8 @@
     "amount": "Amount",
     "Withdrawal": "Withdrawal",
     "createCost": "Create cost",
-    "create": "Create"
+    "create": "Create",
+    "categories": "Categories"
   },
   "revenus": {
     "title": "Revenus",

@@ -1,5 +1,5 @@
 <template>
-  <v-text-field v-bind="$attrs" :modelValue="props.modelValue" @input="onInput" />
+  <v-text-field v-bind="$attrs" :modelValue="props.modelValue" @input="onInput" @click:clear="onInput" />
 </template>
 
 <script setup lang="ts">

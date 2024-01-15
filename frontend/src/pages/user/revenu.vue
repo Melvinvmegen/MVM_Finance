@@ -81,7 +81,18 @@ v-container
                   span {{ $t("revenu.addLine") }}
 
             hr.my-8
-            v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.credits") }}
+            v-card-title.px-0.pb-8.d-flex.justify-space-between.align-center
+              v-col(cols="12" sm="3" md="3")
+                .text-h5 {{ $t("revenu.credits") }}
+              v-col(cols="12" sm="9" md="9")
+                v-row.justify-end
+                  v-col(cols="12" sm="3" md="3")
+                    v-select(:items="presentCreditCategories" item-title="name" item-value="id" @update:modelValue="(value) => creditSearchBy(value, 'category')" :label='$t("revenu.categories")' hide-details clearable)
+                  v-col(cols="12" sm="3" md="3")
+                    v-text-field(@update:modelValue="(value) => creditSearchBy(value, 'creditor')" :label='$t("revenu.creditor")' hide-details)
+                  v-col(cols="12" sm="3" md="3")
+                    NumberInput(@update:modelValue="(value) => creditSearchBy(value, 'total')" :label='$t("revenu.amount")' hide-details)
+
             template(v-if="credits.length")
               v-row
                 v-col(cols="2") {{ $t("revenu.createdAt") }}
@@ -115,7 +126,18 @@ v-container
                   span {{ $t("revenu.addLine") }}
 
             hr.my-8
-            v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.costs") }}
+            v-card-title.px-0.pb-8.d-flex.justify-space-between.align-center
+              v-col(cols="12" sm="3" md="3")
+                .text-h5 {{ $t("revenu.costs") }}
+              v-col(cols="12" sm="9" md="9")
+                v-row.justify-end
+                  v-col(cols="12" sm="3" md="3")
+                    v-select(:items="presentCostCategories" item-title="name" item-value="id" @update:modelValue="(value) => costSearchBy(value, 'category')" :label='$t("revenu.categories")' hide-details clearable)
+                  v-col(cols="12" sm="3" md="3")
+                    v-text-field(@update:modelValue="(value) => costSearchBy(value, 'name')" :label='$t("revenu.name")' hide-details clearable)
+                  v-col(cols="12" sm="3" md="3")
+                    NumberInput(@update:modelValue="(value) => costSearchBy(value, 'total')" :positive="false" :label='$t("revenu.amount")' hide-details clearable)
+
             template(v-if="costs.length")
               v-row
                 v-col(cols="1") {{ $t("revenu.recurrent") }}
@@ -592,5 +614,63 @@ async function updateWithdrawal() {
   } finally {
     loadingStore.setLoading(false);
   }
+}
+
+const presentCreditCategories = computed(() => {
+  if (!creditCategories.value?.length) return;
+  const presentCreditCategories = {};
+  for (let credit of credits.value) {
+    if (!credit.CreditCategoryId) return;
+    if (!presentCreditCategories[credit.CreditCategoryId]) {
+      presentCreditCategories[+credit.CreditCategoryId] = 1;
+    }
+  }
+
+  const presentCreditCategoriesKeys = Object.keys(presentCreditCategories);
+  return creditCategories.value.filter((c) => presentCreditCategoriesKeys.includes("" + c.id));
+});
+
+const presentCostCategories = computed(() => {
+  if (!costCategories.value?.length) return;
+  const presentCostCategories = {};
+  for (let cost of costs.value) {
+    if (!cost.CostCategoryId) return;
+    if (!presentCostCategories[cost.CostCategoryId]) {
+      presentCostCategories[+cost.CostCategoryId] = 1;
+    }
+  }
+
+  const presentCostCategoriesKeys = Object.keys(presentCostCategories);
+  return costCategories.value.filter((c) => presentCostCategoriesKeys.includes("" + c.id));
+});
+
+function creditSearchBy(value: Number | String, attribute: String) {
+  if (!value) {
+    return (credits.value = revenu.value.Credits);
+  }
+  credits.value = revenu.value.Credits.filter((c) => {
+    if (attribute === "category") {
+      return c.CreditCategoryId === value;
+    } else if (attribute === "creditor") {
+      return c.creditor.toLowerCase().includes(value.toLowerCase());
+    } else if (attribute === "total") {
+      return c.total === +value;
+    }
+  });
+}
+
+function costSearchBy(value: Number | String, attribute: String) {
+  if (!value) {
+    return (costs.value = revenu.value.Costs);
+  }
+  costs.value = revenu.value.Costs.filter((c) => {
+    if (attribute === "category") {
+      return c.CostCategoryId === value;
+    } else if (attribute === "name") {
+      return c.name.toLowerCase().includes(value.toLowerCase());
+    } else if (attribute === "total") {
+      return c.total === +value;
+    }
+  });
 }
 </script>
