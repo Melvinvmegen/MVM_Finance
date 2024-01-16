@@ -50,8 +50,11 @@ const props = defineProps<{
 }>();
 const searchFrom = ref<HTMLFormElement | null>(null);
 const { t: $t } = useI18n();
+const route = useRoute();
 const dataTable = {
-  perPage: 12,
+  page: Number(route.query.currentPage) || 1,
+  perPage: Number(route.query.perPage) || 12,
+  sortBy: [],
   headers: [
     {
       key: "lastName",

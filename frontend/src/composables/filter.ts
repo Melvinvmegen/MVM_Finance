@@ -2,29 +2,42 @@ import type { Query } from "../../types/models";
 
 export function useFilter(callbackFn: any) {
   const loadingStore = useLoadingStore();
+  const route = useRoute();
+  const router = useRouter();
+
   const items = ref({
     rows: [],
     count: 0,
   });
-  const perPage = 12;
 
   async function filterAll(filters?: Query) {
+    const navigation_state = {
+      currentPage: filters?.currentPage ? "" + filters?.currentPage : "1",
+      perPage: filters?.perPage ? "" + filters?.perPage : "10",
+      force: filters?.force ? "" + filters?.force : "false",
+      sortBy: filters?.sortBy ? JSON.stringify(filters?.sortBy) : null,
+    };
+    const new_state = JSON.stringify(navigation_state);
+    const old_state = JSON.stringify(route.query);
+
+    if (old_state != new_state) {
+      router.replace({
+        query: navigation_state,
+      });
+    }
+
     loadingStore.setLoading(true);
     try {
       if (items.value?.rows.length > 0 && filters && !filters.force) return;
       if (!items.value.count || filters?.force) {
         if (filters?.CustomerId) {
           items.value = await callbackFn(filters.CustomerId, {
-            currentPage: 1,
-            perPage: perPage,
-            force: false,
+            ...navigation_state,
             ...filters,
           });
         } else {
           items.value = await callbackFn({
-            currentPage: 1,
-            perPage: perPage,
-            force: false,
+            ...navigation_state,
             ...filters,
           });
         }

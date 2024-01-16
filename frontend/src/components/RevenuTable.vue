@@ -13,6 +13,8 @@ v-col(cols="12")
     :items-length="props.items?.count"
     :items="props.items?.rows"
     :items-per-page="dataTable.perPage"
+    :page="dataTable.page"
+    :sort-by="dataTable.sortBy"
     :loading="loadingStore.loading"
     @update:options="getRevenus"
     item-value="name"
@@ -53,10 +55,12 @@ const props = defineProps<{
     count: number;
   };
 }>();
-
+const route = useRoute();
 const { t: $t } = useI18n();
 const dataTable = {
-  perPage: 12,
+  page: Number(route.query.currentPage) || 1,
+  perPage: Number(route.query.perPage) || 12,
+  sortBy: [],
   headers: [
     {
       key: "createdAt",
@@ -138,8 +142,8 @@ function getRevenus({ page, itemsPerPage, sortBy }) {
   emit("filter", {
     currentPage: page,
     perPage: itemsPerPage,
-    force: true,
     sortBy,
+    force: true,
   });
 }
 
