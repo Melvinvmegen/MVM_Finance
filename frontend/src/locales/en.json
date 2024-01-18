@@ -258,8 +258,7 @@
     "fileInput": "File",
     "banks": "Banks",
     "vatBalance": "VAT Balance",
-    "averageRecurrentCredits": "Average Monthly recurrent credits",
-    "investment_capacity": "Investment Capacity"
+    "averageRecurrentCredits": "Average Monthly recurrent credits"
   },
   "invoices": {
     "title": "Invoices:",

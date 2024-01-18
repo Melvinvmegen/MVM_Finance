@@ -29,8 +29,6 @@ v-col(cols="12")
       span {{ $n(Math.round(item.perso), "currency") }}
     template( v-slot:[`item.total`]="{ item }")
       span {{ $n(Math.round(item.total), "currency") }}
-    template( v-slot:[`item.investment_capacity`]="{ item }")
-      span {{ $n(Math.round(item.investment_capacity), "currency") }}
     template( v-slot:[`item.investments`]="{ item }")
       span {{ $n(Math.round(item.investments), "currency") }}
     template( v-slot:[`item.expense`]="{ item }")
@@ -88,11 +86,6 @@ const dataTable = {
       title: $t("revenus.revenuTotal"),
     },
     {
-      key: "investment_capacity",
-      value: "investment_capacity",
-      title: $t("revenus.investment_capacity"),
-    },
-    {
       key: "investments",
       value: "investments",
       title: $t("revenus.investments"),
@@ -102,11 +95,11 @@ const dataTable = {
       value: "expense",
       title: $t("revenus.expenses"),
     },
-    // {
-    //   key: "vatBalance",
-    //   value: "vatBalance",
-    //   title: $t("revenus.vatBalance"),
-    // },
+    {
+      key: "vatBalance",
+      value: "vatBalance",
+      title: $t("revenus.vatBalance"),
+    },
     {
       key: "balance",
       value: "balance",

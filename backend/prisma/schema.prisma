@@ -158,38 +158,37 @@ model Quotations {
 }
 
 model Revenus {
-  id                  Int            @id @default(autoincrement())
-  total               Float          @default(0)
-  pro                 Float          @default(0)
-  perso               Float          @default(0)
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  taxPercentage       Float          @default(0)
-  expense             Float          @default(0)
-  tva_collected       Float          @default(0)
-  tva_dispatched      Float          @default(0)
-  tva_balance         Float          @default(0)
-  recurrent_costs     Float          @default(0)
-  recurrent_credits   Float          @default(0)
-  average_costs       Float          @default(0)
-  average_credits     Float          @default(0)
-  total_costs         Float          @default(0)
-  total_credits       Float          @default(0)
-  tax_amount          Float          @default(0)
-  total_net           Float          @default(0)
-  investments         Float          @default(0)
-  investment_capacity Float          @default(0)
-  balance             Float          @default(0)
-  refund              Float          @default(0)
-  UserId              Int?
-  watchers            String?        @db.Text
-  User                Users?         @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Costs               Costs[]
-  Credits             Credits[]
-  Invoices            Invoices[]
-  Quotations          Quotations[]
-  Transactions        Transactions[]
-  Withdrawals         Withdrawal[]
+  id                Int            @id @default(autoincrement())
+  total             Float          @default(0)
+  pro               Float          @default(0)
+  perso             Float          @default(0)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  taxPercentage     Float          @default(0)
+  expense           Float          @default(0)
+  tva_collected     Float          @default(0)
+  tva_dispatched    Float          @default(0)
+  tva_balance       Float          @default(0)
+  recurrent_costs   Float          @default(0)
+  recurrent_credits Float          @default(0)
+  average_costs     Float          @default(0)
+  average_credits   Float          @default(0)
+  total_costs       Float          @default(0)
+  total_credits     Float          @default(0)
+  tax_amount        Float          @default(0)
+  total_net         Float          @default(0)
+  investments       Float          @default(0)
+  balance           Float          @default(0)
+  refund            Float          @default(0)
+  UserId            Int?
+  watchers          String?        @db.Text
+  User              Users?         @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Costs             Costs[]
+  Credits           Credits[]
+  Invoices          Invoices[]
+  Quotations        Quotations[]
+  Transactions      Transactions[]
+  Withdrawals       Withdrawal[]
 }
 
 model Transactions {
@@ -209,25 +208,24 @@ model Transactions {
 }
 
 model Users {
-  id                     Int                @id @default(autoincrement())
-  password               String             @db.VarChar(255)
-  email                  String             @unique @db.VarChar(255)
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
-  lastLogin              DateTime?
-  authTicket             String?
-  cryptosModuleActive    Boolean            @default(true)
-  customersModuleActive  Boolean            @default(true)
-  revenusModuleActive    Boolean            @default(true)
-  withholding_tax_active Boolean            @default(true)
-  investment_goal        Float              @default(0)
-  Banks                  Banks[]
-  Revenus                Revenus[]
-  CashPots               CashPots[]
-  CryptoCurrencies       CryptoCurrencies[]
-  Customers              Customers[]
-  CronTasks              CronTask[]
-  PendingEmails          PendingEmail[]
+  id                    Int                 @id @default(autoincrement())
+  password              String              @db.VarChar(255)
+  email                 String              @unique @db.VarChar(255)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  lastLogin             DateTime?
+  authTicket            String?
+  cryptosModuleActive   Boolean             @default(true)
+  customersModuleActive Boolean             @default(true)
+  revenusModuleActive   Boolean             @default(true)
+  Banks                 Banks[]
+  Revenus               Revenus[]
+  CashPots              CashPots[]
+  CryptoCurrencies      CryptoCurrencies[]
+  Customers             Customers[]
+  CronTasks             CronTask[]
+  PendingEmails         PendingEmail[]
+  investment_profile    investment_profile?
 }
 
 model Banks {
@@ -393,6 +391,23 @@ model credit_category {
   icon      String?   @db.VarChar(100)
   color     String?   @db.VarChar(10)
   Credits   Credits[]
+}
+
+model investment_profile {
+  id                     Int      @id @default(autoincrement())
+  created_at             DateTime @default(now())
+  updated_at             DateTime @default(now()) @updatedAt
+  withholding_tax_active Boolean  @default(true)
+  investment_goal        Float    @default(0.2)
+  average_revenu_pro     Float    @default(0)
+  average_revenu_perso   Float    @default(0)
+  average_revenu_total   Float    @default(0)
+  average_expense        Float    @default(0)
+  average_balance        Float    @default(0)
+  average_investments    Float    @default(0)
+  investment_capacity    Float    @default(0)
+  user_id                Int      @unique
+  user                   Users    @relation(fields: [user_id], references: [id])
 }
 
 enum SubscriptionStatus {

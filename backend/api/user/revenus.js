@@ -627,8 +627,6 @@ function updateRevenuStats(revenu, user) {
     revenu.total_net -= revenu.tax_amount;
   }
   revenu.total_net = total_net || 0;
-  console.log("revenu.total_net * user.investment_goal || 0", revenu.total_net, user.investment_goal);
-  revenu.investment_capacity = revenu.total_net * user.investment_goal || 0;
   revenu.investments = investments || 0;
   revenu.balance = expense + revenu.total || 0;
   delete revenu.id;

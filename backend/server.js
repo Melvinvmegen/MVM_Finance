@@ -152,12 +152,13 @@ app.addHook("preHandler", async (request) => {
     !request.url?.includes("/health") &&
     !request.url?.includes("/payment") &&
     !request.raw?.url?.includes("/payment") &&
+    !request.url?.includes("/stats") &&
     !request.user
   ) {
     throw new UnauthorizedError("errors.server.unauthorized");
   }
 
-  if (request?.url.includes("/payment") && !request?.url.includes("/webhooks")) {
+  if ((request?.url.includes("/stats") || request?.url.includes("/payment")) && !request?.url.includes("/webhooks")) {
     const authHeader = request.headers.authorization;
     if (!authHeader) {
       throw new UnauthorizedError("errors.server.missingCredentials");
@@ -186,7 +187,12 @@ app.addHook("onRequest", async (request) => {
   try {
     await request.jwtVerify({ onlyCookie: true });
   } catch (err) {
-    if (!request.url?.includes("/public") && !request.url?.includes("/health") && !request.url?.includes("/payment")) {
+    if (
+      !request.url?.includes("/public") &&
+      !request.url?.includes("/health") &&
+      !request.url?.includes("/payment") &&
+      !request.url?.includes("/stats")
+    ) {
       // eslint-disable-next-line no-console
       console.error(err);
     }
@@ -196,6 +202,7 @@ app.addHook("onRequest", async (request) => {
     !request.url?.includes("/public") &&
     !request.url?.includes("/health") &&
     !request.url?.includes("/payment") &&
+    !request.url?.includes("/stats") &&
     !request.user
   ) {
     try {

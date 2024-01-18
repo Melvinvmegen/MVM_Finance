@@ -1,7 +1,6 @@
 import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
 import { AppError } from "../../utils/AppError.js";
 import { prisma, Models } from "../../utils/prisma.js";
-import { Prisma } from "@prisma/client";
 
 /**
  * @param {API.ServerInstance} app
