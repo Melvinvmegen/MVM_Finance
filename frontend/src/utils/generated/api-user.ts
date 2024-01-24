@@ -3,74 +3,50 @@ import { useOFetch, useOFetchRaw } from "../../plugins/ofetch";
 
 /**
  * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").getBanks>>}
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/assets.js").getAssets>>}
 **/
-export async function getBanks(query = undefined) {
-  return await useOFetch(`/api/user/banks`, { method: "GET", query });
+export async function getAssets(query = undefined) {
+  return await useOFetch(`/api/user/assets`, { method: "GET", query });
 }
 /**
- * @param {string|string[]|number} bankId
+ * @param {string|string[]|number} id
  * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").getBank>>}
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/assets.js").getAsset>>}
 **/
-export async function getBank(bankId, query = undefined) {
-  return await useOFetch(`/api/user/banks/${bankId}`, { method: "GET", query });
+export async function getAsset(id, query = undefined) {
+  return await useOFetch(`/api/user/assets/${id}`, { method: "GET", query });
 }
 /**
- * @param {Parameters<import("../../../../backend/api/user/banks.js").createBank>[0]} body
+ * @param {Parameters<import("../../../../backend/api/user/assets.js").createAsset>[0]} body
  * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").createBank>>}
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/assets.js").createAsset>>}
 **/
-export async function createBank(body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/banks`, { method: "POST", body, query });
+export async function createAsset(body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/assets`, { method: "POST", body, query });
 }
 /**
- * @param {string|string[]|number} bankId
- * @param {Parameters<import("../../../../backend/api/user/banks.js").updateBank>[1]} body
+ * @param {string|string[]|number} id
+ * @param {Parameters<import("../../../../backend/api/user/assets.js").updateAsset>[1]} body
  * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").updateBank>>}
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/assets.js").updateAsset>>}
 **/
-export async function updateBank(bankId, body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/banks/${bankId}`, { method: "PUT", body, query });
+export async function updateAsset(id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/assets/${id}`, { method: "PUT", body, query });
+}
+/**
+ * @param {string|string[]|number} id
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/assets.js").deleteAsset>>}
+**/
+export async function deleteAsset(id, query = undefined) {
+  return await useOFetch(`/api/user/assets/${id}`, { method: "DELETE", query });
 }
 /**
  * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/banks.js").getAccountTypes>>}
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/assets.js").getAssetTypes>>}
 **/
-export async function getAccountTypes(query = undefined) {
-  return await useOFetch(`/api/user/banks/account-types`, { method: "GET", query });
-}
-/**
- * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/cash-pots.js").getCashPots>>}
-**/
-export async function getCashPots(query = undefined) {
-  return await useOFetch(`/api/user/cash-pots`, { method: "GET", query });
-}
-/**
- * @param {string|string[]|number} cashPotId
- * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/cash-pots.js").getCashPot>>}
-**/
-export async function getCashPot(cashPotId, query = undefined) {
-  return await useOFetch(`/api/user/cash-pots/${cashPotId}`, { method: "GET", query });
-}
-/**
- * @param {Parameters<import("../../../../backend/api/user/cash-pots.js").createCashPot>[0]} body
- * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/cash-pots.js").createCashPot>>}
-**/
-export async function createCashPot(body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/cash-pots`, { method: "POST", body, query });
-}
-/**
- * @param {string|string[]|number} cashPotId
- * @param {Parameters<import("../../../../backend/api/user/cash-pots.js").updateCashPot>[1]} body
- * @param {Record<string,string|string[]|number>} [query]
- * @returns {Promise<ReturnType<import("../../../../backend/api/user/cash-pots.js").updateCashPot>>}
-**/
-export async function updateCashPot(cashPotId, body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/cash-pots/${cashPotId}`, { method: "PUT", body, query });
+export async function getAssetTypes(query = undefined) {
+  return await useOFetch(`/api/user/assets/asset-types`, { method: "GET", query });
 }
 /**
  * @param {Record<string,string|string[]|number>} [query]
@@ -142,6 +118,22 @@ export async function updateCustomer(id, body = undefined, query = undefined) {
 **/
 export async function deleteCustomer(id, query = undefined) {
   return await useOFetch(`/api/user/customers/${id}`, { method: "DELETE", query });
+}
+/**
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/investment-profiles.js").getInvestmentProfile>>}
+**/
+export async function getInvestmentProfile(query = undefined) {
+  return await useOFetch(`/api/user/investment-profiles`, { method: "GET", query });
+}
+/**
+ * @param {string|string[]|number} id
+ * @param {Parameters<import("../../../../backend/api/user/investment-profiles.js").updateInvestmentProfile>[1]} body
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/investment-profiles.js").updateInvestmentProfile>>}
+**/
+export async function updateInvestmentProfile(id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/investment-profiles/${id}`, { method: "PUT", body, query });
 }
 /**
  * @param {string|string[]|number} CustomerId
@@ -335,12 +327,12 @@ export async function getRevenu(id, query = undefined) {
   return await useOFetch(`/api/user/revenus/${id}`, { method: "GET", query });
 }
 /**
- * @param {string|string[]|number} bankId
+ * @param {string|string[]|number} asset_id
  * @param {Record<string, any>} body
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").createRevenu>>}
 **/
-export async function createRevenu(bankId, body = undefined, query = undefined) {
+export async function createRevenu(asset_id, body = undefined, query = undefined) {
   const formData = new FormData();
   for (const key in body) {
     if (body[key] instanceof Array && body[key][0] instanceof Blob) {
@@ -360,7 +352,7 @@ export async function createRevenu(bankId, body = undefined, query = undefined) 
       formData.append(key, body[key]);
     }
   }
-  return await useOFetch(`/api/user/revenus/${bankId}`, { method: "POST", query, body: formData });
+  return await useOFetch(`/api/user/revenus/${asset_id}`, { method: "POST", query, body: formData });
 }
 /**
  * @param {string|string[]|number} id

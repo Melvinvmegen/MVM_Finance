@@ -7,7 +7,9 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    BankModal: typeof import('./../src/components/BankModal.vue')['default']
+    AssetModal: typeof import('./../src/components/AssetModal.vue')['default']
+    AssetTable: typeof import('./../src/components/AssetTable.vue')['default']
+    BankModal: (typeof import("./../src/components/BankModal.vue"))["default"]
     BarChart: typeof import('./../src/components/BarChart.vue')['default']
     CryptoCard: typeof import('./../src/components/CryptoCard.vue')['default']
     CryptoTable: typeof import('./../src/components/CryptoTable.vue')['default']

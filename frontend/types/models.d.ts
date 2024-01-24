@@ -15,7 +15,8 @@ export interface Query {
   name?: string;
   email?: string;
   city?: string;
-  BankId?: number;
+  asset_id?: number;
+  asset_type_id?: number;
   CustomerId?: number;
   totalTTC?: number;
   force?: boolean;

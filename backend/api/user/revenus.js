@@ -13,7 +13,7 @@ export default async function (app) {
   app.$get("/revenus", getRevenus);
   app.$get("/revenus/ids", getRevenuIds);
   app.$get("/revenus/:id", getRevenu);
-  app.$upload("/revenus/:bankId", createRevenu);
+  app.$upload("/revenus/:asset_id", createRevenu);
   app.$put("/revenus/:id", updateRevenu);
   app.$post("/revenus/:id/costs/:CostId", updateOrCreateRevenuCost);
   app.$post("/revenus/:id/withdrawals", createRevenuWithdrawal);
@@ -137,19 +137,19 @@ let credit_category_cache = {};
 
 /**
  * @this {API.This}
- * @param {string} bankId
+ * @param {string} asset_id
  * @param {API.UploadData} upload
  */
 // TODO: Prisma transaction
-export async function createRevenu(bankId, upload) {
-  const bank = await prisma.banks.findFirst({
+export async function createRevenu(asset_id, upload) {
+  const asset = await prisma.asset.findFirst({
     where: {
-      UserId: this.request.user?.id || null,
-      id: +bankId,
+      user_id: this.request.user?.id || null,
+      id: +asset_id,
     },
   });
 
-  if (!bank) throw new AppError(401, "Bank not found!");
+  if (!asset) throw new AppError(401, "Asset not found!");
   if (!upload.mimetype.includes("csv")) throw new AppError("Please upload a CSV file!");
   let revenu;
   const costs = [];
@@ -232,7 +232,7 @@ export async function createRevenu(bankId, upload) {
                 recurrent: true,
               },
               where: {
-                BankId: +bankId,
+                asset_id: +asset_id,
                 name: {
                   contains: name,
                 },
@@ -262,14 +262,14 @@ export async function createRevenu(bankId, upload) {
               },
               data: {
                 ...newObj,
-                BankId: +bankId,
+                asset_id: +asset_id,
               },
             });
           } else {
             cost = await prisma.costs.create({
               data: {
                 ...newObj,
-                BankId: +bankId,
+                asset_id: +asset_id,
               },
             });
           }
@@ -288,7 +288,7 @@ export async function createRevenu(bankId, upload) {
                 creditor: {
                   contains: name,
                 },
-                BankId: +bankId,
+                asset_id: +asset_id,
               },
             });
             if (previousCredit) {
@@ -312,14 +312,14 @@ export async function createRevenu(bankId, upload) {
               },
               data: {
                 ...newObj,
-                BankId: +bankId,
+                asset_id: +asset_id,
               },
             });
           } else {
             credit = await prisma.credits.create({
               data: {
                 ...newObj,
-                BankId: +bankId,
+                asset_id: +asset_id,
               },
             });
           }
@@ -441,8 +441,7 @@ export async function updateOrCreateRevenuCost(RevenuId, CostId, body) {
       },
       data: {
         paymentMean: body.paymentMean,
-        BankId: body.BankId,
-        CashPotId: body.CashPotId,
+        asset_id: body.asset_id,
       },
     });
   } else {
@@ -456,8 +455,7 @@ export async function updateOrCreateRevenuCost(RevenuId, CostId, body) {
         paymentMean: "" + body.paymentMean,
         CostCategoryId: +body.CostCategoryId,
         RevenuId: +RevenuId,
-        BankId: +body.BankId,
-        CashPotId: +body.CashPotId,
+        asset_id: +body.asset_id,
       },
     });
   }
@@ -470,7 +468,7 @@ export async function updateOrCreateRevenuCost(RevenuId, CostId, body) {
 /**
  * @this {API.This}
  * @param {string} RevenuId
- * @param {Models.Prisma.WithdrawalUncheckedCreateInput & {BankId: number, CashPotId: number, CostId: number, CreditId: number}} body
+ * @param {Models.Prisma.WithdrawalUncheckedCreateInput & {initial_asset_id: number, destination_asset_id: number, CostId: number, CreditId: number}} body
  * @returns {Promise<{ withdrawal: Models.Withdrawal, cost: Models.Costs, credit: Models.Credits }>}
  */
 // TODO: Prisma transaction
@@ -501,8 +499,7 @@ export async function createRevenuWithdrawal(RevenuId, body) {
       RevenuId: withdrawal.RevenuId,
       WithdrawalId: withdrawal.id,
       CreditCategoryId: 14,
-      BankId: +body.BankId,
-      CashPotId: +body.CashPotId,
+      asset_id: +body.destination_asset_id,
     },
   });
 
@@ -513,8 +510,7 @@ export async function createRevenuWithdrawal(RevenuId, body) {
     data: {
       WithdrawalId: withdrawal.id,
       CostCategoryId: 9,
-      BankId: +body.BankId,
-      CashPotId: +body.CashPotId,
+      asset_id: +body.initial_asset_id,
     },
   });
 
@@ -593,9 +589,9 @@ function updateRevenuStats(revenu, user) {
 
       if (cost.CostCategoryId === 19) {
         investments += cost.total;
+      } else {
+        expense += +cost.total;
       }
-
-      expense += +cost.total;
     }
   }
 

@@ -15,16 +15,14 @@ model Costs {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   RevenuId       Int
-  CashPotId      Int?
-  BankId         Int?
+  asset_id       Int?
   WithdrawalId   Int?          @unique
   tvaAmount      Float?
   recurrent      Boolean       @default(false)
   paymentMean    String        @default("CARD")
   CostCategoryId Int           @default(1)
   Revenus        Revenus       @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  CashPot        CashPots?     @relation(fields: [CashPotId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Bank           Banks?        @relation(fields: [BankId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  asset          asset?        @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   Withdrawal     Withdrawal?   @relation(fields: [WithdrawalId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   CostCategory   cost_category @relation(fields: [CostCategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -37,14 +35,12 @@ model Credits {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   RevenuId         Int
-  CashPotId        Int?
-  BankId           Int?
+  asset_id         Int?
   WithdrawalId     Int?            @unique
   CreditCategoryId Int             @default(1)
   recurrent        Boolean         @default(false)
   Revenus          Revenus         @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  CashPot          CashPots?       @relation(fields: [CashPotId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Bank             Banks?          @relation(fields: [BankId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  asset            asset?          @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   Withdrawal       Withdrawal?     @relation(fields: [WithdrawalId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   CreditCategory   credit_category @relation(fields: [CreditCategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -61,6 +57,8 @@ model CryptoCurrencies {
   profit        Float?
   sold          Boolean        @default(false)
   UserId        Int?
+  asset_id      Int?
+  asset         asset?         @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   Users         Users?         @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_crypto_currency_user")
   Transactions  Transactions[]
 }
@@ -218,9 +216,8 @@ model Users {
   cryptosModuleActive   Boolean             @default(true)
   customersModuleActive Boolean             @default(true)
   revenusModuleActive   Boolean             @default(true)
-  Banks                 Banks[]
+  assets                asset[]
   Revenus               Revenus[]
-  CashPots              CashPots[]
   CryptoCurrencies      CryptoCurrencies[]
   Customers             Customers[]
   CronTasks             CronTask[]
@@ -228,20 +225,24 @@ model Users {
   investment_profile    investment_profile?
 }
 
-model Banks {
-  id            Int          @id @default(autoincrement())
-  name          String       @db.VarChar(45)
-  amount        Float
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  amountDate    DateTime?
-  interestRate  Int?
-  UserId        Int
-  AccountTypeId Int?
-  AccountType   AccountType? @relation(fields: [AccountTypeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bank_account_type")
-  Users         Users        @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_bank_user")
-  Credits       Credits[]
-  Costs         Costs[]
+model asset {
+  id                     Int                @id @default(autoincrement())
+  name                   String             @db.VarChar(45)
+  amount                 Float
+  created_at             DateTime           @default(now())
+  updated_at             DateTime           @updatedAt
+  amount_date            DateTime?
+  interest_rate          Int?
+  user_id                Int
+  asset_type_id          Int?
+  growth_last_month      Float @default(0)
+  growth_last_six_months Float @default(0)
+  growth_last_year       Float @default(0)
+  asset_type             asset_type?        @relation(fields: [asset_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_asset_asset_type")
+  Users                  Users              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_asset_user")
+  Credits                Credits[]
+  Costs                  Costs[]
+  CryptoCurrencies       CryptoCurrencies[]
 }
 
 model Subscriptions {
@@ -292,19 +293,6 @@ model Payments {
   Customers      Customers?       @relation(fields: [CustomerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subscription_customer")
   Invoices       Invoices?        @relation(fields: [InvoiceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subscription_invoice")
   PaymentIntents PaymentIntents[]
-}
-
-model CashPots {
-  id         Int       @id @default(autoincrement())
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  name       String    @db.VarChar(45)
-  amount     Float
-  amountDate DateTime?
-  UserId     Int
-  User       Users     @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_cashpot_user")
-  Credits    Credits[]
-  Costs      Costs[]
 }
 
 model Withdrawal {
@@ -359,18 +347,18 @@ model CronTask {
   PendingEmail      PendingEmail? @relation(fields: [PendingEmailId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-model AccountType {
-  id                Int      @id @default(autoincrement())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @default(now()) @updatedAt
-  name              String   @db.VarChar(50)
-  description       String   @db.VarChar(300)
-  fixedInterestRate Boolean  @default(true)
-  interestRate      Int?
-  minCap            Int?
-  cap               Int?
-  duration          String   @default("unlimited")
-  Banks             Banks[]
+model asset_type {
+  id                  Int      @id @default(autoincrement())
+  created_at          DateTime @default(now())
+  updated_at          DateTime @default(now()) @updatedAt
+  name                String   @db.VarChar(50)
+  description         String   @db.VarChar(300)
+  fixed_interest_rate Boolean  @default(true)
+  interest_rate       Int?
+  min_cap             Int?
+  cap                 Int?
+  duration            String   @default("unlimited")
+  assets              asset[]
 }
 
 model cost_category {

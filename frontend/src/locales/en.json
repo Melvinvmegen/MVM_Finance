@@ -148,26 +148,24 @@
     "costs": "Costs",
     "revenus": "Revenus",
     "evolution": "Costs && Revenus evolution",
-    "revenuPro": "Revenu Pro",
-    "revenuPerso": "Revenu Perso",
+    "revenuPro": "Pro",
+    "revenuPerso": "Perso",
     "refund": "Refund",
-    "vatCollected": "VAT collected",
     "vatDeducted": "VAT deducted",
     "balance": "Balance",
-    "editBank": "Edit bank",
-    "bank": "bank",
-    "addBank": "Add a banque",
     "name": "Name",
     "amount": "Amount",
     "createRevenu": "Create revenu",
     "noRevenuText": "All you have left to do is to create one",
     "noRevenuTitle": "There is no revenu yet",
-    "editCashPot": "Edit cash pot",
-    "cashPot": "Cash pot",
-    "addCashPot": "Add cash pot",
-    "amountDate": "Amount date",
+    "amount_date": "Amount date",
     "cancel": "Cancel",
-    "accountType": "Type de compte"
+    "vatBalance": "VAT balance",
+    "tax_amount": "Tax amount",
+    "investments": "Investments",
+    "editAsset": "Edit asset",
+    "addAsset": "add asset",
+    "asset_type": "Asset type"
   },
   "invoice": {
     "editInvoice": "Edit an invoice",
@@ -219,8 +217,6 @@
     "recurrent": "Recurrent",
     "recurrents": "Recurrents",
     "paymentMean": "Payment Mean",
-    "bank": "Bank",
-    "CashPot": "Cash pot",
     "update": "Update",
     "updateCost": "Update cost",
     "deposit": "Deposit",
@@ -231,7 +227,10 @@
     "Withdrawal": "Withdrawal",
     "createCost": "Create cost",
     "create": "Create",
-    "categories": "Categories"
+    "categories": "Categories",
+    "asset": "Asset",
+    "initial_asset": "Initial asset",
+    "destination_asset": "Destination asset"
   },
   "revenus": {
     "title": "Revenus",
@@ -256,9 +255,9 @@
     "revenuTotal": "Total",
     "import": "File import",
     "fileInput": "File",
-    "banks": "Banks",
     "vatBalance": "VAT Balance",
-    "averageRecurrentCredits": "Average Monthly recurrent credits"
+    "averageRecurrentCredits": "Average Monthly recurrent credits",
+    "assets": "Assets"
   },
   "invoices": {
     "title": "Invoices:",
@@ -338,5 +337,27 @@
     "created": "Email successfully created!",
     "updated": "Email successfully updated!",
     "time": "Sending time"
+  },
+  "assets": {
+    "asset_type": "Asset type",
+    "search": "Search",
+    "title": "Assets",
+    "total": "Assets value",
+    "updated_at": "Last updated at",
+    "name": "Name",
+    "amount": "Amount",
+    "growth": "Growth",
+    "confirmDelete": "Are you sure want to delete this asset?",
+    "growth_last_month": "Growth M-1",
+    "growth_last_six_months": "Growth M-6",
+    "growth_last_year": "Growth Y-1"
+  },
+  "investment-profile": {
+    "average_revenu_perso": "Average perso",
+    "average_revenu_pro": "Average pro",
+    "average_revenu_total": "Average total",
+    "average_expense": "Average expense",
+    "average_investments": "Average investments",
+    "average_balance": "Average balance"
   }
 }

@@ -22,124 +22,41 @@ div
         .d-flex.justify-space-between
           v-card-title
             v-col.text-uppercase(cols="11") {{ $t("dashboard.evolution") }} ({{ revenuDate }})
-          v-icon.mr-4.mt-4(@click="resetAll('revenu')") mdi-restore
+          v-icon.mr-4.mt-4(@click="resetAll") mdi-restore
         v-card-text
           LineChart(:chart-data='lineChartData' :chart-options='chartOptions')
     v-col(v-if="revenu" cols="12" md="4")
       v-card(class="v-col")
         v-card-text
-          template(v-if="revenu.pro || revenu.perso")
-            v-row(justify="space-around" align="center")
-              v-card-subtitle {{ $t("dashboard.revenuPro") }}
-              v-card-title {{ $n(revenu?.pro, "currency") }}
-            v-row(justify="space-around" align="center")
-              v-card-subtitle {{ $t("dashboard.revenuPerso") }}
-              v-card-title + {{ $n(revenu?.perso, "currency") }}
-          template(v-else)
-            v-row(justify="space-around" align="center")
-              v-card-subtitle {{ $t("revenu.total") }}
-              v-card-title {{ $n(revenu?.total, "currency") }}
-          v-row(justify="space-around" align="center" v-if="revenu?.refund")
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.revenuPro") }}
+            v-card-title {{ $n(revenu?.pro, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.revenuPerso") }}
+            v-card-title + {{ $n(revenu?.perso, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
             v-card-subtitle {{ $t("dashboard.refund") }}
             v-card-title + {{ $n(revenu?.refund, "currency") }}
-          v-row(justify="space-around" align="center" v-if="revenu?.tva_collected")
-            v-card-subtitle {{ $t("dashboard.vatCollected") }}
-            v-card-title + {{ $n(revenu?.tva_collected, "currency") }}
-          v-row(justify="space-around" align="center" v-if="revenu?.tva_dispatched")
-            v-card-subtitle {{ $t("dashboard.vatDeducted") }}
-            v-card-title {{ - $n(revenu?.tva_dispatched, "currency") }}
-          v-row(justify="space-around" align="center" v-if="revenu?.expense")
-            v-card-subtitle {{ $t("dashboard.costs") }}
-            v-card-title {{ $n(revenu?.expense, "currency") }}
           hr.mx-2.my-4
-          v-row(justify="space-around" align="center" v-if="revenu.balance")
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("revenu.total") }}
+            v-card-title {{ $n(revenu?.total, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.costs") }}
+            v-card-title - {{ $n(revenu?.expense, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.investments") }}
+            v-card-title - {{ $n(revenu?.investments, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.tax_amount") }}
+            v-card-title - {{ $n(revenu?.tax_amount, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.vatBalance") }}
+            v-card-title - {{ $n(revenu?.tva_balance - revenu?.tva_dispatched, "currency") }}
+          hr.mx-2.my-4
+          v-row.ml-2.mr-2(justify="space-between" align="center")
             v-card-subtitle {{ $t("dashboard.balance") }}
             v-card-title {{ $n(revenu.balance, "currency") }}
-
-      v-carousel(v-if="banks.length"      
-        :continuous="!!banks.length"
-        :show-arrows="banks.length > 1"
-        hide-delimiters
-        height="auto")
-        template(v-slot:prev="{ props }")
-          v-btn(
-            icon="mdi-arrow-left" variant="plain" size="small"
-            @click="props.onClick")
-        template(v-slot:next="{ props }")
-          v-btn(
-            icon="mdi-arrow-right" variant="plain" size="small"
-            @click="props.onClick")
-
-        v-carousel-item(v-for="bank in banks" :key="bank.id")
-          v-card(class="v-col mt-4")
-            v-card-text
-              .d-flex.justify-space-between
-                v-card-subtitle.text-h6.pa-0 {{ bank.name }} ({{ bank.account_type_name }})
-                .d-flex
-                  v-icon(@click="resetAll('bank')") mdi-restore
-                  v-badge.ml-4(v-if="bank.interestRate" color="success" size="x-large" :content='$n((bank.interestRate / 100), "percent")')
-              br
-              v-card-title
-                .d-flex.justify-center.align-center
-                  .text-h4.mr-2 {{ $n(bank.amount + returnBalance(bank), "currency") }}
-                  div(v-if="returnBalance(bank)")
-                    v-icon(:class="[(returnBalance(bank)) > 0 ? 'text-success' : 'text-red']") mdi-chart-line-variant 
-                    .text-subtitle-1.mr-2 {{ +(((returnBalance(bank)) / Math.max(bank.amount, 1)) * 100).toFixed(2) }}%
-              br
-              .d-flex.justify-space-between
-                span.text-left
-                  a.text-overline.text-decoration-underline(@click.prevent="showModalBank = true; mutableBank = {}") {{ $t("dashboard.addBank") }}
-                span.text-right
-                  a.text-overline.text-decoration-underline(@click.prevent="showModalBank = true; mutableBank = bank") {{ $t("dashboard.editBank") }}
-            v-card-text(v-if="!banks.length")
-              v-card-subtitle.text-h6 {{ $t("dashboard.bank") }}
-              br
-              br
-              v-card-title
-                .text-overline.text-center.text-decoration-underline(@click="showModalBank = true") {{ $t("dashboard.addBank") }}
-              br
-
-      v-carousel(v-if="cashPots.length"      
-        :continuous="!!cashPots.length"
-        :show-arrows="cashPots.length > 1"
-        hide-delimiters
-        height="auto")
-        template(v-slot:prev="{ props }")
-          v-btn(
-            icon="mdi-arrow-left" variant="plain" size="small"
-            @click="props.onClick")
-        template(v-slot:next="{ props }")
-          v-btn(
-            icon="mdi-arrow-right" variant="plain" size="small"
-            @click="props.onClick")
-
-        v-carousel-item(v-for="cashPot in cashPots" :key="cashPot.id")
-          v-card(class="v-col mt-4")
-            v-card-text
-              .d-flex.justify-space-between
-                v-card-subtitle.text-h6 {{ cashPot.name }}
-                v-icon.ml-2(@click="resetAll('cashPot')") mdi-restore
-              br
-              v-card-title
-                .d-flex.justify-center.align-center
-                  .text-h4.mr-2 {{ $n(cashPot.amount + returnBalance(cashPot), "currency") }}
-                  div(v-if="returnBalance(cashPot)")
-                    v-icon(:class="[(returnBalance(cashPot)) > 0 ? 'text-success' : 'text-red']") mdi-chart-line-variant 
-                    .text-subtitle-1.mr-2 {{ +(((returnBalance(cashPot)) / Math.max(cashPot.amount, 1)) * 100).toFixed(2) }}%
-              br
-              .d-flex.justify-space-between
-                span.text-left
-                  a.text-overline.text-decoration-underline(@click.prevent="showModalCashPot = true; mutableCashPot = {}") {{ $t("dashboard.addCashPot") }}
-                span.text-right
-                  a.text-overline.text-decoration-underline(@click.prevent="showModalCashPot = true; mutableCashPot = cashPot") {{ $t("dashboard.editCashPot") }}
-
-            v-card-text(v-if="!cashPots.length")
-              v-card-subtitle.text-h6 {{ $t("dashboard.cashPot") }}
-              br
-              br
-              v-card-title
-                a.text-overline.text-center.text-decoration-underline(@click.prevent="showModalCashPot = true") {{ $t("dashboard.addCashPot") }}
-              br
 
     v-card(v-else-if="!revenu && ready" class="v-col")
       v-card-title.text-center {{ $t("dashboard.noRevenuTitle") }}
@@ -148,50 +65,16 @@ div
         br
         v-btn.bg-secondary.text-white(type="submit" to="/revenus") {{ $t("dashboard.createRevenu") }}
 
-  BankModal(v-if="showModalBank" :model="mutableBank" :show="showModalBank" @close="showModalBank = false" :account-types="accountTypes")
-  v-dialog(v-model='showModalCashPot' width='600')
-    v-card(width="100%")
-      v-form(v-model="valid" @submit.prevent="handleCashPotSubmit")
-        v-card-title.text-center {{ mutableCashPot?.id ? $t("dashboard.editCashPot") : $t("dashboard.addCashPot") }}
-        v-card-text.mt-4
-          v-row(dense justify="center")
-            v-col(cols="10")
-              v-text-field(name='name' :label='$t("dashboard.name")' v-model='mutableCashPot.name' :rules="[$v.required()]")
-            v-col(cols="10")
-              NumberInput(name='amount' :label='$t("dashboard.amount")' v-model='mutableCashPot.amount' :rules="[$v.required(), $v.number()]")
-            v-col(cols="10")
-              DateInput(v-model='mutableCashPot.amountDate' :label='$t("dashboard.amountDate")' :rules="[$v.required()]")
-
-        v-card-actions.mb-2
-          v-row(dense justify="center")
-            v-col.d-flex.justify-center(cols="12" lg="8")
-              v-btn.bg-secondary.text-white(type="submit") {{ mutableCashPot?.id ? $t("dashboard.editCashPot") : $t("dashboard.addCashPot") }}
-
 </template>
 
 <script setup lang="ts">
 import dayjs from "dayjs";
-import {
-  getBanks,
-  getRevenus,
-  getCashPots,
-  createCashPot,
-  updateCashPot,
-  getAccountTypes,
-} from "../../utils/generated/api-user";
-import type { Revenus, Costs, Credits, Banks, CashPots, AccountType } from "../../../types/models";
+import { getRevenus } from "../../utils/generated/api-user";
+import type { Revenus, Costs, Credits } from "../../../types/models";
 
 const loadingStore = useLoadingStore();
 const ready = ref(false);
-const valid = ref(false);
-let banks: Banks[] = reactive([]);
-let cashPots: CashPots[] = reactive([]);
-let accountTypes: AccountType[] = reactive([]);
 const { filterAll, items } = useFilter(getRevenus);
-const showModalBank = ref(false);
-const showModalCashPot = ref(false);
-let mutableBank: Ref<Banks> = ref({});
-let mutableCashPot: Ref<CashPots> = ref({});
 const dates: string[] = [];
 let revenu: Ref<(Revenus & { Costs: Costs[]; Credits: Credits[] }) | null> = ref(null);
 const chartOptions = {
@@ -203,14 +86,9 @@ const revenuDate = computed(() => {
 });
 
 onMounted(async () => {
-  banks = await getBanks();
-  mutableBank.value = banks[0];
-  cashPots = await getCashPots();
-  mutableCashPot.value = cashPots[0];
   await filterAll({
     perPage: 1,
   });
-  accountTypes = await getAccountTypes();
 
   revenu.value = items.value.rows[0];
   const today = dayjs(revenu?.value?.Costs?.at(0)?.createdAt);
@@ -362,40 +240,13 @@ const lineChartData = computed(() => {
   return chartData;
 });
 
-async function handleCashPotSubmit(): Promise<void> {
-  if (!valid.value) return;
+async function resetAll(): Promise<void> {
   loadingStore.setLoading(true);
   try {
-    if (mutableCashPot.value.id) {
-      await updateCashPot(mutableCashPot.value.id, mutableCashPot.value);
-    } else {
-      await createCashPot(mutableCashPot.value);
-    }
-    window.location.reload();
-  } finally {
-    loadingStore.setLoading(false);
-  }
-}
-
-function returnBalance(model): number {
-  return model.sum_costs + model.sum_credits;
-}
-
-async function resetAll(model): void {
-  loadingStore.setLoading(true);
-  try {
-    if (model === "bank") {
-      banks = await getBanks({ force: "true" });
-      mutableBank.value = banks[0];
-    } else if (model === "cashPot") {
-      cashPots = await getCashPots({ force: "true" });
-      mutableCashPot.value = cashPots[0];
-    } else if (model === "revenu") {
-      await filterAll({
-        perPage: 1,
-        force: true,
-      });
-    }
+    await filterAll({
+      perPage: 1,
+      force: true,
+    });
   } catch (err) {
     console.error(err);
   } finally {

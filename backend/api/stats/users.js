@@ -1,11 +1,13 @@
 import { AppError } from "../../utils/AppError.js";
-import { prisma, Models } from "../../utils/prisma.js";
+import { prisma } from "../../utils/prisma.js";
+import { roundTo } from "../../utils/roundTo.js";
 
 /**
  * @param {API.ServerInstance} app
  */
 export default async function (app) {
-  app.$post("/investment_profiles", setUsersStats);
+  app.$post("/investment-profiles", setUsersStats);
+  app.$post("/assets", setAssetsStats);
 }
 
 /**
@@ -17,6 +19,10 @@ export async function setUsersStats() {
     for (let investment_profile_id of investmentProfileIds) {
       try {
         const investment_profile = await prisma.investment_profile.findFirst({
+          select: {
+            id: true,
+            user_id: true,
+          },
           where: {
             id: +investment_profile_id,
           },
@@ -41,15 +47,119 @@ export async function setUsersStats() {
             id: +investment_profile_id,
           },
           data: {
-            average_revenu_pro: revenu_stats.average_pro,
-            average_revenu_perso: revenu_stats.average_perso,
-            average_revenu_total: revenu_stats.average_total,
-            average_expense: revenu_stats.average_expense,
-            average_balance: revenu_stats.average_balance,
-            average_investments: revenu_stats.average_investments,
+            average_revenu_pro: roundTo(revenu_stats.average_pro, 2),
+            average_revenu_perso: roundTo(revenu_stats.average_perso, 2),
+            average_revenu_total: roundTo(revenu_stats.average_total, 2),
+            average_expense: roundTo(revenu_stats.average_expense, 2),
+            average_balance: roundTo(revenu_stats.average_balance, 2),
+            average_investments: roundTo(revenu_stats.average_investments, 2),
             investment_capacity: investment_profile.withholding_tax_active
-              ? revenu_stats.average_balance - revenu_stats.average_tax_amount
-              : revenu_stats.average_balance,
+              ? roundTo(revenu_stats.average_balance - revenu_stats.average_tax_amount, 2)
+              : roundTo(revenu_stats.average_balance, 2),
+          },
+        });
+      } catch (error) {
+        console.log("An unexpected error occured", error);
+      }
+    }
+  } else {
+    throw new AppError("Body not supported");
+  }
+}
+
+/**
+ * @this {API.This & { request: { body: { assetIds: Number[]}}}}
+ */
+export async function setAssetsStats() {
+  const assetIds = this.request.body.assetIds;
+  if (assetIds?.length) {
+    for (let asset_id of assetIds) {
+      try {
+        const asset = await prisma.asset.findFirst({
+          select: {
+            id: true,
+          },
+          where: {
+            id: +asset_id,
+          },
+        });
+
+        if (!asset) console.error("Asset not found for id #", asset.id);
+
+        const [asset_stats] = await prisma.$queryRaw`
+            SELECT
+              asset.name,
+              asset.amount,
+              COALESCE(
+                (SELECT SUM(costs.total)
+                FROM "Costs" costs
+                WHERE costs.asset_id = asset.id
+                AND costs."createdAt" >= asset.updated_at), 0) as sum_costs_since_last_updated_at,
+              COALESCE(
+                (SELECT SUM(credits.total)
+                FROM "Credits" credits
+                WHERE credits.asset_id = asset.id
+                AND credits."createdAt" >= asset.updated_at), 0) as sum_credits_since_last_updated_at,
+              COALESCE(
+                (SELECT SUM(costs.total)
+                FROM "Costs" costs
+                WHERE costs.asset_id = asset.id
+                AND costs."createdAt" >= NOW() - INTERVAL '1 month'), 0) as sum_costs_last_month,
+              COALESCE(
+                (SELECT SUM(credits.total)
+                FROM "Credits" credits
+                WHERE credits.asset_id = asset.id
+                AND credits."createdAt" >= NOW() - INTERVAL '1 month'), 0) as sum_credits_last_month,
+              COALESCE(
+                (SELECT SUM(costs.total)
+                FROM "Costs" costs
+                WHERE costs.asset_id = asset.id
+                AND costs."createdAt" >= NOW() - INTERVAL '6 month'), 0) as sum_costs_last_six_months,
+              COALESCE(
+                (SELECT SUM(credits.total)
+                FROM "Credits" credits
+                WHERE credits.asset_id = asset.id
+                AND credits."createdAt" >= NOW() - INTERVAL '6 month'), 0) as sum_credits_last_six_months,
+              COALESCE(
+                (SELECT SUM(costs.total)
+                FROM "Costs" costs
+                WHERE costs.asset_id = asset.id
+                AND costs."createdAt" >= NOW() - INTERVAL '1 year'), 0) as sum_costs_last_year,
+              COALESCE(
+                (SELECT SUM(credits.total)
+                FROM "Credits" credits
+                WHERE credits.asset_id = asset.id
+                AND credits."createdAt" >= NOW() - INTERVAL '1 year'), 0) as sum_credits_last_year
+            FROM asset
+            WHERE id = ${asset.id}`;
+
+        const current_amount =
+          asset_stats.amount +
+          asset_stats.sum_costs_since_last_updated_at +
+          asset_stats.sum_credits_since_last_updated_at;
+        const amount_last_month =
+          asset_stats.amount + asset_stats.sum_costs_last_month + asset_stats.sum_credits_last_month;
+        const amount_six_months_ago =
+          asset_stats.amount + asset_stats.sum_costs_last_six_months + asset_stats.sum_credits_last_six_months;
+        const amount_last_year =
+          asset_stats.amount + asset_stats.sum_costs_last_year + asset_stats.sum_credits_last_year;
+
+        await prisma.asset.update({
+          where: {
+            id: +asset_id,
+          },
+          data: {
+            amount: current_amount,
+            amount_date: new Date(),
+            growth_last_month: roundTo(
+              ((current_amount - amount_last_month) / Math.max(amount_last_month, 1)) * 100,
+              2
+            ),
+            growth_last_six_months: roundTo(
+              ((current_amount - amount_six_months_ago) / Math.max(amount_six_months_ago, 1)) * 100,
+              2
+            ),
+            growth_last_year: roundTo(((current_amount - amount_last_year) / Math.max(amount_last_year, 1)) * 100, 2),
           },
         });
       } catch (error) {

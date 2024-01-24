@@ -69,6 +69,10 @@ export function createRouter() {
             path: "/cryptos",
             component: () => import("./pages/user/cryptos.vue"),
           },
+          {
+            path: "/assets",
+            component: () => import("./pages/user/assets.vue"),
+          },
         ],
       },
       {

@@ -34,6 +34,12 @@ const currentUser = computed(() => authStore.me);
 const drawer = ref(false);
 const menuItems = [
   { title: "Dashboard", link: "dashboard", icon: "mdi-view-dashboard", active: true },
+  {
+    title: "Assets",
+    link: "assets",
+    icon: "mdi-account-cash-outline",
+    active: true,
+  },
   { title: "Revenus", link: "revenus", icon: "mdi-currency-eur", active: currentUser?.value?.revenusModuleActive },
   {
     title: "Customers",

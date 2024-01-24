@@ -18,7 +18,7 @@ v-row(v-if="items.rows")
           v-card-text.mt-4
             v-row(dense justify="center")
               v-col(cols="10")
-                v-select(:items="banks" :item-props="itemProps" v-model="mutableImport.BankId" :label='$t("revenus.banks")')
+                v-select(:items="assets" :item-props="itemProps" v-model="mutableImport.asset_id" :label='$t("revenus.assets")')
               v-col(cols="10")
                 v-file-input(clearable :label="$t('revenus.fileInput')" accept=".csv" v-model="mutableImport.file")
           v-card-actions.mb-2
@@ -90,11 +90,11 @@ v-row(v-if="items.rows")
 
 <script setup lang="ts">
 import dayjs from "dayjs";
-import { getBanks, getRevenus, createRevenu, getCategories } from "../../utils/generated/api-user";
-import type { Banks, cost_category, credit_category } from "../../../types/models";
+import { getAssets, getRevenus, createRevenu, getCategories } from "../../utils/generated/api-user";
+import type { asset, cost_category, credit_category } from "../../../types/models";
 
 const loadingStore = useLoadingStore();
-const banks = ref<Banks[]>([]);
+const assets = ref<asset[]>([]);
 const { filterAll, items } = useFilter(getRevenus);
 const showModal = ref(false);
 const mutableImport = ref();
@@ -102,9 +102,9 @@ const costCategories = ref<cost_category[]>([]);
 const creditCategories = ref<credit_category[]>([]);
 
 onMounted(async () => {
-  banks.value = await getBanks();
+  assets.value = await getAssets();
   mutableImport.value = {
-    BankId: banks.value[0].id,
+    asset_id: assets.value[0].id,
     file: null,
   };
   await filterAll();
@@ -256,10 +256,10 @@ const chartOptions = {
 };
 
 async function uploadFile() {
-  if (!banks.value.length) return;
+  if (!assets.value.length) return;
   loadingStore.setLoading(true);
   try {
-    await createRevenu(mutableImport.value.BankId, { file: mutableImport.value.file });
+    await createRevenu(mutableImport.value.asset_id, { file: mutableImport.value.file });
     await refreshRevenus({});
     showModal.value = false;
   } finally {

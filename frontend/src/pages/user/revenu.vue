@@ -99,7 +99,7 @@ v-container
                 v-col(cols="3") {{ $t("revenu.creditor") }}
                 v-col(cols="2") {{ $t("revenu.category") }}
                 v-col(cols="2") {{ $t("revenu.total") }}
-                v-col(cols="2") {{ $t("revenu.bank") }}
+                v-col(cols="2") {{ $t("revenu.asset") }}
                 v-col(cols="1")
               br
               v-virtual-scroll.mb-4(:items="credits" :height="400" item-height="86" ref="virtualScrollCredit")
@@ -114,8 +114,7 @@ v-container
                     v-col(cols="2")
                       NumberInput(v-model="item.total" @change="(event) => updateTotal(index, event, 'Credits', 'total')" :rules="[$v.required(), $v.number()]")
                     v-col(cols="2")
-                      v-select(v-if="item.CreditCategoryId === 14" :items="cashPots" :item-props="itemProps" v-model="item.CashPotId")
-                      v-select(v-else :items="banks" :item-props="itemProps" v-model="item.BankId")
+                      v-select(:items="assets" :item-props="itemProps" v-model="item.asset_id")
                     v-col.d-flex(cols="1")
                       v-btn(color="error" href='#' @click.prevent="removeItem(item, 'Credit')")
                         v-icon mdi-delete
@@ -183,11 +182,11 @@ v-container
                     v-col(cols="10")
                       v-row(justify="center")
                         v-col(cols="5")
-                          v-select(:items="banks" :item-props="itemProps" v-model="mutableWithdrawal.BankId" :rules="[$v.required()]" :label='$t("revenu.bank")')
+                          v-select(:items="assets" :item-props="itemProps" v-model="mutableWithdrawal.initial_asset_id" :rules="[$v.required()]" :label='$t("revenu.initial_asset")')
                         v-col.mt-3.d-flex.justify-center(cols="2")
                           v-icon mdi-arrow-right
                         v-col(cols="5")
-                          v-select(:items="cashPots" :item-props="itemProps" v-model="mutableWithdrawal.CashPotId" :rules="[$v.required()]" :label='$t("revenu.CashPot")')
+                          v-select(:items="assets" :item-props="itemProps" v-model="mutableWithdrawal.destination_asset_id" :rules="[$v.required()]" :label='$t("revenu.destination_asset")')
                     v-col(cols="10")
                       v-select(:items="costWithdrawals" :item-props="itemProps" v-model="mutableWithdrawal.CostId" :rules="[$v.required()]" :label='$t("revenu.costs")')
                     v-col(cols="10")
@@ -213,8 +212,7 @@ v-container
                     v-col(cols="10")
                       v-select(:items="paymentMeans" v-model="mutableCost.paymentMean" :label='$t("revenu.paymentMean")')
                     v-col(cols="10")
-                      v-select(v-if="mutableCost.paymentMean === 'CARD'" :items="banks" :item-props="itemProps" v-model="mutableCost.BankId" :label='$t("revenu.bank")')
-                      v-select(v-else :items="cashPots" :item-props="itemProps" v-model="mutableCost.CashPotId" :label='$t("revenu.CashPot")')
+                      v-select(:items="assets" :item-props="itemProps" v-model="mutableCost.asset_id" :label='$t("revenu.asset")')
                 v-card-actions.mb-2
                   v-row(dense justify="center")
                     v-col.d-flex.justify-center(cols="12" lg="8")
@@ -269,16 +267,14 @@ import type {
   Quotations,
   Withdrawal,
   Prisma,
-  Banks,
-  CashPots,
+  asset,
   cost_category,
   credit_category,
 } from "../../../types/models";
 import {
   getRevenu,
   updateRevenu,
-  getBanks,
-  getCashPots,
+  getAssets,
   updateOrCreateRevenuCost,
   createRevenuWithdrawal,
   getCategories,
@@ -307,14 +303,13 @@ let withdrawalItemTemplate = {
   amount: 0,
   exchangeFees: 0,
   RevenuId: 0,
-  BankId: 0,
-  CashPotId: 0,
+  initial_asset_id: 0,
+  destination_asset_id: 0,
   CostId: 0,
 };
 const mutableWithdrawal = ref();
 const revenu = ref<RevenuWithCostsCredits>();
-const banks = ref<Banks[]>([]);
-const cashPots = ref<CashPots[]>([]);
+const assets = ref<asset[]>([]);
 const costs = ref<Prisma.CostsUncheckedCreateInput[]>([]);
 const credits = ref<Prisma.CreditsUncheckedCreateInput[]>([]);
 const withdrawals = ref<Prisma.WithdrawalUncheckedCreateInput[]>([]);
@@ -349,8 +344,8 @@ const costItemTemplate: Prisma.CostsUncheckedCreateInput = {
 onMounted(async () => {
   try {
     loadingStore.setLoading(true);
-    banks.value = await getBanks();
-    cashPots.value = await getCashPots();
+    const assets = await getAssets();
+    assets.value = assets.rows;
     revenu.value = await getRevenu(route.params.id);
     const { cost_categories, credit_categories } = await getCategories();
     costCategories.value = cost_categories;
@@ -365,8 +360,8 @@ onMounted(async () => {
     withdrawalItemTemplate = {
       ...withdrawalItemTemplate,
       RevenuId: revenu.value?.id,
-      BankId: banks.value[0].id,
-      CashPotId: cashPots.value[0].id,
+      initial_asset_id: assets.value?.[0]?.id,
+      destination_asset_id: assets.value.find((a) => a.asset_type_id === 9)?.id || 0,
     };
     mutableWithdrawal.value = {
       ...withdrawalItemTemplate,
@@ -568,15 +563,13 @@ async function updateCost() {
       CostCategoryId: mutableCost.value.CostCategoryId,
       paymentMean: mutableCost.value.paymentMean,
       RevenuId: revenu.value?.id,
-      BankId: mutableCost.value.BankId,
-      CashPotId: mutableCost.value.CashPotId,
+      asset_id: mutableCost.value.asset_id,
     });
     const costIndex = costs.value.findIndex((c) => c.id === res.id);
     costs.value[costIndex] = {
       ...costs.value[costIndex],
       paymentMean: mutableCost.value.paymentMean,
-      BankId: mutableCost.value.BankId,
-      CashPotId: mutableCost.value.CashPotId,
+      asset_id: mutableCost.value.asset_id,
     };
     showModalCost.value = false;
   } finally {
@@ -593,8 +586,8 @@ async function updateWithdrawal() {
       name: mutableWithdrawal.value.name,
       amount: mutableWithdrawal.value.amount,
       exchangeFees: mutableWithdrawal.value.exchangeFees,
-      BankId: mutableWithdrawal.value.BankId,
-      CashPotId: mutableWithdrawal.value.CashPotId,
+      initial_asset_id: mutableWithdrawal.value.initial_asset_id,
+      destination_asset_id: mutableWithdrawal.value.destination_asset_id,
       CostId: mutableWithdrawal.value.CostId,
     });
     const costIndex = costs.value.findIndex((c) => c.id === cost.id);
