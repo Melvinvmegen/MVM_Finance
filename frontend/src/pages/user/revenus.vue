@@ -102,9 +102,10 @@ const costCategories = ref<cost_category[]>([]);
 const creditCategories = ref<credit_category[]>([]);
 
 onMounted(async () => {
-  assets.value = await getAssets();
+  const assetValues = await getAssets({ perPage: 1000, force: true });
+  assets.value = assetValues.rows;
   mutableImport.value = {
-    asset_id: assets.value[0].id,
+    asset_id: assets.value[0]?.id,
     file: null,
   };
   await filterAll();
@@ -311,7 +312,7 @@ const recurrentCredits = computed(() => {
 
 function itemProps(item) {
   return {
-    title: item.name,
+    title: `${item.name} (${item.asset_type.name})`,
     value: item.id,
   };
 }

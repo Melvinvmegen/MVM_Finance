@@ -603,34 +603,36 @@ function updateRevenuStats(revenu, user) {
     }
   }
 
-  revenu.pro = pro || 0;
-  revenu.perso = perso || 0;
-  revenu.total = pro + perso || 0;
-  revenu.expense = expense || 0;
-  revenu.refund = refund || 0;
-  revenu.tva_collected = tva_collected || 0;
-  revenu.tva_dispatched = tva_dispatched || 0;
-  revenu.tva_balance = tva_collected - tva_dispatched || 0;
-  revenu.total_costs = total_costs || 0;
-  revenu.total_credits = total_credits || 0;
-  revenu.recurrent_costs = recurrent_costs || 0;
-  revenu.recurrent_credits = recurrent_credits || 0;
-  revenu.average_costs = expense / revenu.Costs.length || 0;
-  revenu.average_credits = revenu.total / revenu.Credits.length || 0;
-  revenu.tax_amount = calculateTaxAmount(revenu.total);
+  const revenuCopy = { ...revenu };
+
+  revenuCopy.pro = pro || 0;
+  revenuCopy.perso = perso || 0;
+  revenuCopy.total = pro + perso || 0;
+  revenuCopy.expense = expense || 0;
+  revenuCopy.refund = refund || 0;
+  revenuCopy.tva_collected = tva_collected || 0;
+  revenuCopy.tva_dispatched = tva_dispatched || 0;
+  revenuCopy.tva_balance = tva_collected - tva_dispatched || 0;
+  revenuCopy.total_costs = total_costs || 0;
+  revenuCopy.total_credits = total_credits || 0;
+  revenuCopy.recurrent_costs = recurrent_costs || 0;
+  revenuCopy.recurrent_credits = recurrent_credits || 0;
+  revenuCopy.average_costs = expense / revenuCopy.Costs.length || 0;
+  revenuCopy.average_credits = revenuCopy.total / revenuCopy.Credits.length || 0;
+  revenuCopy.tax_amount = calculateTaxAmount(revenuCopy.total);
   let total_net = pro || 0;
   if (user.withholding_tax_active) {
-    revenu.total_net -= revenu.tax_amount;
+    revenuCopy.total_net -= revenuCopy.tax_amount;
   }
-  revenu.total_net = total_net || 0;
-  revenu.investments = investments || 0;
-  revenu.balance = expense + revenu.total || 0;
-  delete revenu.id;
-  delete revenu.Costs;
-  delete revenu.Credits;
-  delete revenu.Invoices;
+  revenuCopy.total_net = total_net || 0;
+  revenuCopy.investments = investments || 0;
+  revenuCopy.balance = expense + revenuCopy.total || 0;
+  delete revenuCopy.id;
+  delete revenuCopy.Costs;
+  delete revenuCopy.Credits;
+  delete revenuCopy.Invoices;
 
-  return revenu;
+  return revenuCopy;
 }
 
 /**
