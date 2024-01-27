@@ -214,7 +214,7 @@ const costChartData = computed(() => {
   const reversed_revenus = items.value.rows.slice().reverse();
   const chartData = {
     labels: reversed_revenus.map((revenu) => {
-      return dayjs(revenu.createdAt).format("MMMM YYYY");
+      return dayjs(revenu.created_at).format("MMMM YYYY");
     }),
     datasets: [
       {
@@ -236,7 +236,7 @@ const creditChartData = computed(() => {
   const reversed_revenus = items.value.rows.slice().reverse();
   const chartData = {
     labels: reversed_revenus.map((revenu) => {
-      return dayjs(revenu.createdAt).format("MMMM YYYY");
+      return dayjs(revenu.created_at).format("MMMM YYYY");
     }),
     datasets: [
       {

@@ -12,8 +12,8 @@ model Costs {
   id             Int           @id @default(autoincrement())
   name           String        @db.VarChar(255)
   total          Float
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
   RevenuId       Int
   asset_id       Int?
   WithdrawalId   Int?          @unique
@@ -32,8 +32,8 @@ model Credits {
   creditor         String          @db.VarChar(255)
   reason           String?         @db.VarChar(255)
   total            Float
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
   RevenuId         Int
   asset_id         Int?
   WithdrawalId     Int?            @unique
@@ -51,8 +51,8 @@ model CryptoCurrencies {
   price         Float
   pricePurchase Float
   priceChange   Float
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
   category      String?        @db.VarChar(255)
   profit        Float?
   sold          Boolean        @default(false)
@@ -74,8 +74,8 @@ model Customers {
   city         String?        @db.VarChar(255)
   siret        String?        @db.VarChar(255)
   vatNumber    String?        @unique @db.VarChar(15)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
   stripeId     String?        @unique
   UserId       Int?
   Users        Users?         @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_customer_user")
@@ -91,8 +91,8 @@ model InvoiceItems {
   unit        Float       @default(0)
   quantity    Float       @default(0)
   total       Float       @default(0)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
   InvoiceId   Int?
   QuotationId Int?
   Invoices    Invoices?   @relation(fields: [InvoiceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -111,8 +111,8 @@ model Invoices {
   total         Float          @default(0)
   paid          Boolean?       @default(false)
   recurrent     Boolean?       @default(false)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
   CustomerId    Int
   RevenuId      Int?
   totalDue      Float          @default(0)
@@ -137,8 +137,8 @@ model Quotations {
   city          String?        @db.VarChar(255)
   vatNumber     String?        @db.VarChar(15)
   total         Float          @default(0)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
   CustomerId    Int
   RevenuId      Int?
   cautionPaid   Boolean        @default(false)
@@ -160,8 +160,8 @@ model Revenus {
   total             Float          @default(0)
   pro               Float          @default(0)
   perso             Float          @default(0)
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
   taxPercentage     Float          @default(0)
   expense           Float          @default(0)
   tva_collected     Float          @default(0)
@@ -197,8 +197,8 @@ model Transactions {
   quantity         Float             @default(0)
   fees             Float             @default(0)
   total            Float             @default(0)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
   CryptoCurrencyId Int?
   RevenuId         Int?
   CryptoCurrencies CryptoCurrencies? @relation(fields: [CryptoCurrencyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -209,8 +209,8 @@ model Users {
   id                    Int                 @id @default(autoincrement())
   password              String              @db.VarChar(255)
   email                 String              @unique @db.VarChar(255)
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
+  created_at            DateTime            @default(now())
+  updated_at            DateTime            @updatedAt
   lastLogin             DateTime?
   authTicket            String?
   cryptosModuleActive   Boolean             @default(true)
@@ -235,9 +235,9 @@ model asset {
   interest_rate          Int?
   user_id                Int
   asset_type_id          Int?
-  growth_last_month      Float @default(0)
-  growth_last_six_months Float @default(0)
-  growth_last_year       Float @default(0)
+  growth_last_month      Float              @default(0)
+  growth_last_six_months Float              @default(0)
+  growth_last_year       Float              @default(0)
   asset_type             asset_type?        @relation(fields: [asset_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_asset_asset_type")
   Users                  Users              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_asset_user")
   Credits                Credits[]
@@ -247,8 +247,8 @@ model asset {
 
 model Subscriptions {
   id             Int                @id @default(autoincrement())
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  created_at     DateTime           @default(now())
+  updated_at     DateTime           @updatedAt
   status         SubscriptionStatus @default(DRAFT)
   amount         Float              @default(0)
   startDate      DateTime?
@@ -263,8 +263,8 @@ model Subscriptions {
 
 model PaymentIntents {
   id             Int                 @id @default(autoincrement())
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  created_at     DateTime            @default(now())
+  updated_at     DateTime            @updatedAt
   status         PaymentIntentStatus @default(DRAFT)
   amount         Float               @default(0)
   stripeId       String              @unique
@@ -276,8 +276,8 @@ model PaymentIntents {
 
 model Payments {
   id             Int              @id @default(autoincrement())
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
   status         PaymentStatus    @default(DRAFT)
   amount         Float            @default(0)
   billingAddress String
@@ -297,8 +297,8 @@ model Payments {
 
 model Withdrawal {
   id           Int      @id @default(autoincrement())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
   date         DateTime
   name         String   @db.VarChar(45)
   amount       Float
@@ -311,8 +311,8 @@ model Withdrawal {
 
 model PendingEmail {
   id                Int         @id @default(autoincrement())
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  created_at        DateTime    @default(now())
+  updated_at        DateTime    @updatedAt
   recipientEmail    String      @db.VarChar(100)
   fromName          String      @db.VarChar(100)
   fromAddress       String      @db.VarChar(100)
@@ -331,8 +331,8 @@ model PendingEmail {
 
 model CronTask {
   id                Int           @id @default(autoincrement())
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
   date              DateTime
   dateIntervalType  String        @default("month") @db.VarChar(10)
   dateIntervalValue Int           @default(1)
@@ -350,7 +350,7 @@ model CronTask {
 model asset_type {
   id                  Int      @id @default(autoincrement())
   created_at          DateTime @default(now())
-  updated_at          DateTime @default(now()) @updatedAt
+  updated_at          DateTime @updatedAt
   name                String   @db.VarChar(50)
   description         String   @db.VarChar(300)
   fixed_interest_rate Boolean  @default(true)
@@ -362,29 +362,29 @@ model asset_type {
 }
 
 model cost_category {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  name      String   @db.VarChar(50)
-  icon      String?  @db.VarChar(100)
-  color     String?  @db.VarChar(10)
-  Costs     Costs[]
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  name       String   @db.VarChar(50)
+  icon       String?  @db.VarChar(100)
+  color      String?  @db.VarChar(10)
+  Costs      Costs[]
 }
 
 model credit_category {
-  id        Int       @id @default(autoincrement())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now()) @updatedAt
-  name      String    @db.VarChar(50)
-  icon      String?   @db.VarChar(100)
-  color     String?   @db.VarChar(10)
-  Credits   Credits[]
+  id         Int       @id @default(autoincrement())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  name       String    @db.VarChar(50)
+  icon       String?   @db.VarChar(100)
+  color      String?   @db.VarChar(10)
+  Credits    Credits[]
 }
 
 model investment_profile {
   id                     Int      @id @default(autoincrement())
   created_at             DateTime @default(now())
-  updated_at             DateTime @default(now()) @updatedAt
+  updated_at             DateTime @updatedAt
   withholding_tax_active Boolean  @default(true)
   investment_goal        Float    @default(0.2)
   average_revenu_pro     Float    @default(0)

@@ -184,7 +184,7 @@ async function download(quotation: Quotations) {
 
 function revenuDate(revenu: Revenus) {
   if (!revenu) return;
-  return dayjs(revenu.createdAt).format("MMMM YYYY");
+  return dayjs(revenu.created_at).format("MMMM YYYY");
 }
 
 async function resetAll() {

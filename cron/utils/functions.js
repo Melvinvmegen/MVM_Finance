@@ -14,8 +14,8 @@ export const functions = {
       const users = await database.select("id").from("Users");
       for (let user of users) {
         await database("Revenus").insert({
-          createdAt: beginningOfMonth,
-          updatedAt: beginningOfMonth,
+          created_at: beginningOfMonth,
+          updated_at: beginningOfMonth,
           UserId: +user.id,
         });
       }
@@ -38,9 +38,9 @@ export const functions = {
         .join("PendingEmail", "PendingEmail.InvoiceId", "=", "Invoices.id")
         .join("CronTask", "CronTask.PendingEmailId", "=", "PendingEmail.id")
         .where("recurrent", true)
-        .whereIn(["CustomerId", "createdAt"], function () {
+        .whereIn(["CustomerId", "created_at"], function () {
           this.select("CustomerId")
-            .max("createdAt ")
+            .max("created_at")
             .from("Invoices")
             .where("recurrent", true)
             .groupBy("CustomerId");
@@ -56,8 +56,8 @@ export const functions = {
         // TODO: this should generate the pdf by calling the generate endpoint
         const [invoice] = await database("Invoices")
           .insert({
-            createdAt: dayjs().toDate(),
-            updatedAt: dayjs().toDate(),
+            created_at: dayjs().toDate(),
+            updated_at: dayjs().toDate(),
             firstName: recurrentInvoice.firstName,
             lastName: recurrentInvoice.lastName,
             company: recurrentInvoice.company,
@@ -84,8 +84,8 @@ export const functions = {
         for (let invoiceItem of invoiceItems) {
           await database("InvoiceItems").insert({
             ...invoiceItem,
-            createdAt: dayjs().toDate(),
-            updatedAt: dayjs().toDate(),
+            created_at: dayjs().toDate(),
+            updated_at: dayjs().toDate(),
             InvoiceId: invoice.id,
           });
         }

@@ -82,7 +82,7 @@ const chartOptions = {
 };
 const revenuDate = computed(() => {
   if (!revenu.value) return;
-  return dayjs(revenu.value.createdAt).format("MMMM YYYY");
+  return dayjs(revenu.value.created_at).format("MMMM YYYY");
 });
 
 onMounted(async () => {
@@ -91,7 +91,7 @@ onMounted(async () => {
   });
 
   revenu.value = items.value.rows[0];
-  const today = dayjs(revenu?.value?.Costs?.at(0)?.createdAt);
+  const today = dayjs(revenu?.value?.Costs?.at(0)?.created_at);
 
   for (let i = 2; i <= today.date() + 1; i++) {
     const date = dayjs().year(today.year()).month(today.month()).date(i).format("L");
@@ -102,7 +102,7 @@ onMounted(async () => {
 
 const costChartData = computed(() => {
   const groupedCosts = revenu.value?.Costs.reduce((groupedCosts, cost) => {
-    const date = dayjs(cost.createdAt).format("L");
+    const date = dayjs(cost.created_at).format("L");
     if (!groupedCosts[date]) {
       groupedCosts[date] = [];
     }
@@ -138,7 +138,7 @@ const costChartData = computed(() => {
 
 const creditChartData = computed(() => {
   const groupedCredits = revenu.value?.Credits.reduce((groupedCredits, credit) => {
-    const date = dayjs(credit.createdAt).format("L");
+    const date = dayjs(credit.created_at).format("L");
     if (!groupedCredits[date]) {
       groupedCredits[date] = [];
     }
@@ -174,7 +174,7 @@ const creditChartData = computed(() => {
 
 const lineChartData = computed(() => {
   const groupedCredits = revenu.value?.Credits.reduce((groupedCredits, credit) => {
-    const date = dayjs(credit.createdAt).format("L");
+    const date = dayjs(credit.created_at).format("L");
     if (!groupedCredits[date]) {
       groupedCredits[date] = [];
     }
@@ -183,7 +183,7 @@ const lineChartData = computed(() => {
   }, {});
 
   const groupedCosts = revenu.value?.Costs.reduce((groupedCosts, cost) => {
-    const date = dayjs(cost.createdAt).format("L");
+    const date = dayjs(cost.created_at).format("L");
     if (!groupedCosts[date]) {
       groupedCosts[date] = [];
     }

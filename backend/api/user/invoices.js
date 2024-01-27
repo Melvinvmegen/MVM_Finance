@@ -41,7 +41,7 @@ export async function getInvoices(CustomerId, params) {
         where: options,
         skip: offset,
         take: per_page,
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { created_at: "desc" },
         include: {
           Revenus: true,
           Customers: {

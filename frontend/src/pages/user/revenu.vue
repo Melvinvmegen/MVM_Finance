@@ -54,7 +54,7 @@ v-container
             v-card-title.px-0.pb-8.text-h5 {{ $t("revenu.withdrawals") }}
             template(v-if="withdrawals.length")
               v-row
-                v-col(cols="2") {{ $t("revenu.createdAt") }}
+                v-col(cols="2") {{ $t("revenu.created_at") }}
                 v-col(cols="3") {{ $t("revenu.name") }}
                 v-col(cols="2") {{ $t("revenu.amount") }}
                 v-col(cols="2") {{ $t("revenu.exchangeFees") }}
@@ -95,7 +95,7 @@ v-container
 
             template(v-if="credits.length")
               v-row
-                v-col(cols="2") {{ $t("revenu.createdAt") }}
+                v-col(cols="2") {{ $t("revenu.created_at") }}
                 v-col(cols="3") {{ $t("revenu.creditor") }}
                 v-col(cols="2") {{ $t("revenu.category") }}
                 v-col(cols="2") {{ $t("revenu.total") }}
@@ -106,7 +106,7 @@ v-container
                 template(v-slot:default="{ item, index }")
                   v-row(:class="{'bg-red-darken-4': item.CreditCategoryId === 1}")
                     v-col(cols="2")
-                      DateInput(v-model="item.createdAt")
+                      DateInput(v-model="item.created_at")
                     v-col(cols="3")
                       v-text-field(v-model="item.creditor" :rules="[$v.required()]")
                     v-col(cols="2")
@@ -140,7 +140,7 @@ v-container
             template(v-if="costs.length")
               v-row
                 v-col(cols="1") {{ $t("revenu.recurrent") }}
-                v-col(cols="2") {{ $t("revenu.createdAt") }}
+                v-col(cols="2") {{ $t("revenu.created_at") }}
                 v-col(cols="3") {{ $t("revenu.reference") }}
                 v-col(cols="2") {{ $t("revenu.category") }}
                 v-col(cols="1") {{ $t("revenu.vat") }}
@@ -153,7 +153,7 @@ v-container
                     v-col(cols="1")
                       v-checkbox(v-model="item.recurrent" color="secondary")
                     v-col(cols="2")
-                      DateInput(v-model="item.createdAt")
+                      DateInput(v-model="item.created_at")
                     v-col(cols="3")
                       v-text-field(v-model="item.name" :rules="[$v.required()]")
                     v-col(cols="2")
@@ -190,7 +190,7 @@ v-container
                     v-col(cols="10")
                       v-select(:items="costWithdrawals" :item-props="itemProps" v-model="mutableWithdrawal.CostId" :rules="[$v.required()]" :label='$t("revenu.costs")')
                     v-col(cols="10")
-                      DateInput(v-model="mutableWithdrawal.date" :rules="[$v.required()]" :label='$t("revenu.createdAt")')
+                      DateInput(v-model="mutableWithdrawal.date" :rules="[$v.required()]" :label='$t("revenu.created_at")')
                     v-col(cols="10")
                       v-text-field(v-model="mutableWithdrawal.name" :label='$t("revenu.name")' :rules="[$v.required()]")
                     v-col(cols="10")
@@ -344,7 +344,7 @@ const costItemTemplate: Prisma.CostsUncheckedCreateInput = {
 onMounted(async () => {
   try {
     loadingStore.setLoading(true);
-    const assets = await getAssets();
+    const assets = await getAssets({ perPage: 1000 });
     assets.value = assets.rows;
     revenu.value = await getRevenu(route.params.id);
     const { cost_categories, credit_categories } = await getCategories();
@@ -367,7 +367,7 @@ onMounted(async () => {
       ...withdrawalItemTemplate,
       ...(costWithdrawals.value.length && {
         CostId: costWithdrawals.value[0].id,
-        date: dayjs(costWithdrawals.value[0].createdAt).toDate(),
+        date: dayjs(costWithdrawals.value[0].created_at).toDate(),
       }),
     };
   } finally {
@@ -377,20 +377,20 @@ onMounted(async () => {
 
 function addItem(itemName) {
   if (itemName === "Cost") {
-    const createdAt = costs.value.at(-1)?.createdAt || revenu.value?.createdAt;
-    costs.value.push({ createdAt, ...costItemTemplate });
+    const created_at = costs.value.at(-1)?.created_at || revenu.value?.created_at;
+    costs.value.push({ created_at, ...costItemTemplate });
     setTimeout(() => {
       virtualScrollCost.value.scrollToIndex(costs.value.length);
     }, 0);
   } else if (itemName === "Credit") {
-    const createdAt = credits.value.at(-1)?.createdAt || revenu.value?.createdAt;
-    credits.value.push({ createdAt, ...creditItemTemplate });
+    const created_at = credits.value.at(-1)?.created_at || revenu.value?.created_at;
+    credits.value.push({ created_at, ...creditItemTemplate });
     setTimeout(() => {
       virtualScrollCredit.value.scrollToIndex(credits.value.length);
     }, 0);
   } else {
-    const createdAt = withdrawals.value.at(-1)?.createdAt || revenu.value?.createdAt;
-    withdrawals.value.push({ createdAt, ...withdrawalItemTemplate });
+    const created_at = withdrawals.value.at(-1)?.created_at || revenu.value?.created_at;
+    withdrawals.value.push({ created_at, ...withdrawalItemTemplate });
     setTimeout(() => {
       virtualScrollWithdrawal.value.scrollToIndex(withdrawals.value.length);
     }, 0);
@@ -451,7 +451,7 @@ async function handleSubmit() {
 
 const revenuMonth = computed(() => {
   if (!revenu.value) return;
-  return dayjs(revenu.value.createdAt).format("MMMM YYYY");
+  return dayjs(revenu.value.created_at).format("MMMM YYYY");
 });
 
 const computedCostCategories = computed(() => {
@@ -555,7 +555,7 @@ async function updateCost() {
   loadingStore.setLoading(true);
   try {
     const res = await updateOrCreateRevenuCost(revenu.value?.id, mutableCost.value.id, {
-      createdAt: mutableCost.value.createdAt,
+      created_at: mutableCost.value.created_at,
       name: mutableCost.value.name,
       total: mutableCost.value.total,
       tvaAmount: mutableCost.value.tvaAmount,
@@ -601,7 +601,7 @@ async function updateWithdrawal() {
     showModalWithdrawal.value = false;
     mutableWithdrawal.value = {
       ...withdrawalItemTemplate,
-      date: dayjs(costWithdrawals.value[0].createdAt).toDate(),
+      date: dayjs(costWithdrawals.value[0].created_at).toDate(),
       ...(costWithdrawals.value.length && { CostId: costWithdrawals.value[0].id }),
     };
   } finally {

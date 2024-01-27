@@ -81,7 +81,7 @@ function generateHeader(doc, invoice) {
 }
 
 function generateTableHeader(doc, invoice) {
-  const date = dayjs(invoice.createdAt).format("MM - DD - YYYY");
+  const date = dayjs(invoice.created_at).format("MM - DD - YYYY");
   doc
     .fillColor("#444444")
     .fontSize(20)

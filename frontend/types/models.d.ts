@@ -20,6 +20,6 @@ export interface Query {
   CustomerId?: number;
   totalTTC?: number;
   force?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }

@@ -41,11 +41,11 @@ export async function getRevenus(params) {
         },
         take: per_page,
         skip: offset,
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { created_at: "desc" },
         include: {
           Credits: {
             select: {
-              createdAt: true,
+              created_at: true,
               CreditCategoryId: true,
               total: true,
             },
@@ -53,13 +53,13 @@ export async function getRevenus(params) {
           Costs: {
             select: {
               CostCategoryId: true,
-              createdAt: true,
+              created_at: true,
               recurrent: true,
               total: true,
               tvaAmount: true,
             },
             orderBy: {
-              createdAt: "desc",
+              created_at: "desc",
             },
           },
         },
@@ -85,9 +85,9 @@ export async function getRevenuIds() {
       },
       select: {
         id: true,
-        createdAt: true,
+        created_at: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { created_at: "desc" },
     });
   });
 
@@ -112,17 +112,17 @@ export async function getRevenu(revenuId) {
         Transactions: true,
         Credits: {
           orderBy: {
-            createdAt: "asc",
+            created_at: "asc",
           },
         },
         Costs: {
           orderBy: {
-            createdAt: "asc",
+            created_at: "asc",
           },
         },
         Withdrawals: {
           orderBy: {
-            createdAt: "asc",
+            created_at: "asc",
           },
         },
       },
@@ -165,15 +165,15 @@ export async function createRevenu(asset_id, upload) {
       const name = row[2];
       if (total < 0) {
         costs.push({
-          createdAt: date,
-          updatedAt: date,
+          created_at: date,
+          updated_at: date,
           name,
           total,
         });
       } else {
         credits.push({
-          createdAt: date,
-          updatedAt: date,
+          created_at: date,
+          updated_at: date,
           reason: name,
           creditor: name,
           total,
@@ -182,12 +182,12 @@ export async function createRevenu(asset_id, upload) {
     })
     .on("end", async () => {
       for (let obj of [...costs, ...credits]) {
-        const createdAt = dayjs(obj.createdAt);
-        const beginningOfMonth = createdAt.startOf("month").toDate();
-        const endOfMonth = createdAt.endOf("month").toDate();
+        const created_at = dayjs(obj.created_at);
+        const beginningOfMonth = created_at.startOf("month").toDate();
+        const endOfMonth = created_at.endOf("month").toDate();
         revenu = await prisma.revenus.findFirst({
           where: {
-            createdAt: {
+            created_at: {
               gte: beginningOfMonth,
               lte: endOfMonth,
             },
@@ -202,8 +202,8 @@ export async function createRevenu(asset_id, upload) {
         if (!revenu) {
           revenu = await prisma.revenus.create({
             data: {
-              createdAt: beginningOfMonth,
-              updatedAt: beginningOfMonth,
+              created_at: beginningOfMonth,
+              updated_at: beginningOfMonth,
               UserId: +this.request.user.id,
             },
             include: {
@@ -226,7 +226,7 @@ export async function createRevenu(asset_id, upload) {
             newObj.recurrent = cost_category.recurrent;
           } else {
             const previousCost = await prisma.costs.findFirst({
-              orderBy: { createdAt: "desc" },
+              orderBy: { created_at: "desc" },
               select: {
                 CostCategoryId: true,
                 recurrent: true,
@@ -280,7 +280,7 @@ export async function createRevenu(asset_id, upload) {
             newObj.CreditCategoryId = credit_category.CreditCategoryId;
           } else {
             const previousCredit = await prisma.credits.findFirst({
-              orderBy: { createdAt: "desc" },
+              orderBy: { created_at: "desc" },
               select: {
                 CreditCategoryId: true,
               },
@@ -447,7 +447,7 @@ export async function updateOrCreateRevenuCost(RevenuId, CostId, body) {
   } else {
     cost = await prisma.costs.create({
       data: {
-        createdAt: dayjs(body.createdAt).toDate(),
+        created_at: dayjs(body.created_at).toDate(),
         name: "" + body.name,
         total: +body.total,
         tvaAmount: +body.tvaAmount,
@@ -631,6 +631,7 @@ function updateRevenuStats(revenu, user) {
   delete revenuCopy.Costs;
   delete revenuCopy.Credits;
   delete revenuCopy.Invoices;
+  delete revenuCopy.updated_at;
 
   return revenuCopy;
 }

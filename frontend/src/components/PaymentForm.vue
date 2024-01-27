@@ -61,7 +61,7 @@ async function handleSubmit(): Promise<void> {
 
 function itemProps(item) {
   return {
-    title: dayjs(item.createdAt).format("MMMM YYYY"),
+    title: dayjs(item.created_at).format("MMMM YYYY"),
     value: item.id,
   };
 }
@@ -70,7 +70,7 @@ watch(
   () => mutableModel.RevenuId,
   (revenuId) => {
     const revenu = revenus.value.find((item) => item.id === revenuId);
-    mutableModel.paymentDate = dayjs(revenu.createdAt).toDate();
+    mutableModel.paymentDate = dayjs(revenu.created_at).toDate();
   },
 );
 </script>

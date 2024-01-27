@@ -40,7 +40,7 @@ export async function setUsersStats() {
             COALESCE(AVG(investments), 0) as average_investments,
             COALESCE(AVG(tax_amount), 0) as average_tax_amount
           FROM
-            (SELECT * FROM "Revenus" WHERE "UserId" = ${investment_profile.user_id}  ORDER BY "createdAt" DESC LIMIT 6) as revenus;`;
+            (SELECT * FROM "Revenus" WHERE "UserId" = ${investment_profile.user_id}  ORDER BY "created_at" DESC LIMIT 6) as revenus;`;
 
         await prisma.investment_profile.update({
           where: {
@@ -94,42 +94,42 @@ export async function setAssetsStats() {
                 (SELECT SUM(costs.total)
                 FROM "Costs" costs
                 WHERE costs.asset_id = asset.id
-                AND costs."createdAt" >= asset.updated_at), 0) as sum_costs_since_last_updated_at,
+                AND costs."created_at" >= asset.updated_at), 0) as sum_costs_since_last_updated_at,
               COALESCE(
                 (SELECT SUM(credits.total)
                 FROM "Credits" credits
                 WHERE credits.asset_id = asset.id
-                AND credits."createdAt" >= asset.updated_at), 0) as sum_credits_since_last_updated_at,
+                AND credits."created_at" >= asset.updated_at), 0) as sum_credits_since_last_updated_at,
               COALESCE(
                 (SELECT SUM(costs.total)
                 FROM "Costs" costs
                 WHERE costs.asset_id = asset.id
-                AND costs."createdAt" >= NOW() - INTERVAL '1 month'), 0) as sum_costs_last_month,
+                AND costs."created_at" >= NOW() - INTERVAL '1 month'), 0) as sum_costs_last_month,
               COALESCE(
                 (SELECT SUM(credits.total)
                 FROM "Credits" credits
                 WHERE credits.asset_id = asset.id
-                AND credits."createdAt" >= NOW() - INTERVAL '1 month'), 0) as sum_credits_last_month,
+                AND credits."created_at" >= NOW() - INTERVAL '1 month'), 0) as sum_credits_last_month,
               COALESCE(
                 (SELECT SUM(costs.total)
                 FROM "Costs" costs
                 WHERE costs.asset_id = asset.id
-                AND costs."createdAt" >= NOW() - INTERVAL '6 month'), 0) as sum_costs_last_six_months,
+                AND costs."created_at" >= NOW() - INTERVAL '6 month'), 0) as sum_costs_last_six_months,
               COALESCE(
                 (SELECT SUM(credits.total)
                 FROM "Credits" credits
                 WHERE credits.asset_id = asset.id
-                AND credits."createdAt" >= NOW() - INTERVAL '6 month'), 0) as sum_credits_last_six_months,
+                AND credits."created_at" >= NOW() - INTERVAL '6 month'), 0) as sum_credits_last_six_months,
               COALESCE(
                 (SELECT SUM(costs.total)
                 FROM "Costs" costs
                 WHERE costs.asset_id = asset.id
-                AND costs."createdAt" >= NOW() - INTERVAL '1 year'), 0) as sum_costs_last_year,
+                AND costs."created_at" >= NOW() - INTERVAL '1 year'), 0) as sum_costs_last_year,
               COALESCE(
                 (SELECT SUM(credits.total)
                 FROM "Credits" credits
                 WHERE credits.asset_id = asset.id
-                AND credits."createdAt" >= NOW() - INTERVAL '1 year'), 0) as sum_credits_last_year
+                AND credits."created_at" >= NOW() - INTERVAL '1 year'), 0) as sum_credits_last_year
             FROM asset
             WHERE id = ${asset.id}`;
 

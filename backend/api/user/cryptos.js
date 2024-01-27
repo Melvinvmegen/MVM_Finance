@@ -53,12 +53,12 @@ export async function createCrypto(body) {
     headers: { "X-CMC_PRO_API_KEY": settings.coinmarketcap.apiKey },
   });
   const transactionsToCreate = body.Transactions.map(async (transaction) => {
-    const initialDate = dayjs(transaction.buyingDate || transaction.createdAt);
+    const initialDate = dayjs(transaction.buyingDate || transaction.created_at);
     const firstDay = initialDate.startOf("month").toDate();
     const lastDay = initialDate.endOf("month").toDate();
     const revenu = await prisma.revenus.findFirst({
       where: {
-        createdAt: {
+        created_at: {
           lte: lastDay,
           gte: firstDay,
         },
@@ -142,13 +142,13 @@ export async function updateCrypto(cryptoId, body) {
     });
 
     const newTransactions = body.Transactions.map(async (transaction) => {
-      const initialDate = dayjs(transaction.buyingDate || transaction.createdAt);
+      const initialDate = dayjs(transaction.buyingDate || transaction.created_at);
       const firstDay = initialDate.startOf("month").toDate();
       const lastDay = initialDate.endOf("month").toDate();
 
       let revenu = await prisma.revenus.findFirst({
         where: {
-          createdAt: {
+          created_at: {
             lte: lastDay,
             gte: firstDay,
           },

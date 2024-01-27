@@ -110,7 +110,7 @@ async function refundSubscription(subscriptionId) {
     include: {
       PaymentIntents: {
         orderBy: {
-          createdAt: "desc",
+          created_at: "desc",
         },
       },
     },

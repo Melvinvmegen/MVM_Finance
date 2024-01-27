@@ -19,7 +19,7 @@ v-col(cols="12")
     @update:options="getRevenus"
     item-value="name"
     )
-    template( v-slot:[`item.createdAt`]="{ item }")
+    template( v-slot:[`item.created_at`]="{ item }")
       span {{ revenuDate(item) }}
     template( v-slot:[`item.pro`]="{ item }")
       span {{ $n(Math.round(item.pro), "currency") }}
@@ -61,8 +61,8 @@ const dataTable = {
   sortBy: [],
   headers: [
     {
-      key: "createdAt",
-      value: "createdAt",
+      key: "created_at",
+      value: "created_at",
       title: $t("revenus.month"),
     },
     {
@@ -116,7 +116,7 @@ const dataTable = {
 
 function itemProps(item) {
   return {
-    title: dayjs(item.createdAt).format("MMMM YYYY"),
+    title: dayjs(item.created_at).format("MMMM YYYY"),
     value: item.id,
   };
 }
@@ -142,7 +142,7 @@ function getRevenus({ page, itemsPerPage, sortBy }) {
 
 function revenuDate(revenu: Revenus) {
   if (!revenu) return;
-  return dayjs(revenu.createdAt).format("MMMM YYYY");
+  return dayjs(revenu.created_at).format("MMMM YYYY");
 }
 
 function resetAll() {

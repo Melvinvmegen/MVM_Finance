@@ -16,7 +16,7 @@ v-col(cols="12")
     template(v-slot:item.actions="{ item }")
       v-row.flex-nowrap(align="center")
         v-btn(icon="mdi-pencil" variant="plain" size="small" @click="mutable_asset = item")
-        v-btn(icon="mdi-delete" variant="plain" size="small" @click.stop="deleteItem(item, $t('assets.confirmDelete', [`${item.name} ${item.createdAt}`]) )")
+        v-btn(icon="mdi-delete" variant="plain" size="small" @click.stop="deleteItem(item, $t('assets.confirmDelete', [`${item.name} ${item.created_at}`]) )")
 
   AssetModal(v-if="mutable_asset" :model="mutable_asset" :show="mutable_asset" @close="mutable_asset = null" :asset-types="props.assetTypes")
 </template>

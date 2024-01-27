@@ -32,7 +32,7 @@ export async function getCustomers(params) {
           ...options,
           UserId: this.request.user?.id || null,
         },
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { created_at: "desc" },
         include: {
           Invoices: true,
         },

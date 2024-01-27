@@ -10,8 +10,8 @@ export async function handleUserStatsTask() {
     .from("Users")
     .join("Revenus", "Revenus.UserId", "Users.id")
     .join("investment_profile", "investment_profile.user_id", "Users.id")
-    .where("Revenus.updatedAt", ">=", new Date(new Date() - nbMinutes * 60000))
-    .orWhere("Users.updatedAt", ">=", new Date(new Date() - nbMinutes * 60000))
+    .where("Revenus.updated_at", ">=", new Date(new Date() - nbMinutes * 60000))
+    .orWhere("Users.updated_at", ">=", new Date(new Date() - nbMinutes * 60000))
     .groupBy("investment_profile.id");
 
   if (investment_profiles.length) {
@@ -52,13 +52,13 @@ export async function handleAssetStatsTask() {
     .leftJoin("Credits", "Credits.asset_id", "asset.id")
     .leftJoin("CryptoCurrencies", "CryptoCurrencies.asset_id", "asset.id")
     .where(
-      "CryptoCurrencies.updatedAt",
+      "CryptoCurrencies.updated_at",
       ">=",
       new Date(new Date() - nbMinutes * 60000)
     )
-    .orWhere("Costs.updatedAt", ">=", new Date(new Date() - nbMinutes * 60000))
+    .orWhere("Costs.updated_at", ">=", new Date(new Date() - nbMinutes * 60000))
     .orWhere(
-      "Credits.updatedAt",
+      "Credits.updated_at",
       ">=",
       new Date(new Date() - nbMinutes * 60000)
     )

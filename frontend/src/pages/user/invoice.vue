@@ -135,7 +135,7 @@ watch(
     if (!invoice.value) return;
     const revenu = revenus.value.find((r) => r.id === newRevenuId);
     if (!revenu) return;
-    invoice.value.paymentDate = dayjs(revenu.createdAt).toDate();
+    invoice.value.paymentDate = dayjs(revenu.created_at).toDate();
   },
 );
 
@@ -150,7 +150,7 @@ watch(
 
 function itemProps(item) {
   return {
-    title: dayjs(item.createdAt).format("MMMM YYYY"),
+    title: dayjs(item.created_at).format("MMMM YYYY"),
     value: item.id,
   };
 }
