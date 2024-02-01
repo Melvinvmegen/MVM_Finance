@@ -6,8 +6,8 @@ import { roundTo } from "../../utils/roundTo.js";
  * @param {API.ServerInstance} app
  */
 export default async function (app) {
-  app.$post("/investment-profiles", setUsersStats);
-  app.$post("/assets", setAssetsStats);
+  app.$post("/stats/investment-profiles", setUsersStats);
+  app.$post("/stats/assets", setAssetsStats);
 }
 
 /**

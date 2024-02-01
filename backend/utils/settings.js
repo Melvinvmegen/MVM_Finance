@@ -26,11 +26,6 @@ export const settings = {
     port: process.env.PORT || 3000,
     host: process.env.HOST || "0.0.0.0",
   },
-  email: {
-    from: process.env.MAIL_FROM || "melvin.vmegen@gmail.com",
-    from_name: process.env.MAIL_FROM_NAME || "Melvin Van Megen",
-    replace: process.env.MAIL_REPLACE_EMAIL || null, //do not fill this in dev env, use .env instead
-  },
   cache: {
     redisURL: process.env.REDIS_URL || "redis://@localhost:6360",
   },

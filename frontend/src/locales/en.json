@@ -278,7 +278,8 @@
     "updated": "Invoice successfully updated!",
     "created": "Invoice successfully created!",
     "vatAmount": "VAT Amount",
-    "paymentDate": "Payment date"
+    "paymentDate": "Payment date",
+    "created_at": "Created at"
   },
   "quotations": {
     "title": "Quotations",
@@ -303,7 +304,8 @@
     "created": "Quotation successfully created!",
     "tvaAmount": "VAT Amount",
     "paymentDate": "Payment date",
-    "deposit": "Deposit"
+    "deposit": "Deposit",
+    "created_at": "Created at"
   },
   "totalField": {
     "invoiceNumber": "Invoice n°{0}",

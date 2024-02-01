@@ -29,39 +29,48 @@ export async function getQuotations(CustomerId, params) {
   if (!Number(CustomerId)) throw new AppError("Customer not found");
   const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
-
+  let error;
   const quotations_data = await getOrSetCache(
     `user_${this.request.user?.id}_customer_${CustomerId}_quotations`,
     async () => {
-      const count = await prisma.quotations.count({
-        where: {
-          CustomerId: +CustomerId,
-        },
-      });
-      const quotations = await prisma.quotations.findMany({
-        where: options,
-        skip: offset,
-        take: per_page,
-        orderBy: orderBy || { created_at: "desc" },
-        include: {
-          Revenus: true,
-          Customers: {
-            select: {
-              email: true,
+      try {
+        const count = await prisma.quotations.count({
+          where: {
+            CustomerId: +CustomerId,
+          },
+        });
+        const quotations = await prisma.quotations.findMany({
+          where: options,
+          skip: offset,
+          take: per_page,
+          orderBy: orderBy || { created_at: "desc" },
+          include: {
+            Revenus: true,
+            Customers: {
+              select: {
+                email: true,
+              },
+            },
+            PendingEmails: {
+              include: {
+                CronTask: true,
+              },
             },
           },
-          PendingEmails: {
-            include: {
-              CronTask: true,
-            },
-          },
-        },
-      });
+        });
 
-      return { rows: quotations, count };
+        return { rows: quotations, count };
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     },
     force
   );
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return quotations_data;
 }
@@ -73,23 +82,33 @@ export async function getQuotations(CustomerId, params) {
  * @returns {Promise<Models.Quotations[] & { InvoiceItems: Models.InvoiceItems}>}
  */
 export async function getQuotation(customerId, quotationId) {
+  let error;
   const quotation = await getOrSetCache(
     `user_${this.request.user?.id}_customer_${customerId}_quotation_${quotationId}`,
     async () => {
-      const data = await prisma.quotations.findUnique({
-        where: {
-          id: +quotationId,
-          CustomerId: +customerId,
-        },
-        include: {
-          InvoiceItems: true,
-        },
-      });
-      return data;
+      try {
+        const quotation = await prisma.quotations.findUnique({
+          where: {
+            id: +quotationId,
+            CustomerId: +customerId,
+          },
+          include: {
+            InvoiceItems: true,
+          },
+        });
+        if (!quotation) throw new AppError("Quotation not found!");
+
+        return quotation;
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     }
   );
 
-  if (!quotation) throw new AppError("Quotation not found!");
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return quotation;
 }
@@ -101,23 +120,34 @@ export async function getQuotation(customerId, quotationId) {
  * @returns {Promise<API.DownloadReturns>}
  */
 export async function downloadQuotation(customerId, quotationId) {
+  let error;
   const quotation = await getOrSetCache(
     `user_${this.request.user?.id}_customer_${customerId}_quotation_${quotationId}`,
     async () => {
-      const data = await prisma.quotations.findUnique({
-        where: {
-          id: +quotationId,
-          CustomerId: +customerId,
-        },
-        include: {
-          InvoiceItems: true,
-        },
-      });
-      return data;
+      try {
+        const data = await prisma.quotations.findUnique({
+          where: {
+            id: +quotationId,
+            CustomerId: +customerId,
+          },
+          include: {
+            InvoiceItems: true,
+          },
+        });
+
+        if (!quotation) throw new AppError("Quotation not found!");
+
+        return data;
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     }
   );
 
-  if (!quotation) throw new AppError("Quotation not found!");
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   if (quotation.uploadUrl) {
     const data = await ofetch(quotation.uploadUrl, {

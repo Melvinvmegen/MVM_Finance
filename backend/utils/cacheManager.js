@@ -31,7 +31,7 @@ const getOrSetCache = async (key, cb, force = false) => {
       return freshData;
     }
   } catch (error) {
-    new AppError(500, `[CACHE] ERROR: ${error}`);
+    new AppError(500, error);
   }
 };
 

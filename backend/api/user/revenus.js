@@ -30,45 +30,55 @@ export async function getRevenus(params) {
   const force = params.force === "true";
   const cacheName =
     per_page == 1 ? `user_${this.request.user?.id}_dashboard_revenu` : `user_${this.request.user?.id}_revenus`;
+  let error;
   const revenus = await getOrSetCache(
     cacheName,
     async () => {
-      const count = await prisma.revenus.count();
-      const rows = await prisma.revenus.findMany({
-        where: {
-          ...options,
-          UserId: this.request.user?.id || null,
-        },
-        take: per_page,
-        skip: offset,
-        orderBy: orderBy || { created_at: "desc" },
-        include: {
-          Credits: {
-            select: {
-              created_at: true,
-              CreditCategoryId: true,
-              total: true,
+      try {
+        const count = await prisma.revenus.count();
+        const rows = await prisma.revenus.findMany({
+          where: {
+            ...options,
+            UserId: this.request.user?.id || null,
+          },
+          take: per_page,
+          skip: offset,
+          orderBy: orderBy || { created_at: "desc" },
+          include: {
+            Credits: {
+              select: {
+                created_at: true,
+                CreditCategoryId: true,
+                total: true,
+              },
+            },
+            Costs: {
+              select: {
+                CostCategoryId: true,
+                created_at: true,
+                recurrent: true,
+                total: true,
+                tvaAmount: true,
+              },
+              orderBy: {
+                created_at: "desc",
+              },
             },
           },
-          Costs: {
-            select: {
-              CostCategoryId: true,
-              created_at: true,
-              recurrent: true,
-              total: true,
-              tvaAmount: true,
-            },
-            orderBy: {
-              created_at: "desc",
-            },
-          },
-        },
-      });
+        });
 
-      return { rows, count };
+        return { rows, count };
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     },
     force
   );
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return revenus;
 }
@@ -78,18 +88,32 @@ export async function getRevenus(params) {
  * @returns {Promise<Models.Revenus[]>}
  */
 export async function getRevenuIds() {
+  let error;
   const revenus = await getOrSetCache(`user_${this.request.user?.id}_revenuIds`, async () => {
-    return await prisma.revenus.findMany({
-      where: {
-        UserId: this.request.user?.id || null,
-      },
-      select: {
-        id: true,
-        created_at: true,
-      },
-      orderBy: { created_at: "desc" },
-    });
+    try {
+      const revenu = await prisma.revenus.findMany({
+        where: {
+          UserId: this.request.user?.id || null,
+        },
+        select: {
+          id: true,
+          created_at: true,
+        },
+        orderBy: { created_at: "desc" },
+      });
+
+      if (!revenu) throw new AppError("Revenu not found!");
+
+      return revenu;
+    } catch (err) {
+      error = err;
+      throw new Error(err);
+    }
   });
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return revenus;
 }
@@ -100,34 +124,47 @@ export async function getRevenuIds() {
  * @returns {Promise<Models.Revenus[] & { Invoices: Models.Invoices, Credits: Models.Credits, Costs: Models.Costs, Quotations: Models.Quotations, Transactions: Models.Transactions}>}
  */
 export async function getRevenu(revenuId) {
+  let error;
   const revenu = await getOrSetCache(`user_${this.request.user?.id}_revenu_${revenuId}`, async () => {
-    return await prisma.revenus.findUnique({
-      where: {
-        id: +revenuId,
-        UserId: this.request.user?.id || null,
-      },
-      include: {
-        Invoices: true,
-        Quotations: true,
-        Transactions: true,
-        Credits: {
-          orderBy: {
-            created_at: "asc",
+    try {
+      const revenu = await prisma.revenus.findUnique({
+        where: {
+          id: +revenuId,
+          UserId: this.request.user?.id || null,
+        },
+        include: {
+          Invoices: true,
+          Quotations: true,
+          Transactions: true,
+          Credits: {
+            orderBy: {
+              created_at: "asc",
+            },
+          },
+          Costs: {
+            orderBy: {
+              created_at: "asc",
+            },
+          },
+          Withdrawals: {
+            orderBy: {
+              created_at: "asc",
+            },
           },
         },
-        Costs: {
-          orderBy: {
-            created_at: "asc",
-          },
-        },
-        Withdrawals: {
-          orderBy: {
-            created_at: "asc",
-          },
-        },
-      },
-    });
+      });
+
+      if (!revenu) throw new AppError("Revenu not found!");
+      return revenu;
+    } catch (err) {
+      error = err;
+      throw new Error(err);
+    }
   });
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return revenu;
 }

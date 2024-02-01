@@ -15,15 +15,27 @@ export default async function (app) {
  * @returns {Promise<Models.investment_profile>}
  */
 export async function getInvestmentProfile() {
+  let error;
   const investment_profile = await getOrSetCache(`user_${this.request.user?.id}_investment_profile`, async () => {
-    const investment_profile = await prisma.investment_profile.findFirst({
-      where: {
-        user_id: this.request.user?.id || null,
-      },
-    });
+    try {
+      const investment_profile = await prisma.investment_profile.findFirst({
+        where: {
+          user_id: this.request.user?.id || null,
+        },
+      });
 
-    return investment_profile;
+      if (!investment_profile) throw new AppError("Investment profile not found!");
+
+      return investment_profile;
+    } catch (err) {
+      error = err;
+      throw new Error(err);
+    }
   });
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   if (!investment_profile) throw new AppError("InvestmentProfile not found!");
 

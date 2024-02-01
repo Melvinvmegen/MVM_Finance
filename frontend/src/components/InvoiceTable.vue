@@ -32,6 +32,8 @@ v-card.pa-4(elevation="3")
         @update:options="getInvoicesData"
         item-value="name"
         )
+        template( v-slot:[`item.created_at`]="{ item }")
+          span {{ invoiceDate(item.created_at) }}
         template( v-slot:[`item.paid`]="{ item }")
           v-chip(:color="item.paid ? 'success' : 'error'") {{ $t(`invoices.paidStatus.${item.paid}`)  }}
         template( v-slot:[`item.month`]="{ item }")
@@ -87,6 +89,11 @@ const dataTable = {
   perPage: Number(route.query.perPage) || 12,
   sortBy: [],
   headers: [
+    {
+      key: "created_at",
+      value: "created_at",
+      title: $t("invoices.created_at"),
+    },
     {
       key: "paid",
       value: "paid",
@@ -171,6 +178,11 @@ async function resetAll() {
 function revenuDate(revenu: Revenus) {
   if (!revenu) return;
   return dayjs(revenu.created_at).format("MMMM YYYY");
+}
+
+function invoiceDate(created_at: string) {
+  if (!created_at) return;
+  return dayjs(created_at).format("DD/MM/YY");
 }
 
 async function closePaymentForm() {

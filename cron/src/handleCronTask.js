@@ -9,9 +9,7 @@ export async function handleCronTask() {
     .select("*")
     .from("CronTask")
     .where("active", "=", 1)
-    .andWhere("date", ">=", dayjs().startOf("hour").toDate())
-    .andWhere("date", "<=", dayjs().endOf("hour").toDate())
-    .orWhere("tryCounts", ">", 0)
+    .andWhere("date", "<=", dayjs().toDate())
     .andWhere("tryCounts", "<", 5);
 
   if (cronTasks.length) {
@@ -23,9 +21,11 @@ export async function handleCronTask() {
   for (let cronTask of cronTasks) {
     try {
       if (cronTask.params) {
-        await functions[cronTask.function](
-          ...Object.values(JSON.parse(cronTask.params))
-        );
+        const params =
+          typeof cronTask.params === "string"
+            ? JSON.parse(cronTask.params)
+            : cronTask.params;
+        await functions[cronTask.function](...Object.values(params));
       } else {
         await functions[cronTask.function]();
       }

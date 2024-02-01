@@ -1,7 +1,6 @@
 import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
 import { prisma, Models } from "../../utils/prisma.js";
 import { AppError } from "../../utils/AppError.js";
-import { settings } from "../../utils/settings.js";
 import dayjs from "dayjs";
 
 /**
@@ -20,26 +19,36 @@ export default async function (app) {
  * @returns {Promise<Models.PendingEmail & { Invoices: Models.Invoices[], CronTask: Models.CronTask[] }>}
  */
 export async function getPendingEmail(pendingEmailId) {
+  let error;
   const pending_email = await getOrSetCache(
     `user_${this.request.user?.id}_pending_email_${pendingEmailId}`,
     async () => {
-      const pending_email = await prisma.pendingEmail.findFirst({
-        where: {
-          id: +pendingEmailId,
-          UserId: this.request.user?.id || null,
-        },
-        include: {
-          Invoice: true,
-          Quotation: true,
-          CronTask: true,
-        },
-      });
+      try {
+        const pending_email = await prisma.pendingEmail.findFirst({
+          where: {
+            id: +pendingEmailId,
+            UserId: this.request.user?.id || null,
+          },
+          include: {
+            Invoice: true,
+            Quotation: true,
+            CronTask: true,
+          },
+        });
 
-      if (!pending_email) throw new AppError("PendingEmail not found!");
+        if (!pending_email) throw new AppError("PendingEmail not found!");
 
-      return pending_email;
+        return pending_email;
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     }
   );
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return pending_email;
 }
@@ -52,10 +61,10 @@ export async function getPendingEmail(pendingEmailId) {
 export async function createPendingEmail(body) {
   const pending_email = await prisma.pendingEmail.create({
     data: {
-      recipientEmail: settings.email.replace || body.recipientEmail,
-      fromAddress: settings.email.from,
-      fromName: settings.email.from_name,
-      bbcRecipientEmail: settings.email.from,
+      recipientEmail: body.recipientEmail,
+      fromAddress: "",
+      fromName: "",
+      bbcRecipientEmail: "",
       subject: body.subject,
       content: body.content,
       sent: false,

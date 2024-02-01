@@ -34,17 +34,18 @@ export const functions = {
       console.log(`[Cron task] createCustomerRecurrentInvoice starting`);
       const lastRecurrentInvoices = await database
         .select("*")
-        .from("Invoices")
-        .join("PendingEmail", "PendingEmail.InvoiceId", "=", "Invoices.id")
-        .join("CronTask", "CronTask.PendingEmailId", "=", "PendingEmail.id")
-        .where("recurrent", true)
-        .whereIn(["CustomerId", "created_at"], function () {
-          this.select("CustomerId")
-            .max("created_at")
-            .from("Invoices")
-            .where("recurrent", true)
-            .groupBy("CustomerId");
-        });
+        .from(
+          database.raw(
+            `(SELECT "Invoices".id, "Invoices".*, "PendingEmail".*, "CronTask".*, ROW_NUMBER() OVER (PARTITION BY "Invoices"."CustomerId" ORDER BY "Invoices".created_at DESC) as rn 
+            FROM "Invoices" 
+            INNER JOIN "PendingEmail" ON "PendingEmail"."InvoiceId" = "Invoices"."id" 
+            INNER JOIN "CronTask" ON "CronTask"."PendingEmailId" = "PendingEmail"."id"
+            WHERE "Invoices".recurrent = true 
+            GROUP BY "Invoices"."CustomerId", "Invoices".id, "PendingEmail".id, "CronTask".id
+            ORDER BY "Invoices".created_at DESC) as "RankedInvoices"`
+          )
+        )
+        .where("rn", 1);
 
       if (lastRecurrentInvoices.length) {
         console.log(
@@ -53,7 +54,6 @@ export const functions = {
       }
 
       for (let recurrentInvoice of lastRecurrentInvoices) {
-        // TODO: this should generate the pdf by calling the generate endpoint
         const [invoice] = await database("Invoices")
           .insert({
             created_at: dayjs().toDate(),
@@ -79,39 +79,93 @@ export const functions = {
         const invoiceItems = await database
           .select("name", "unit", "quantity", "total")
           .from("InvoiceItems")
-          .where("InvoiceId", recurrentInvoice.id);
+          .where("InvoiceId", recurrentInvoice.InvoiceId);
+
+        const current_month = dayjs().format("MMMM");
+        const current_month_capitalized =
+          current_month[0].toUpperCase() +
+          current_month.slice(1, current_month.length);
+        const previous_month = dayjs().subtract(1, "month").format("MMMM");
+        const previous_month_capitalized =
+          previous_month[0].toUpperCase() +
+          previous_month.slice(1, previous_month.length);
+
+        console.log({ previous_month_capitalized, current_month_capitalized });
 
         for (let invoiceItem of invoiceItems) {
           await database("InvoiceItems").insert({
             ...invoiceItem,
+            name: invoiceItem.name.replace(
+              previous_month_capitalized,
+              current_month_capitalized
+            ),
             created_at: dayjs().toDate(),
             updated_at: dayjs().toDate(),
             InvoiceId: invoice.id,
           });
         }
 
-        const pending_email = await knex("PendingEmail")
+        try {
+          `[Cron task] createCustomerRecurrentInvoice generating pdf for invoice #${invoice.id}`;
+          await ofetch(
+            `${settings.finance.baseRequestsUrl}/invoices/generate-pdf`,
+            {
+              method: "POST",
+              body: {
+                id: invoice.id,
+              },
+              headers: {
+                Authorization: `Basic ${btoa(
+                  `${settings.finance.apiUsername}:${settings.finance.apiPassword}`
+                )}`,
+              },
+            }
+          );
+          console.log(
+            `[Cron task] Invoice's pdf successfully generated for #${invoice.id}`
+          );
+        } catch (err) {
+          console.log(
+            `[Cron task] An error occured while generating the pdf for invoice`,
+            err
+          );
+          // TODO: send email to myself
+        }
+
+        const [pending_email] = await database("PendingEmail")
           .insert({
-            recipientEmail: recurrentInvoice.recipientEmail,
-            fromAddress: recurrentInvoice.fromAddress,
-            fromName: recurrentInvoice.fromName,
-            bbcRecipientEmail: recurrentInvoice.bbcRecipientEmail,
-            subject: recurrentInvoice.subject,
-            content: recurrentInvoice.content,
+            created_at: new Date(),
+            updated_at: new Date(),
+            recipientEmail:
+              settings.email.replace || recurrentInvoice.recipientEmail,
+            fromAddress: settings.email.from,
+            fromName: settings.email.from_name,
+            bbcRecipientEmail: settings.email.bcc,
+            // TODO handle year aswell
+            subject: recurrentInvoice.subject.replace(
+              previous_month_capitalized,
+              current_month_capitalized
+            ),
+            // TODO handle year aswell
+            content: recurrentInvoice.content.replace(
+              previous_month,
+              current_month
+            ),
             sent: false,
-            InvoiceId: recurrentInvoice.InvoiceId,
-            QuotationId: recurrentInvoice.QuotationId,
+            InvoiceId: invoice.id,
             UserId: recurrentInvoice.UserId,
           })
           .returning("id");
 
-        await knex("cronTask").insert({
+        await database("CronTask").insert({
+          created_at: new Date(),
+          updated_at: new Date(),
           date: dayjs(recurrentInvoice.date).add(1, "month").toDate(),
           dateIntervalType: recurrentInvoice.dateIntervalType,
           dateIntervalValue: recurrentInvoice.dateIntervalValue,
           active: true,
           function: recurrentInvoice.function,
-          params: recurrentInvoice.params,
+          params: JSON.stringify({ PendingEmailId: pending_email.id }),
           errorMessage: null,
           tryCounts: 0,
           UserId: recurrentInvoice.UserId,

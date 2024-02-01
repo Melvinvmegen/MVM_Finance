@@ -23,27 +23,36 @@ export async function getCustomers(params) {
   const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
 
+  let error;
   const result = await getOrSetCache(
     `user_${this.request.user?.id}_customers`,
     async () => {
-      const count = await prisma.customers.count();
-      const rows = await prisma.customers.findMany({
-        where: {
-          ...options,
-          UserId: this.request.user?.id || null,
-        },
-        orderBy: orderBy || { created_at: "desc" },
-        include: {
-          Invoices: true,
-        },
-        skip: offset,
-        take: per_page,
-      });
-
-      return { rows, count };
+      try {
+        const count = await prisma.customers.count();
+        const rows = await prisma.customers.findMany({
+          where: {
+            ...options,
+            UserId: this.request.user?.id || null,
+          },
+          orderBy: orderBy || { created_at: "desc" },
+          include: {
+            Invoices: true,
+          },
+          skip: offset,
+          take: per_page,
+        });
+        return { rows, count };
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     },
     force
   );
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return result;
 }
@@ -54,17 +63,28 @@ export async function getCustomers(params) {
  * @returns {Promise<Models.Customers>}
  */
 export async function getCustomer(customerId) {
+  let error;
   const customer = await getOrSetCache(`user_${this.request.user?.id}_customer_${customerId}`, async () => {
-    const customer = await prisma.customers.findFirst({
-      where: {
-        id: +customerId,
-        UserId: this.request.user?.id || null,
-      },
-    });
+    try {
+      const customer = await prisma.customers.findFirst({
+        where: {
+          id: +customerId,
+          UserId: this.request.user?.id || null,
+        },
+      });
 
-    if (!customer) throw new AppError("Customer not found!");
-    return customer;
+      if (!customer) throw new AppError("Customer not found!");
+
+      return customer;
+    } catch (err) {
+      error = err;
+      throw new Error(err);
+    }
   });
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return customer;
 }

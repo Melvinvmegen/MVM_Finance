@@ -28,39 +28,48 @@ export async function getInvoices(CustomerId, params) {
   if (!Number(CustomerId)) throw new AppError("Customer not found");
   const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
-
+  let error;
   const invoices_data = await getOrSetCache(
     `user_${this.request.user?.id}_customer_${CustomerId}_invoices`,
     async () => {
-      const count = await prisma.invoices.count({
-        where: {
-          CustomerId: +CustomerId,
-        },
-      });
-      const invoices = await prisma.invoices.findMany({
-        where: options,
-        skip: offset,
-        take: per_page,
-        orderBy: orderBy || { created_at: "desc" },
-        include: {
-          Revenus: true,
-          Customers: {
-            select: {
-              email: true,
+      try {
+        const count = await prisma.invoices.count({
+          where: {
+            CustomerId: +CustomerId,
+          },
+        });
+        const invoices = await prisma.invoices.findMany({
+          where: options,
+          skip: offset,
+          take: per_page,
+          orderBy: orderBy || { created_at: "desc" },
+          include: {
+            Revenus: true,
+            Customers: {
+              select: {
+                email: true,
+              },
+            },
+            PendingEmails: {
+              include: {
+                CronTask: true,
+              },
             },
           },
-          PendingEmails: {
-            include: {
-              CronTask: true,
-            },
-          },
-        },
-      });
+        });
 
-      return { rows: invoices, count };
+        return { rows: invoices, count };
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     },
     force
   );
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return invoices_data;
 }
@@ -72,23 +81,34 @@ export async function getInvoices(CustomerId, params) {
  * @returns {Promise<Models.Invoices[] & { InvoiceItems: Models.InvoiceItems}>}
  */
 export async function getInvoice(customerId, invoiceId) {
+  let error;
   const invoice = await getOrSetCache(
     `user_${this.request.user?.id}_customer_${customerId}_invoice_${invoiceId}`,
     async () => {
-      const data = await prisma.invoices.findFirst({
-        where: {
-          id: +invoiceId,
-          CustomerId: +customerId,
-        },
-        include: {
-          InvoiceItems: true,
-        },
-      });
-      return data;
+      try {
+        const invoice = await prisma.invoices.findFirst({
+          where: {
+            id: +invoiceId,
+            CustomerId: +customerId,
+          },
+          include: {
+            InvoiceItems: true,
+          },
+        });
+
+        if (!invoice) throw new AppError("Invoice not found!");
+
+        return invoice;
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     }
   );
 
-  if (!invoice) throw new AppError("Invoice not found!");
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return invoice;
 }
@@ -100,23 +120,34 @@ export async function getInvoice(customerId, invoiceId) {
  * @returns {Promise<API.DownloadReturns>}>}
  */
 export async function downloadInvoice(customerId, invoiceId) {
+  let error;
   const invoice = await getOrSetCache(
     `user_${this.request.user?.id}_customer_${customerId}_invoice_${invoiceId}`,
     async () => {
-      const data = await prisma.invoices.findFirst({
-        where: {
-          id: +invoiceId,
-          CustomerId: +customerId,
-        },
-        include: {
-          InvoiceItems: true,
-        },
-      });
-      return data;
+      try {
+        const invoice = await prisma.invoices.findFirst({
+          where: {
+            id: +invoiceId,
+            CustomerId: +customerId,
+          },
+          include: {
+            InvoiceItems: true,
+          },
+        });
+
+        if (!invoice) throw new AppError("Invoice not found!");
+
+        return invoice;
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     }
   );
 
-  if (!invoice) throw new AppError("Invoice not found!");
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   if (invoice.uploadUrl) {
     const data = await ofetch(invoice.uploadUrl, {

@@ -23,27 +23,37 @@ export default async function (app) {
 export async function getAssets(params) {
   const { per_page, offset, orderBy, options } = setFilters(params);
   const force = params.force === "true";
+  let error;
   const result = await getOrSetCache(
     `user_${this.request.user?.id}_assets`,
     async () => {
-      const count = await prisma.asset.count();
-      const rows = await prisma.asset.findMany({
-        where: {
-          ...options,
-          user_id: this.request.user?.id || null,
-        },
-        orderBy: orderBy || { amount: "desc" },
-        include: {
-          asset_type: true,
-        },
-        skip: offset,
-        take: per_page,
-      });
+      try {
+        const count = await prisma.asset.count();
+        const rows = await prisma.asset.findMany({
+          where: {
+            ...options,
+            user_id: this.request.user?.id || null,
+          },
+          orderBy: orderBy || { amount: "desc" },
+          include: {
+            asset_type: true,
+          },
+          skip: offset,
+          take: per_page,
+        });
 
-      return { rows, count };
+        return { rows, count };
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     },
     force
   );
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return result;
 }
@@ -54,16 +64,28 @@ export async function getAssets(params) {
  * @returns {Promise<Models.asset>}
  */
 export async function getAsset(id) {
+  let error;
   const asset = await getOrSetCache(`user_${this.request.user?.id}_asset_${id}`, async () => {
-    const asset = await prisma.asset.findFirst({
-      where: {
-        id: +id,
-        user_id: this.request.user?.id || null,
-      },
-    });
-    if (!asset) throw new AppError("Asset not found!");
-    return asset;
+    try {
+      const asset = await prisma.asset.findFirst({
+        where: {
+          id: +id,
+          user_id: this.request.user?.id || null,
+        },
+      });
+
+      if (!asset) throw new AppError("Asset not found!");
+
+      return asset;
+    } catch (err) {
+      error = err;
+      throw new Error(err);
+    }
   });
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return asset;
 }
@@ -134,17 +156,27 @@ export async function deleteAsset(id) {
  * @returns {Promise<Models.asset_type[]>}
  */
 export async function getAssetTypes() {
+  let error;
   const asset_types = await getOrSetCache(
     `user_${this.request.user?.id}_asset_types`,
     async () => {
-      const asset_types = await prisma.asset_type.findMany({
-        orderBy: { created_at: "desc" },
-      });
+      try {
+        const asset_types = await prisma.asset_type.findMany({
+          orderBy: { created_at: "desc" },
+        });
 
-      return asset_types;
+        return asset_types;
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     },
     false
   );
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return asset_types;
 }

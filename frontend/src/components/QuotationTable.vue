@@ -32,6 +32,8 @@ v-card.pa-4(elevation="3")
         @update:options="getQuotationsData"
         item-value="name"
         )
+        template( v-slot:[`item.created_at`]="{ item }")
+          span {{ quotationDate(item.created_at) }}
         template( v-slot:[`item.cautionPaid`]="{ item }")
           v-chip(:color="item.cautionPaid ? 'success' : 'error'") {{ $t(`quotations.cautionPaidStatuses.${item.cautionPaid}`)  }}
         template( v-slot:[`item.month`]="{ item }")
@@ -103,6 +105,11 @@ const dataTable = {
   perPage: Number(route.query.perPage) || 12,
   sortBy: [],
   headers: [
+    {
+      key: "created_at",
+      value: "created_at",
+      title: $t("quotations.created_at"),
+    },
     {
       key: "cautionPaid",
       value: "cautionPaid",
@@ -185,6 +192,11 @@ async function download(quotation: Quotations) {
 function revenuDate(revenu: Revenus) {
   if (!revenu) return;
   return dayjs(revenu.created_at).format("MMMM YYYY");
+}
+
+function quotationDate(created_at: string) {
+  if (!created_at) return;
+  return dayjs(created_at).format("DD/MM/YY");
 }
 
 async function resetAll() {

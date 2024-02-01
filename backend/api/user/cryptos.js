@@ -22,23 +22,33 @@ export default async function (app) {
  */
 export async function getCryptos(params) {
   const force = params.force === "true";
+  let error;
   const cryptos = await getOrSetCache(
     `user_${this.request.user?.id}_cryptos`,
     async () => {
-      const data = await prisma.cryptoCurrencies.findMany({
-        where: {
-          UserId: this.request.user?.id || null,
-        },
-        orderBy: [{ sold: "asc" }, { profit: "desc" }],
-        include: {
-          Transactions: true,
-        },
-      });
+      try {
+        const data = await prisma.cryptoCurrencies.findMany({
+          where: {
+            UserId: this.request.user?.id || null,
+          },
+          orderBy: [{ sold: "asc" }, { profit: "desc" }],
+          include: {
+            Transactions: true,
+          },
+        });
 
-      return data;
+        return data;
+      } catch (err) {
+        error = err;
+        throw new Error(err);
+      }
     },
     force
   );
+
+  if (error) {
+    throw new Error("An expected error occured:", error);
+  }
 
   return cryptos;
 }
