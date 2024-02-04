@@ -2,7 +2,6 @@ import { database } from "../utils/database.js";
 import { settings } from "../utils/settings.js";
 import { ofetch } from "ofetch";
 
-const nbMinutes = 2;
 export async function handleUserStatsTask() {
   console.log("[User Task] ...Querying investment_profiles to update");
   const investment_profiles = await database
@@ -10,8 +9,16 @@ export async function handleUserStatsTask() {
     .from("Users")
     .join("Revenus", "Revenus.UserId", "Users.id")
     .join("investment_profile", "investment_profile.user_id", "Users.id")
-    .where("Revenus.updated_at", ">=", new Date(new Date() - nbMinutes * 60000))
-    .orWhere("Users.updated_at", ">=", new Date(new Date() - nbMinutes * 60000))
+    .where(
+      "Revenus.updated_at",
+      ">=",
+      new Date(new Date() - settings.cron.statsFromMs)
+    )
+    .orWhere(
+      "Users.updated_at",
+      ">=",
+      new Date(new Date() - settings.cron.statsFromMs)
+    )
     .groupBy("investment_profile.id");
 
   if (investment_profiles.length) {
@@ -54,13 +61,17 @@ export async function handleAssetStatsTask() {
     .where(
       "CryptoCurrencies.updated_at",
       ">=",
-      new Date(new Date() - nbMinutes * 60000)
+      new Date(new Date() - settings.cron.statsFromMs)
     )
-    .orWhere("Costs.updated_at", ">=", new Date(new Date() - nbMinutes * 60000))
+    .orWhere(
+      "Costs.updated_at",
+      ">=",
+      new Date(new Date() - settings.cron.statsFromMs)
+    )
     .orWhere(
       "Credits.updated_at",
       ">=",
-      new Date(new Date() - nbMinutes * 60000)
+      new Date(new Date() - settings.cron.statsFromMs)
     )
     .groupBy("asset.id");
 

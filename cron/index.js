@@ -1,5 +1,4 @@
-const DELAY_MS = process.env.DELAY_MS || 60000;
-const OFFSET_MS = process.env.OFFSET_MS || 0;
+import { settings } from "./utils/settings.js";
 import {
   handleUserStatsTask,
   handleAssetStatsTask,
@@ -15,12 +14,23 @@ cron(
   async () => {
     try {
       await handleCronTask();
-      await handleUserStatsTask();
-      await handleAssetStatsTask();
     } catch (err) {
       console.error("Error during cron execution", err);
     }
   },
-  DELAY_MS,
-  OFFSET_MS
+  settings.cron.cronDelayMs,
+  settings.cron.cronOffsetMS
+);
+
+cron(
+  async () => {
+    try {
+      await handleUserStatsTask();
+      await handleAssetStatsTask();
+    } catch (err) {
+      console.error("Error during stats execution", err);
+    }
+  },
+  settings.cron.statsDelayMs,
+  settings.cron.statsOffsetMs
 );

@@ -158,7 +158,10 @@ app.addHook("preHandler", async (request) => {
     throw new UnauthorizedError("errors.server.unauthorized");
   }
 
-  if ((request?.url.includes("/cron") || request?.url.includes("/payment")) && !request?.url.includes("/webhooks")) {
+  if (
+    !request.user &&
+    (request?.url.includes("/cron") || (request?.url.includes("/payment") && !request?.url.includes("/webhooks")))
+  ) {
     const authHeader = request.headers.authorization;
     if (!authHeader) {
       throw new UnauthorizedError("errors.server.missingCredentials");

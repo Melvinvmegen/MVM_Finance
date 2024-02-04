@@ -8,12 +8,14 @@ v-row
           v-spacer  
           v-col(cols="1" class="d-flex justify-center align-center")
             v-btn(icon="mdi-plus" color="primary" @click="show_modal = true")
+            v-btn(icon="mdi-restore" color="primary" @click="refreshAssetsStats")
 
       v-card-text
         AssetTable(:items="items" :asset-types="asset_types" @filter="refreshAssets")
     .mt-4
   v-col(cols="12" md="4")
     v-card
+      v-icon.mr-4.mt-4(@click="refreshUserStats") mdi-restore
       v-card-text(v-if="investment_profile")
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("investment-profile.average_revenu_perso") }}
@@ -27,10 +29,10 @@ v-row
           v-card-title {{ $n(investment_profile.average_revenu_total, "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("investment-profile.average_expense") }}
-          v-card-title - {{ $n(investment_profile.average_expense, "currency") }}
+          v-card-title {{ $n(investment_profile.average_expense, "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("investment-profile.average_investments") }}
-          v-card-title - {{ $n(investment_profile.average_investments, "currency") }}
+          v-card-title {{ $n(investment_profile.average_investments, "currency") }}
         hr.mx-2.my-4
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("investment-profile.average_balance") }}
@@ -44,6 +46,7 @@ v-row
 </template>
 
 <script setup lang="ts">
+import { setUsersStats, setAssetsStats } from "../../utils/generated/api-cron";
 import { getInvestmentProfile, getAssets, getAssetTypes } from "../../utils/generated/api-user";
 import type { investment_profile } from "../../../types/models";
 
@@ -66,6 +69,32 @@ async function refreshAssets(value) {
     await filterAll({
       ...value,
       force: !!items.value.count,
+    });
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loadingStore.setLoading(false);
+  }
+}
+
+async function refreshUserStats(value) {
+  loadingStore.setLoading(true);
+  try {
+    await setUsersStats({
+      investmentProfileIds: [investment_profile.value.id],
+    });
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loadingStore.setLoading(false);
+  }
+}
+
+async function refreshAssetsStats(value) {
+  loadingStore.setLoading(true);
+  try {
+    await setAssetsStats({
+      assetIds: items.value.rows.map((r) => r.id),
     });
   } catch (err) {
     console.error(err);
