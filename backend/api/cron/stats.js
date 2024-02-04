@@ -1,7 +1,7 @@
+import { invalidateCache } from "../../utils/cacheManager.js";
 import { AppError } from "../../utils/AppError.js";
 import { prisma } from "../../utils/prisma.js";
 import { roundTo } from "../../utils/roundTo.js";
-
 /**
  * @param {API.ServerInstance} app
  */
@@ -58,6 +58,8 @@ export async function setUsersStats() {
               : roundTo(revenu_stats.average_balance, 2),
           },
         });
+
+        await invalidateCache(`user_${this.request.user?.id}_investment_profile`);
       } catch (error) {
         console.log("An unexpected error occured", error);
       }
@@ -162,6 +164,8 @@ export async function setAssetsStats() {
             growth_last_year: roundTo(((current_amount - amount_last_year) / Math.max(amount_last_year, 1)) * 100, 2),
           },
         });
+
+        await invalidateCache(`user_${this.request.user?.id}_assets`);
       } catch (error) {
         console.log("An unexpected error occured", error);
       }
