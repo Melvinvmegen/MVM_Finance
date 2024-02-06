@@ -34,7 +34,7 @@ export async function getInvestmentProfile() {
   });
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   if (!investment_profile) throw new AppError("InvestmentProfile not found!");

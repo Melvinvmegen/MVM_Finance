@@ -68,7 +68,7 @@ export async function getInvoices(CustomerId, params) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return invoices_data;
@@ -107,7 +107,7 @@ export async function getInvoice(customerId, invoiceId) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return invoice;
@@ -146,7 +146,7 @@ export async function downloadInvoice(customerId, invoiceId) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   if (invoice.uploadUrl) {

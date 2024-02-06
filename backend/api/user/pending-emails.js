@@ -47,7 +47,7 @@ export async function getPendingEmail(pendingEmailId) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return pending_email;

@@ -45,7 +45,7 @@ div
             v-card-title {{ $n(revenu?.total, "currency") }}
           v-row.ml-2.mr-2(justify="space-between" align="center")
             v-card-subtitle {{ $t("dashboard.costs") }}
-            v-card-title - {{ $n(revenu?.expense, "currency") }}
+            v-card-title {{ $n(revenu?.expense, "currency") }}
           v-row.ml-2.mr-2(justify="space-between" align="center")
             v-card-subtitle {{ $t("dashboard.investments") }}
             v-card-title - {{ $n(revenu?.investments, "currency") }}
@@ -54,7 +54,7 @@ div
             v-card-title - {{ $n(revenu?.tax_amount, "currency") }}
           v-row.ml-2.mr-2(justify="space-between" align="center")
             v-card-subtitle {{ $t("dashboard.vatBalance") }}
-            v-card-title - {{ $n(revenu?.tva_balance - revenu?.tva_dispatched, "currency") }}
+            v-card-title - {{ $n(revenu?.tva_balance, "currency") }}
           hr.mx-2.my-4
           v-row.ml-2.mr-2(justify="space-between" align="center")
             v-card-subtitle {{ $t("dashboard.balance") }}

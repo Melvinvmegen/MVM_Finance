@@ -77,7 +77,7 @@ export async function getRevenus(params) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return revenus;
@@ -112,7 +112,7 @@ export async function getRevenuIds() {
   });
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return revenus;
@@ -163,7 +163,7 @@ export async function getRevenu(revenuId) {
   });
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return revenu;

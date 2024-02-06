@@ -52,7 +52,7 @@ export async function getAssets(params) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return result;
@@ -84,7 +84,7 @@ export async function getAsset(id) {
   });
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return asset;
@@ -175,7 +175,7 @@ export async function getAssetTypes() {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return asset_types;

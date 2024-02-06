@@ -47,7 +47,7 @@ export async function getCryptos(params) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return cryptos;

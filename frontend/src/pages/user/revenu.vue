@@ -224,10 +224,37 @@ v-container
                 v-btn(color="primary" @click='router.go(-1)') {{ "Retour" }}
                 v-btn(color="secondary" type="submit") {{ "Editer un revenu" }}
     v-col(cols='12' lg="4")
-      TotalField(
-        :initial-total='revenu.total',
-        :model='revenu'
-      )
+      v-card(class="v-col")
+        v-card-text
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.revenuPro") }}
+            v-card-title {{ $n(revenu?.pro, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.revenuPerso") }}
+            v-card-title + {{ $n(revenu?.perso, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.refund") }}
+            v-card-title + {{ $n(revenu?.refund, "currency") }}
+          hr.mx-2.my-4
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("revenu.total") }}
+            v-card-title {{ $n(revenu?.total, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.costs") }}
+            v-card-title {{ $n(revenu?.expense, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.investments") }}
+            v-card-title {{ $n(revenu?.investments, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.tax_amount") }}
+            v-card-title - {{ $n(revenu?.tax_amount, "currency") }}
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.vatBalance") }}
+            v-card-title - {{ $n(revenu?.tva_balance, "currency") }}
+          hr.mx-2.my-4
+          v-row.ml-2.mr-2(justify="space-between" align="center")
+            v-card-subtitle {{ $t("dashboard.balance") }}
+            v-card-title {{ $n(revenu.balance, "currency") }}
       v-card.mt-4(v-if="credits.length")
         v-card-title.text-center.mb-2 {{ $t("revenu.revenus") }} {{ revenu.total }} €
         v-card-text
@@ -344,8 +371,8 @@ const costItemTemplate: Prisma.CostsUncheckedCreateInput = {
 onMounted(async () => {
   try {
     loadingStore.setLoading(true);
-    const assets = await getAssets({ perPage: 1000 });
-    assets.value = assets.rows;
+    const response = await getAssets({ perPage: 1000 });
+    assets.value = response.rows;
     revenu.value = await getRevenu(route.params.id);
     const { cost_categories, credit_categories } = await getCategories();
     costCategories.value = cost_categories;
@@ -417,23 +444,74 @@ function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
     revenu.value[modelName][index][columnName] = +event.target.value;
   }
   if (!revenu.value) return;
-  const tvaCollected = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.tvaAmount, 0);
-  const tvaDispatched = costs.value.reduce((sum, cost) => sum + Number(cost.tvaAmount), 0);
-  const totalInvoices = revenu.value.Invoices.reduce((sum, invoice) => sum + +invoice.total, 0);
-  const totalPro = credits.value
-    .filter((c) => c.CreditCategoryId === 10)
-    .reduce((sum, credit) => sum + +credit.total, 0);
-  const totalPerso = credits.value
-    .filter((c) => c.CreditCategoryId !== 10)
-    .reduce((sum, credit) => sum + +credit.total, 0);
-  const totalCosts = costs.value.reduce((sum, cost) => sum + Number(cost.total), 0);
+  let tvaCollected = 0;
+  let totalInvoices = 0;
+  for (let invoice of revenu.value.Invoices) {
+    tvaCollected += +invoice.tvaAmount;
+    totalInvoices += +invoice.total;
+  }
 
-  revenu.value.tva_dispatched = tvaDispatched;
-  revenu.value.tva_collected = tvaCollected;
-  revenu.value.expense = totalCosts;
+  let tvaDispatched = 0;
+  let totalCosts = 0;
+  let totalInvestments = 0;
+  for (let cost of costs.value) {
+    if (cost.CostCategoryId === 15) continue;
+    if (cost.tvaAmount) {
+      tvaDispatched += Number(cost.tvaAmount || 0);
+    }
+
+    if (cost.CostCategoryId === 10) {
+      totalInvestments += +cost.total;
+    } else {
+      totalCosts += +cost.total;
+    }
+  }
+
+  let totalPro = 0;
+  let totalPerso = 0;
+  let totalRefund = 0;
+  for (let credit of credits.value) {
+    if (credit.CreditCategoryId === 6) continue;
+    if (credit.CreditCategoryId === 10) {
+      totalPro += +credit.total;
+    } else if (credit.CreditCategoryId === 8) {
+      totalRefund += +credit.total;
+    } else if (credit.CreditCategoryId !== 10) {
+      totalPerso += +credit.total;
+    }
+  }
+
   revenu.value.pro = totalInvoices + totalPro;
   revenu.value.perso = totalPerso;
+  revenu.value.refund = totalRefund;
   revenu.value.total = totalInvoices + totalPro + totalPerso;
+  revenu.value.expense = totalCosts;
+  revenu.value.investments = totalInvestments;
+  revenu.value.tax_amount = calculateTaxAmount(revenu.value.total);
+  revenu.value.tva_balance = tvaDispatched - tvaCollected;
+  revenu.value.balance = totalCosts + revenu.value.total || 0;
+}
+
+function calculateTaxAmount(total) {
+  // Abattement de 30% avant impots sur le CA
+  const taxable_income = total / 1.3;
+  // Pas d'impôts jusqu'à 10 225€
+  const first_cap = 10226;
+  // 11% entre 10 226€ & 26 070€
+  const cap_first_batch = 26070;
+  // On passe au cap au dessus soit 26 071€
+  const second_cap = cap_first_batch + 1;
+  // 30 % entre 26 071€ & 74 545€, Au delà faut prendre un comptable sinon ça va chier
+  let tax_total = 0;
+  if (taxable_income >= first_cap && taxable_income < cap_first_batch) {
+    tax_total = (taxable_income - first_cap) * 0.11;
+  } else if (taxable_income >= second_cap) {
+    const tax_first_batch = (cap_first_batch - first_cap) * 0.11;
+    const tax_second_batch = (taxable_income - second_cap) * 0.3;
+    tax_total = tax_first_batch + tax_second_batch;
+  }
+
+  return Math.round(tax_total);
 }
 
 async function handleSubmit() {

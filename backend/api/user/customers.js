@@ -51,7 +51,7 @@ export async function getCustomers(params) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return result;
@@ -83,7 +83,7 @@ export async function getCustomer(customerId) {
   });
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return customer;

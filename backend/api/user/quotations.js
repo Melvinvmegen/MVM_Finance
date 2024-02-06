@@ -69,7 +69,7 @@ export async function getQuotations(CustomerId, params) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return quotations_data;
@@ -107,7 +107,7 @@ export async function getQuotation(customerId, quotationId) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   return quotation;
@@ -146,7 +146,7 @@ export async function downloadQuotation(customerId, quotationId) {
   );
 
   if (error) {
-    throw new Error("An expected error occured:", error);
+    throw new Error(`An expected error occured: ${error}`);
   }
 
   if (quotation.uploadUrl) {
