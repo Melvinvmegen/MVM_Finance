@@ -1,4 +1,6 @@
 <template lang="pug">
+v-alert(v-if="showUrssafAlert" @click="hideAlert('showUrssaf')" closable type="warning" class="my-2") {{ $t("dashboard.alert.urssaf") }}
+v-alert(v-if="showVatAlert" @click="hideAlert('showVat')" closable type="warning" class="my-2") {{ $t("dashboard.alert.vat") }}
 div
   v-row
     v-col(v-if="costChartData" cols="12" md="4")
@@ -252,5 +254,41 @@ async function resetAll(): Promise<void> {
   } finally {
     loadingStore.setLoading(false);
   }
+}
+
+const showUrssafAlert = computed(() => {
+  const showUrssaf = document.cookie.includes("showUrssaf");
+
+  if (!showUrssaf) {
+    document.cookie = "showUrssaf=true; max-age=2592000; path=/;";
+  }
+
+  return JSON.parse(getCookie("showUrssaf") || "");
+});
+
+const showVatAlert = computed(() => {
+  let showVat = document.cookie.includes("showVat");
+
+  if (!showVat) {
+    document.cookie = "showVat=true; max-age=2592000; path=/;";
+  }
+
+  return JSON.parse(getCookie("showVat") || "");
+});
+
+function getCookie(cookieName) {
+  const cookies = document.cookie.split(";");
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i].trim();
+    if (cookie.startsWith(cookieName + "=")) {
+      return cookie.substring(cookieName.length + 1);
+    }
+  }
+
+  return null;
+}
+
+function hideAlert(cookieName) {
+  document.cookie = `${cookieName}=false; max-age=2592000; path=/;`;
 }
 </script>
