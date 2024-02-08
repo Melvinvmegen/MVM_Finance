@@ -140,11 +140,11 @@ export async function setAssetsStats() {
           asset_stats.sum_costs_since_last_updated_at +
           asset_stats.sum_credits_since_last_updated_at;
         const amount_last_month =
-          asset_stats.amount + asset_stats.sum_costs_last_month + asset_stats.sum_credits_last_month;
+          asset_stats.amount - asset_stats.sum_costs_last_month - asset_stats.sum_credits_last_month;
         const amount_six_months_ago =
-          asset_stats.amount + asset_stats.sum_costs_last_six_months + asset_stats.sum_credits_last_six_months;
+          asset_stats.amount - asset_stats.sum_costs_last_six_months - asset_stats.sum_credits_last_six_months;
         const amount_last_year =
-          asset_stats.amount + asset_stats.sum_costs_last_year + asset_stats.sum_credits_last_year;
+          asset_stats.amount - asset_stats.sum_costs_last_year - asset_stats.sum_credits_last_year;
 
         await prisma.asset.update({
           where: {

@@ -13,6 +13,12 @@ v-col(cols="12")
       span {{ dayjs(item.updated_at).format("MM/DD/YY") }}
     template( v-slot:[`item.asset_type`]="{ item }")
       span {{ item.asset_type.name }}
+    template( v-slot:[`item.growth_last_month`]="{ item }")
+      span {{ item.growth_last_month + "%" }}
+    template( v-slot:[`item.growth_last_six_months`]="{ item }")
+      span {{ item.growth_last_six_months + "%" }}
+    template( v-slot:[`item.growth_last_year`]="{ item }")
+      span {{ item.growth_last_year  + "%" }}
     template(v-slot:item.actions="{ item }")
       v-row.flex-nowrap(align="center")
         v-btn(icon="mdi-pencil" variant="plain" size="small" @click="mutable_asset = item")
@@ -22,7 +28,7 @@ v-col(cols="12")
 </template>
 
 <script setup lang="ts">
-import type { asset, Query, asset_type } from "../../types/models";
+import type { asset, asset_type } from "../../types/models";
 import { deleteAsset } from "../utils/generated/api-user";
 import dayjs from "dayjs";
 

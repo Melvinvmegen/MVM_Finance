@@ -165,7 +165,11 @@
     "investments": "Investments",
     "editAsset": "Edit asset",
     "addAsset": "add asset",
-    "asset_type": "Asset type"
+    "asset_type": "Asset type",
+    "alert": {
+      "urssaf": "The URSSAF is waiting for your declaration!",
+      "vat": "The gouvernment is waiting for your VAT declaration!"
+    }
   },
   "invoice": {
     "editInvoice": "Edit an invoice",
