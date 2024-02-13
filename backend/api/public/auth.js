@@ -22,7 +22,7 @@ export default async function (app) {
 export async function signUp(body) {
   const { email, password } = body;
   let user = await prisma.users.findUnique({
-    where: { email: email },
+    where: { email: email.trim().toLowerCase() },
   });
   if (user) throw new AppError("A user with this email already exists !");
   const hashedPassword = await bcrypt.hash(password, 12);
@@ -43,7 +43,7 @@ export async function signUp(body) {
  */
 export async function signIn({ email, password }) {
   const user = await prisma.users.findUnique({
-    where: { email: email.trim() },
+    where: { email: email.trim(). toLowerCase() },
   });
   if (!user) throw new AppError("errors.server.noUserFound");
 
