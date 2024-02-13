@@ -250,7 +250,7 @@ export async function createRevenu(asset_id, upload) {
           });
         }
 
-        const name = (obj.name || obj.reason).replace(/[\d+/+]/g, "").trim();
+        const name = (obj.name || obj.reason).replace(/[\d+/+]/g, "").trim().toLowerCase();
         const newObj = {
           ...obj,
           RevenuId: revenu.id,
@@ -272,6 +272,7 @@ export async function createRevenu(asset_id, upload) {
                 asset_id: +asset_id,
                 name: {
                   contains: name,
+mode: insensitive,
                 },
               },
             });
@@ -286,9 +287,11 @@ export async function createRevenu(asset_id, upload) {
 
           let cost = await prisma.costs.findFirst({
             where: {
-              name: obj.name,
+              name: { contains: name, mode: insensitive},
               total: obj.total,
               RevenuId: revenu.id,
+asset_id: obj.asset_id,
+created_at: obj.created_at
             },
           });
 
@@ -322,8 +325,9 @@ export async function createRevenu(asset_id, upload) {
                 CreditCategoryId: true,
               },
               where: {
-                creditor: {
+                reason: {
                   contains: name,
+mode: insensitive,
                 },
                 asset_id: +asset_id,
               },
@@ -337,9 +341,11 @@ export async function createRevenu(asset_id, upload) {
 
           let credit = await prisma.credits.findFirst({
             where: {
-              creditor: obj.creditor,
+reason: { contains: name, mode: insensitive},
               total: obj.total,
               RevenuId: revenu.id,
+asset_id: obj.asset_id,
+created_at: obj.created_at
             },
           });
           if (credit) {
