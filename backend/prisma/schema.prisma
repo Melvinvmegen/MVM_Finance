@@ -231,6 +231,7 @@ model asset {
   amount                 Float
   created_at             DateTime           @default(now())
   updated_at             DateTime           @updatedAt
+  creation_date          DateTime           @default(now())
   amount_date            DateTime?
   interest_rate          Int?
   user_id                Int

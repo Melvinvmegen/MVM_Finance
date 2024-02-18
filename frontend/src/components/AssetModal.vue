@@ -15,7 +15,7 @@ const props = defineProps({
   },
 });
 
-const mutableAsset = ref({ ...props.model });
+const mutableAsset = ref({ creation_date: dayjs().toDate(), ...props.model });
 const valid = ref(false);
 
 async function submit(): Promise<void> {
@@ -37,13 +37,6 @@ async function submit(): Promise<void> {
     loadingStore.setLoading(false);
   }
 }
-
-function itemProps(item) {
-  return {
-    title: item.name,
-    value: item.id,
-  };
-}
 </script>
 
 <template lang="pug">
@@ -53,6 +46,8 @@ v-dialog(:model-value='props.show' width='600' persistent)
       v-card-title.text-center {{ mutableAsset?.id ? $t("dashboard.editAsset") : $t("dashboard.addAsset") }}
       v-card-text.mt-4
         v-row(dense justify="center")
+          v-col(cols="10")
+            DateInput(v-model='mutableAsset.creation_date' :label='$t("dashboard.creation_date")' :rules="[$v.required()]")
           v-col(cols="10")
             v-select(:items="assetTypes" :item-props="itemProps" v-model="mutableAsset.asset_type_id" :label='$t("dashboard.asset_type")')
           v-col(cols="10")

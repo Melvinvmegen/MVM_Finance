@@ -169,7 +169,8 @@
     "alert": {
       "urssaf": "The URSSAF is waiting for your declaration!",
       "vat": "The gouvernment is waiting for your VAT declaration!"
-    }
+    },
+    "creation_date": "Creation date"
   },
   "invoice": {
     "editInvoice": "Edit an invoice",
