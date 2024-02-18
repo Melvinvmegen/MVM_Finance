@@ -96,12 +96,13 @@ export async function setAssetsStats() {
                 (SELECT SUM(costs.total)
                 FROM "Costs" costs
                 WHERE costs.asset_id = asset.id
-                AND costs."created_at" >= asset.updated_at), 0) as sum_costs_since_last_updated_at,
+                AND costs."created_at" >= asset.amount_date), 0) as sum_costs_since_last_updated_at,
               COALESCE(
                 (SELECT SUM(credits.total)
                 FROM "Credits" credits
                 WHERE credits.asset_id = asset.id
-                AND credits."created_at" >= asset.updated_at), 0) as sum_credits_since_last_updated_at,
+                AND credits."created_at" >= asset.amount_date), 0) as sum_credits_since_last_updated_at,
+              COALESCE(
               COALESCE(
                 (SELECT SUM(costs.total)
                 FROM "Costs" costs
