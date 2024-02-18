@@ -103,6 +103,11 @@ export async function setAssetsStats() {
                 WHERE credits.asset_id = asset.id
                 AND credits."created_at" >= asset.amount_date), 0) as sum_credits_since_last_updated_at,
               COALESCE(
+                (SELECT SUM(crypto.price) * SUM(tr.quantity)
+                FROM "CryptoCurrencies" crypto
+                JOIN "Transactions" tr ON tr.CryptoCurrencyId = crypto.id
+                WHERE crypto.asset_id = asset.id
+                AND crypto."created_at" >= asset.amount_date), 0) as sum_crypto_since_last_updated_at,
               COALESCE(
                 (SELECT SUM(costs.total)
                 FROM "Costs" costs
@@ -114,6 +119,12 @@ export async function setAssetsStats() {
                 WHERE credits.asset_id = asset.id
                 AND credits."created_at" >= NOW() - INTERVAL '1 month'), 0) as sum_credits_last_month,
               COALESCE(
+                (SELECT SUM(crypto.price) * SUM(tr.quantity)
+                FROM "CryptoCurrencies" crypto
+                JOIN "Transactions" tr ON tr.CryptoCurrencyId = crypto.id
+                WHERE crypto.asset_id = asset.id
+                AND crypto."created_at" >= NOW() - INTERVAL '1 month'), 0) as sum_cryptos_last_month,
+              COALESCE(
                 (SELECT SUM(costs.total)
                 FROM "Costs" costs
                 WHERE costs.asset_id = asset.id
@@ -124,6 +135,12 @@ export async function setAssetsStats() {
                 WHERE credits.asset_id = asset.id
                 AND credits."created_at" >= NOW() - INTERVAL '6 month'), 0) as sum_credits_last_six_months,
               COALESCE(
+                (SELECT SUM(crypto.price) * SUM(tr.quantity)
+                FROM "CryptoCurrencies" crypto
+                JOIN "Transactions" tr ON tr.CryptoCurrencyId = crypto.id
+                WHERE crypto.asset_id = asset.id
+                AND crypto."created_at" >= NOW() - INTERVAL '6 month'), 0) as sum_cryptos_last_six_months,
+              COALESCE(
                 (SELECT SUM(costs.total)
                 FROM "Costs" costs
                 WHERE costs.asset_id = asset.id
@@ -133,6 +150,12 @@ export async function setAssetsStats() {
                 FROM "Credits" credits
                 WHERE credits.asset_id = asset.id
                 AND credits."created_at" >= NOW() - INTERVAL '1 year'), 0) as sum_credits_last_year
+              COALESCE(
+                (SELECT SUM(crypto.price) * SUM(tr.quantity)
+                FROM "CryptoCurrencies" crypto
+                JOIN "Transactions" tr ON tr.CryptoCurrencyId = crypto.id
+                WHERE crypto.asset_id = asset.id
+                AND crypto."created_at" >= NOW() - INTERVAL '1 year'), 0) as sum_cryptos_last_year,
             FROM asset
             WHERE id = ${asset.id}`;
 
