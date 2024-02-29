@@ -22,8 +22,7 @@ v-app
       v-row(justify='center' dense)
         v-col.page-container(cols='12' xl='11')
           router-view(v-slot='{ Component }')
-            v-fade-transition(mode='out-in')
-              component(:is='Component')
+            component(:is='Component')
 </template>
 
 <script setup lang="ts">
