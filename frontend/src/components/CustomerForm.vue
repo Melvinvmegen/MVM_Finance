@@ -5,31 +5,31 @@ v-card
     v-card-text
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='firstName' :label='$t("customers.firstname")' v-model="mutableCustomer.firstName" :rules="[$v.required()]")
+          v-text-field(:label='$t("customers.firstname")' v-model="mutable_customer.first_name" :rules="[$v.required()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='lastName' :label='$t("customers.lastname")' v-model="mutableCustomer.lastName" :rules="[$v.required()]")
+          v-text-field(:label='$t("customers.lastname")' v-model="mutable_customer.last_name" :rules="[$v.required()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='email' :label='$t("customers.email")' v-model="mutableCustomer.email" :rules="[$v.required(), $v.isEmail()]")
+          v-text-field(:label='$t("customers.email")' v-model="mutable_customer.email" :rules="[$v.required(), $v.isEmail()]")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='phone' :label='$t("customers.phone")' v-model="mutableCustomer.phone")
+          v-text-field(:label='$t("customers.phone")' v-model="mutable_customer.phone")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='company' :label='$t("customers.company")' v-model="mutableCustomer.company")
+          v-text-field(:label='$t("customers.company")' v-model="mutable_customer.company")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='address' :label='$t("customers.address")' v-model="mutableCustomer.address")
+          v-text-field(:label='$t("customers.address")' v-model="mutable_customer.address")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='city' :label='$t("customers.city")' v-model="mutableCustomer.city")
+          v-text-field(:label='$t("customers.city")' v-model="mutable_customer.city")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='siret' :label='$t("customers.siret")' v-model="mutableCustomer.siret")
+          v-text-field(:label='$t("customers.siret")' v-model="mutable_customer.siret")
       v-row(dense justify="center")
         v-col(cols="12")
-          v-text-field(name='siret' :label='$t("customers.vatNumber")' v-model="mutableCustomer.vatNumber")
+          v-text-field(:label='$t("customers.vatNumber")' v-model="mutable_customer.vat_number")
 
     v-card-actions
       v-row(dense justify="center")
@@ -38,31 +38,31 @@ v-card
 </template>
 
 <script setup lang="ts">
-import type { Customers, Prisma } from "../../types/models";
+import type { customer, Prisma } from "../../types/models";
 import { createCustomer, updateCustomer } from "../utils/generated/api-user";
 const props = defineProps({
   initialCustomer: {
-    type: Object as PropType<Customers>,
+    type: Object as PropType<customer>,
   },
 });
 const loadingStore = useLoadingStore();
 const valid = ref(false);
-let mutableCustomer = ref<Prisma.CustomersUncheckedCreateInput>({
-  firstName: "",
-  lastName: "",
+let mutable_customer = ref<Prisma.customerUncheckedCreateInput>({
+  first_name: "",
+  last_name: "",
   email: "",
   phone: "",
   company: "",
   address: "",
   city: "",
   siret: "",
-  vatNumber: "",
-  stripeId: null,
-  UserId: null,
+  vat_number: "",
+  stripe_id: null,
+  user_id: null,
 });
 
 if (props.initialCustomer) {
-  mutableCustomer.value = { ...props.initialCustomer };
+  mutable_customer.value = { ...props.initialCustomer };
 }
 
 async function handleSubmit(): Promise<void> {
@@ -70,10 +70,10 @@ async function handleSubmit(): Promise<void> {
   loadingStore.setLoading(true);
   try {
     if (props.initialCustomer?.id) {
-      await updateCustomer(mutableCustomer.value.id, mutableCustomer.value);
+      await updateCustomer(mutable_customer.value.id, mutable_customer.value);
       useMessageStore().i18nMessage("success", "customers.updated");
     } else {
-      const newCustomer = await createCustomer(mutableCustomer.value);
+      const newCustomer = await createCustomer(mutable_customer.value);
       window.location.pathname = `/customers/${newCustomer.id}`;
     }
   } finally {

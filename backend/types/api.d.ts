@@ -13,9 +13,9 @@ declare global {
     export type LoggedUser = {
       id: number;
       email: string;
-      cryptosModuleActive: boolean;
-      customersModuleActive: boolean;
-      revenusModuleActive: boolean;
+      cryptos_module_active: boolean;
+      customers_module_active: boolean;
+      revenus_module_active: boolean;
       investment_goal: number;
       withholding_tax_active: boolean;
     };

@@ -15,7 +15,7 @@ v-row(justify='center' align="center" dense class="fill-height")
 </template>
 
 <script setup lang="ts">
-import type { Users } from "../../../types/models";
+import type { user } from "../../../types/models";
 import { signIn } from "../../utils/generated/api-public";
 
 const loadingStore = useLoadingStore();
@@ -28,7 +28,7 @@ if (loggedIn.value) {
   router.push("/dashboard");
 }
 
-async function handleSubmit(user: Users): Promise<void> {
+async function handleSubmit(user: user): Promise<void> {
   loadingStore.setLoading(true);
   try {
     if (isSignIn.value) {

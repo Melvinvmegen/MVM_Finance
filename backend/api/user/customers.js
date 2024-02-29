@@ -17,7 +17,7 @@ export default async function (app) {
 /**
  * @this {API.This}
  * @param {{ per_page: number, offset: number, force: string, options: any }} params
- * @returns {Promise<{count: number, rows: Models.Customers[]}>}
+ * @returns {Promise<{count: number, rows: Models.customer[]}>}
  */
 export async function getCustomers(params) {
   const { per_page, offset, orderBy, options } = setFilters(params);
@@ -28,15 +28,15 @@ export async function getCustomers(params) {
     `user_${this.request.user?.id}_customers`,
     async () => {
       try {
-        const count = await prisma.customers.count();
-        const rows = await prisma.customers.findMany({
+        const count = await prisma.customer.count();
+        const rows = await prisma.customer.findMany({
           where: {
             ...options,
-            UserId: this.request.user?.id || null,
+            user_id: this.request.user?.id || null,
           },
           orderBy: orderBy || { created_at: "desc" },
           include: {
-            Invoices: true,
+            invoices: true,
           },
           skip: offset,
           take: per_page,
@@ -59,17 +59,17 @@ export async function getCustomers(params) {
 
 /**
  * @this {API.This}
- * @param {number} customerId
- * @returns {Promise<Models.Customers>}
+ * @param {number} customer_id
+ * @returns {Promise<Models.customer>}
  */
-export async function getCustomer(customerId) {
+export async function getCustomer(customer_id) {
   let error;
-  const customer = await getOrSetCache(`user_${this.request.user?.id}_customer_${customerId}`, async () => {
+  const customer = await getOrSetCache(`user_${this.request.user?.id}_customer_${customer_id}`, async () => {
     try {
-      const customer = await prisma.customers.findFirst({
+      const customer = await prisma.customer.findFirst({
         where: {
-          id: +customerId,
-          UserId: this.request.user?.id || null,
+          id: +customer_id,
+          user_id: this.request.user?.id || null,
         },
       });
 
@@ -91,17 +91,17 @@ export async function getCustomer(customerId) {
 
 /**
  * @this {API.This}
- * @param {Models.Prisma.CustomersUncheckedCreateInput} body
- * @returns {Promise<Models.Customers & { Invoices: Models.Invoices[] }>}
+ * @param {Models.Prisma.customerUncheckedCreateInput} body
+ * @returns {Promise<Models.customer & { invoices: Models.invoice[] }>}
  */
 export async function createCustomer(body) {
-  const customer = await prisma.customers.create({
+  const customer = await prisma.customer.create({
     data: {
       ...body,
-      UserId: this.request.user?.id || null,
+      user_id: this.request.user?.id || null,
     },
     include: {
-      Invoices: true,
+      invoices: true,
     },
   });
   await invalidateCache(`user_${this.request.user?.id}_customers`);
@@ -110,29 +110,29 @@ export async function createCustomer(body) {
 
 /**
  * @this {API.This}
- * @param {string} customerId
- * @param {Models.Prisma.CustomersUncheckedUpdateInput} body
- * @returns {Promise<Models.Customers>}
+ * @param {string} customer_id
+ * @param {Models.Prisma.customerUncheckedUpdateInput} body
+ * @returns {Promise<Models.customer>}
  */
-export async function updateCustomer(customerId, body) {
-  const { Invoices, Quotations, ...customerBody } = body;
+export async function updateCustomer(customer_id, body) {
+  const { invoices, quotations, ...customerBody } = body;
 
-  let customer = await prisma.customers.findFirst({
+  let customer = await prisma.customer.findFirst({
     where: {
-      id: +customerId,
-      UserId: this.request.user?.id || null,
+      id: +customer_id,
+      user_id: this.request.user?.id || null,
     },
   });
 
   if (!customer) throw new AppError("Customer not found!");
 
-  customer = await prisma.customers.update({
+  customer = await prisma.customer.update({
     where: {
-      id: +customerId,
+      id: +customer_id,
     },
     data: {
       ...customerBody,
-      UserId: this.request.user?.id || null,
+      user_id: this.request.user?.id || null,
     },
   });
 
@@ -142,13 +142,13 @@ export async function updateCustomer(customerId, body) {
 
 /**
  * @this {API.This}
- * @param {string} customerId
+ * @param {string} customer_id
  */
-export async function deleteCustomer(customerId) {
-  await prisma.customers.delete({
+export async function deleteCustomer(customer_id) {
+  await prisma.customer.delete({
     where: {
-      id: +customerId,
-      UserId: this.request.user?.id || null,
+      id: +customer_id,
+      user_id: this.request.user?.id || null,
     },
   });
   await invalidateCache(`user_${this.request.user?.id}_customers`);

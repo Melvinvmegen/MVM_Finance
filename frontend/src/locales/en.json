@@ -221,7 +221,7 @@
     "created_at": "Création date",
     "recurrent": "Recurrent",
     "recurrents": "Recurrents",
-    "paymentMean": "Payment Mean",
+    "payment_mean": "Payment Mean",
     "update": "Update",
     "updateCost": "Update cost",
     "deposit": "Deposit",

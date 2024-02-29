@@ -40,13 +40,13 @@ const menuItems = [
     icon: "mdi-account-cash-outline",
     active: true,
   },
-  { title: "Revenus", link: "revenus", icon: "mdi-currency-eur", active: currentUser?.value?.revenusModuleActive },
+  { title: "Revenus", link: "revenus", icon: "mdi-currency-eur", active: currentUser?.value?.revenus_module_active },
   {
     title: "Customers",
     link: "customers",
     icon: "mdi-account-group-outline",
-    active: currentUser?.value?.customersModuleActive,
+    active: currentUser?.value?.customers_module_active,
   },
-  { title: "Cryptos", link: "cryptos", icon: "mdi-currency-btc", active: currentUser?.value?.cryptosModuleActive },
+  { title: "Cryptos", link: "cryptos", icon: "mdi-currency-btc", active: currentUser?.value?.cryptos_module_active },
 ];
 </script>

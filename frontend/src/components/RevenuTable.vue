@@ -42,14 +42,14 @@ v-col(cols="12")
 </template>
 
 <script setup lang="ts">
-import type { Revenus } from "../../types/models";
+import type { revenu } from "../../types/models";
 import dayjs from "dayjs";
 
 const loadingStore = useLoadingStore();
 const searchFrom = ref<HTMLFormElement | null>(null);
 const props = defineProps<{
   items: {
-    rows: Array<Revenus>;
+    rows: Array<revenu>;
     count: number;
   };
 }>();
@@ -140,7 +140,7 @@ function getRevenus({ page, itemsPerPage, sortBy }) {
   });
 }
 
-function revenuDate(revenu: Revenus) {
+function revenuDate(revenu: revenu) {
   if (!revenu) return;
   return dayjs(revenu.created_at).format("MMMM YYYY");
 }

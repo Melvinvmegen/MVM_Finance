@@ -38,23 +38,23 @@ export function createRouter() {
             component: () => import("./pages/user/customer.vue"),
           },
           {
-            path: "/customers/:customerId",
+            path: "/customers/:customer_id",
             component: () => import("./pages/user/customer.vue"),
           },
           {
-            path: "/customers/:customerId/invoices/new",
+            path: "/customers/:customer_id/invoices/new",
             component: () => import("./pages/user/invoice.vue"),
           },
           {
-            path: "/customers/:customerId/invoices/:id",
+            path: "/customers/:customer_id/invoices/:id",
             component: () => import("./pages/user/invoice.vue"),
           },
           {
-            path: "/customers/:customerId/quotations/new",
+            path: "/customers/:customer_id/quotations/new",
             component: () => import("./pages/user/quotation.vue"),
           },
           {
-            path: "/customers/:customerId/quotations/:id",
+            path: "/customers/:customer_id/quotations/:id",
             component: () => import("./pages/user/quotation.vue"),
           },
           {

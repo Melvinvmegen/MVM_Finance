@@ -15,24 +15,24 @@ export default async function (app) {
 
 /**
  * @this {API.This}
- * @param {number} pendingEmailId
- * @returns {Promise<Models.PendingEmail & { Invoices: Models.Invoices[], CronTask: Models.CronTask[] }>}
+ * @param {number} pending_email_id
+ * @returns {Promise<Models.pending_email & { invoices: Models.invoice[], cron_task: Models.cron_task[] }>}
  */
-export async function getPendingEmail(pendingEmailId) {
+export async function getPendingEmail(pending_email_id) {
   let error;
   const pending_email = await getOrSetCache(
-    `user_${this.request.user?.id}_pending_email_${pendingEmailId}`,
+    `user_${this.request.user?.id}_pending_email_${pending_email_id}`,
     async () => {
       try {
-        const pending_email = await prisma.pendingEmail.findFirst({
+        const pending_email = await prisma.pending_email.findFirst({
           where: {
-            id: +pendingEmailId,
-            UserId: this.request.user?.id || null,
+            id: +pending_email_id,
+            user_id: this.request.user?.id || null,
           },
           include: {
-            Invoice: true,
-            Quotation: true,
-            CronTask: true,
+            invoice: true,
+            quotation: true,
+            cron_task: true,
           },
         });
 
@@ -55,137 +55,137 @@ export async function getPendingEmail(pendingEmailId) {
 
 /**
  * @this {API.This}
- * @param {Models.Prisma.PendingEmailUncheckedCreateInput & { CronTask: Models.Prisma.CronTaskUncheckedCreateInput & { time: string } }} body
- * @returns {Promise<Models.PendingEmail>}
+ * @param {Models.Prisma.pending_emailUncheckedCreateInput & { cron_task: Models.Prisma.cron_taskUncheckedCreateInput & { time: string } }} body
+ * @returns {Promise<Models.pending_email>}
  */
 export async function createPendingEmail(body) {
-  const pending_email = await prisma.pendingEmail.create({
+  const pending_email = await prisma.pending_email.create({
     data: {
-      recipientEmail: body.recipientEmail,
-      fromAddress: "",
-      fromName: "",
-      bbcRecipientEmail: "",
+      recipient_email: body.recipient_email,
+      from_address: "",
+      from_name: "",
+      bbc_recipient_email: "",
       subject: body.subject,
       content: body.content,
       sent: false,
-      InvoiceId: body.InvoiceId,
-      QuotationId: body.QuotationId,
-      UserId: this.request.user.id,
+      invoice_id: body.invoice_id,
+      quotation_id: body.quotation_id,
+      user_id: this.request.user.id,
     },
   });
 
-  const date = dayjs(body.CronTask.date);
-  const time = body.CronTask.time.split(":");
-  await prisma.cronTask.create({
+  const date = dayjs(body.cron_task.date);
+  const time = body.cron_task.time.split(":");
+  await prisma.cron_task.create({
     data: {
       date: date.set("hour", +time[0]).set("minute", +time[1]).set("second", +time[2]).toDate(),
-      dateIntervalType: "month",
-      dateIntervalValue: 0,
+      date_interval_type: "month",
+      date_interval_value: 0,
       active: true,
       function: "sendPendingEmail",
-      params: JSON.stringify({ PendingEmailId: pending_email.id }),
-      errorMessage: null,
-      tryCounts: 0,
-      UserId: this.request.user.id,
-      PendingEmailId: pending_email.id,
+      params: JSON.stringify({ pending_email_id: pending_email.id }),
+      error_message: null,
+      try_counts: 0,
+      user_id: this.request.user.id,
+      pending_email_id: pending_email.id,
     },
   });
 
   let parentModel;
-  if (body.InvoiceId) {
-    parentModel = await prisma.invoices.findUnique({
+  if (body.invoice_id) {
+    parentModel = await prisma.invoice.findUnique({
       where: {
-        id: body.InvoiceId,
+        id: body.invoice_id,
       },
       select: {
-        CustomerId: true,
+        customer_id: true,
       },
     });
-  } else if (body.QuotationId) {
-    parentModel = await prisma.quotations.findUnique({
+  } else if (body.quotation_id) {
+    parentModel = await prisma.quotation.findUnique({
       where: {
-        id: body.QuotationId,
+        id: body.quotation_id,
       },
       select: {
-        CustomerId: true,
+        customer_id: true,
       },
     });
   }
-  parentModel && (await invalidateCache(`user_${this.request.user?.id}_customer_${parentModel.CustomerId}_invoices`));
+  parentModel && (await invalidateCache(`user_${this.request.user?.id}_customer_${parentModel.customer_id}_invoices`));
   return pending_email;
 }
 
 /**
  * @this {API.This}
- * @param {string} pendingEmailId
- * @param {Models.Prisma.PendingEmailUncheckedUpdateInput & { CronTask: Models.Prisma.CronTaskUncheckedUpdateInput & { time: string }}} body
- * @returns {Promise<Models.PendingEmail & {CronTask: Models.CronTask}>}
+ * @param {string} pending_email_id
+ * @param {Models.Prisma.pending_emailUncheckedUpdateInput & { cron_task: Models.Prisma.cron_taskUncheckedUpdateInput & { time: string }}} body
+ * @returns {Promise<Models.pending_email & {cron_task: Models.cron_task}>}
  */
-export async function updatePendingEmail(pendingEmailId, body) {
-  let pending_email = await prisma.pendingEmail.findFirst({
+export async function updatePendingEmail(pending_email_id, body) {
+  let pending_email = await prisma.pending_email.findFirst({
     where: {
-      id: +pendingEmailId,
-      UserId: this.request.user?.id || null,
+      id: +pending_email_id,
+      user_id: this.request.user?.id || null,
     },
     include: {
-      CronTask: true,
-      Invoice: {
+      cron_task: true,
+      invoice: {
         select: {
-          CustomerId: true,
+          customer_id: true,
         },
       },
-      Quotation: {
+      quotation: {
         select: {
-          CustomerId: true,
+          customer_id: true,
         },
       },
     },
   });
 
-  if (!pending_email) throw new AppError("PendingEmail not found!");
+  if (!pending_email) throw new AppError("Pending email not found!");
 
-  const date = dayjs(body.CronTask.date);
-  const time = body.CronTask.time.split(":");
-  await prisma.cronTask.update({
+  const date = dayjs(body.cron_task.date);
+  const time = body.cron_task.time.split(":");
+  await prisma.cron_task.update({
     where: {
-      PendingEmailId: +pending_email.id,
+      pending_email_id: +pending_email.id,
     },
     data: {
       date: date.set("hour", +time[0]).set("minute", +time[1]).set("second", +time[2]).toDate(),
-      active: body.CronTask.active,
+      active: body.cron_task.active,
     },
   });
 
-  pending_email = await prisma.pendingEmail.update({
+  pending_email = await prisma.pending_email.update({
     where: {
-      id: +pendingEmailId,
+      id: +pending_email_id,
     },
     data: {
-      recipientEmail: body.recipientEmail,
+      recipient_email: body.recipient_email,
       subject: body.subject,
       content: body.content,
     },
     include: {
-      CronTask: true,
-      Invoice: true,
-      Quotation: true,
+      cron_task: true,
+      invoice: true,
+      quotation: true,
     },
   });
 
-  const customerId = pending_email?.Invoice?.CustomerId || pending_email?.Quotation?.CustomerId;
-  await invalidateCache(`user_${this.request.user?.id}_customer_${customerId}_invoices`);
+  const customer_id = pending_email?.invoice?.customer_id || pending_email?.quotation?.customer_id;
+  await invalidateCache(`user_${this.request.user?.id}_customer_${customer_id}_invoices`);
   return pending_email;
 }
 
 /**
  * @this {API.This}
- * @param {string} pendingEmailId
+ * @param {string} pending_email_id
  */
-export async function deletePendingEmail(pendingEmailId) {
-  await prisma.pendingEmail.delete({
+export async function deletePendingEmail(pending_email_id) {
+  await prisma.pending_email.delete({
     where: {
-      id: +pendingEmailId,
-      UserId: this.request.user?.id || null,
+      id: +pending_email_id,
+      user_id: this.request.user?.id || null,
     },
   });
   await invalidateCache(`user_${this.request.user?.id}_pending_emails`);

@@ -40,7 +40,7 @@ export async function setUsersStats() {
             COALESCE(AVG(investments), 0) as average_investments,
             COALESCE(AVG(tax_amount), 0) as average_tax_amount
           FROM
-            (SELECT * FROM "Revenus" WHERE "UserId" = ${investment_profile.user_id}  ORDER BY "created_at" DESC LIMIT 6) as revenus;`;
+            (SELECT * FROM revenu WHERE user_id = ${investment_profile.user_id}  ORDER BY created_at DESC LIMIT 6) as revenus;`;
 
         await prisma.investment_profile.update({
           where: {
@@ -93,69 +93,69 @@ export async function setAssetsStats() {
               asset.name,
               asset.amount,
               COALESCE(
-                (SELECT SUM(costs.total)
-                FROM "Costs" costs
-                WHERE costs.asset_id = asset.id
-                AND costs."created_at" >= asset.amount_date), 0) as sum_costs_since_last_updated_at,
+                (SELECT SUM(cost.total)
+                FROM cost
+                WHERE cost.asset_id = asset.id
+                AND cost.created_at >= asset.amount_date), 0) as sum_costs_since_last_updated_at,
               COALESCE(
-                (SELECT SUM(credits.total)
-                FROM "Credits" credits
-                WHERE credits.asset_id = asset.id
-                AND credits."created_at" >= asset.amount_date), 0) as sum_credits_since_last_updated_at,
+                (SELECT SUM(credit.total)
+                FROM credit
+                WHERE credit.asset_id = asset.id
+                AND credit.created_at >= asset.amount_date), 0) as sum_credits_since_last_updated_at,
               COALESCE(
-                (SELECT SUM(crypto.price) * SUM(tr.quantity)
-                FROM "CryptoCurrencies" crypto
-                JOIN "Transactions" tr ON tr.CryptoCurrencyId = crypto.id
-                WHERE crypto.asset_id = asset.id
-                AND crypto."created_at" >= asset.amount_date), 0) as sum_crypto_since_last_updated_at,
+                (SELECT SUM(crypto_currency.price) * SUM(tr.quantity)
+                FROM crypto_currency
+                JOIN "transaction" tr ON tr.crypto_currency_id = crypto_currency.id
+                WHERE crypto_currency.asset_id = asset.id
+                AND crypto_currency.created_at >= asset.amount_date), 0) as sum_cryptos_since_last_updated_at,
               COALESCE(
-                (SELECT SUM(costs.total)
-                FROM "Costs" costs
-                WHERE costs.asset_id = asset.id
-                AND costs."created_at" >= NOW() - INTERVAL '1 month'), 0) as sum_costs_last_month,
+                (SELECT SUM(cost.total)
+                FROM cost
+                WHERE cost.asset_id = asset.id
+                AND cost.created_at >= NOW() - INTERVAL '1 month'), 0) as sum_costs_last_month,
               COALESCE(
-                (SELECT SUM(credits.total)
-                FROM "Credits" credits
-                WHERE credits.asset_id = asset.id
-                AND credits."created_at" >= NOW() - INTERVAL '1 month'), 0) as sum_credits_last_month,
+                (SELECT SUM(credit.total)
+                FROM credit
+                WHERE credit.asset_id = asset.id
+                AND credit.created_at >= NOW() - INTERVAL '1 month'), 0) as sum_credits_last_month,
               COALESCE(
-                (SELECT SUM(crypto.price) * SUM(tr.quantity)
-                FROM "CryptoCurrencies" crypto
-                JOIN "Transactions" tr ON tr.CryptoCurrencyId = crypto.id
-                WHERE crypto.asset_id = asset.id
-                AND crypto."created_at" >= NOW() - INTERVAL '1 month'), 0) as sum_cryptos_last_month,
+                (SELECT SUM(crypto_currency.price) * SUM(tr.quantity)
+                FROM crypto_currency
+                JOIN "transaction" tr ON tr.crypto_currency_id = crypto_currency.id
+                WHERE crypto_currency.asset_id = asset.id
+                AND crypto_currency.created_at >= NOW() - INTERVAL '1 month'), 0) as sum_cryptos_last_month,
               COALESCE(
-                (SELECT SUM(costs.total)
-                FROM "Costs" costs
-                WHERE costs.asset_id = asset.id
-                AND costs."created_at" >= NOW() - INTERVAL '6 month'), 0) as sum_costs_last_six_months,
+                (SELECT SUM(cost.total)
+                FROM cost
+                WHERE cost.asset_id = asset.id
+                AND cost.created_at >= NOW() - INTERVAL '6 month'), 0) as sum_costs_last_six_months,
               COALESCE(
-                (SELECT SUM(credits.total)
-                FROM "Credits" credits
-                WHERE credits.asset_id = asset.id
-                AND credits."created_at" >= NOW() - INTERVAL '6 month'), 0) as sum_credits_last_six_months,
+                (SELECT SUM(credit.total)
+                FROM credit
+                WHERE credit.asset_id = asset.id
+                AND credit.created_at >= NOW() - INTERVAL '6 month'), 0) as sum_credits_last_six_months,
               COALESCE(
-                (SELECT SUM(crypto.price) * SUM(tr.quantity)
-                FROM "CryptoCurrencies" crypto
-                JOIN "Transactions" tr ON tr.CryptoCurrencyId = crypto.id
-                WHERE crypto.asset_id = asset.id
-                AND crypto."created_at" >= NOW() - INTERVAL '6 month'), 0) as sum_cryptos_last_six_months,
+                (SELECT SUM(crypto_currency.price) * SUM(tr.quantity)
+                FROM crypto_currency
+                JOIN "transaction" tr ON tr.crypto_currency_id = crypto_currency.id
+                WHERE crypto_currency.asset_id = asset.id
+                AND crypto_currency.created_at >= NOW() - INTERVAL '6 month'), 0) as sum_cryptos_last_six_months,
               COALESCE(
-                (SELECT SUM(costs.total)
-                FROM "Costs" costs
-                WHERE costs.asset_id = asset.id
-                AND costs."created_at" >= NOW() - INTERVAL '1 year'), 0) as sum_costs_last_year,
+                (SELECT SUM(cost.total)
+                FROM cost
+                WHERE cost.asset_id = asset.id
+                AND cost.created_at >= NOW() - INTERVAL '1 year'), 0) as sum_costs_last_year,
               COALESCE(
-                (SELECT SUM(credits.total)
-                FROM "Credits" credits
-                WHERE credits.asset_id = asset.id
-                AND credits."created_at" >= NOW() - INTERVAL '1 year'), 0) as sum_credits_last_year
+                (SELECT SUM(credit.total)
+                FROM credit
+                WHERE credit.asset_id = asset.id
+                AND credit.created_at >= NOW() - INTERVAL '1 year'), 0) as sum_credits_last_year,
               COALESCE(
-                (SELECT SUM(crypto.price) * SUM(tr.quantity)
-                FROM "CryptoCurrencies" crypto
-                JOIN "Transactions" tr ON tr.CryptoCurrencyId = crypto.id
-                WHERE crypto.asset_id = asset.id
-                AND crypto."created_at" >= NOW() - INTERVAL '1 year'), 0) as sum_cryptos_last_year,
+                (SELECT SUM(crypto_currency.price) * SUM(tr.quantity)
+                FROM crypto_currency
+                JOIN "transaction" tr ON tr.crypto_currency_id = crypto_currency.id
+                WHERE crypto_currency.asset_id = asset.id
+                AND crypto_currency.created_at >= NOW() - INTERVAL '1 year'), 0) as sum_cryptos_last_year
             FROM asset
             WHERE id = ${asset.id}`;
 
@@ -188,12 +188,12 @@ export async function setAssetsStats() {
             growth_last_year: roundTo(((current_amount - amount_last_year) / Math.max(amount_last_year, 1)) * 100, 2),
           },
         });
-
-        await invalidateCache(`user_${this.request.user?.id}_assets`);
       } catch (error) {
         console.log("An unexpected error occured", error);
       }
     }
+
+    await invalidateCache(`user_${this.request.user?.id}_assets`);
   } else {
     throw new AppError("Body not supported");
   }

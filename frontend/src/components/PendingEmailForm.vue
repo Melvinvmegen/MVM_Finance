@@ -5,17 +5,17 @@ v-card(width="600")
     v-card-text
       v-row(justify="center")
         v-col(cols="12" sm="8")
-          v-switch(:label='$t("pendingEmail.active")' v-model="mutableModel.CronTask.active" hide-details)
+          v-switch(:label='$t("pendingEmail.active")' v-model="mutableModel.cron_task.active" hide-details)
       v-row(justify="center")
         v-col(cols="12" sm="8")
           label {{ $t("pendingEmail.date") }}
-          DateInput(v-model="mutableModel.CronTask.date")
+          DateInput(v-model="mutableModel.cron_task.date")
       v-row(justify="center")
         v-col(cols="12" sm="8")
-          v-text-field(:label='$t("pendingEmail.time")' v-model="mutableModel.CronTask.time" :rules="[$v.required()]")
+          v-text-field(:label='$t("pendingEmail.time")' v-model="mutableModel.cron_task.time" :rules="[$v.required()]")
       v-row(justify="center")
         v-col(cols="12" sm="8")
-          v-text-field(:label='$t("pendingEmail.recipientEmail")' v-model="mutableModel.recipientEmail" :rules="[$v.required(), $v.isEmail()]")
+          v-text-field(:label='$t("pendingEmail.recipientEmail")' v-model="mutableModel.recipient_email" :rules="[$v.required(), $v.isEmail()]")
       v-row(justify="center")
         v-col(cols="12" sm="8")
           v-text-field(:label='$t("pendingEmail.subject")' v-model="mutableModel.subject" :rules="[$v.required()]")
@@ -31,8 +31,8 @@ v-card(width="600")
 <script setup lang="ts">
 import dayjs from "dayjs";
 import { createPendingEmail, updatePendingEmail } from "../utils/generated/api-user";
-import type { PendingEmail, CronTask } from "../../types/models";
-type PendingEmailWithCron = PendingEmail & { CronTask: CronTask & { time: string } };
+import type { pending_email, cron_task } from "../../types/models";
+type PendingEmailWithCron = pending_email & { cron_task: cron_task & { time: string } };
 
 const props = defineProps({
   model: {
@@ -46,8 +46,8 @@ const loadingStore = useLoadingStore();
 const emit = defineEmits(["close"]);
 
 onMounted(async () => {
-  mutableModel.CronTask.date = dayjs(props.model.CronTask.date || undefined).toDate();
-  mutableModel.CronTask.time = dayjs(mutableModel.CronTask.date).format("HH:mm:ss");
+  mutableModel.cron_task.date = dayjs(props.model.cron_task.date || undefined).toDate();
+  mutableModel.cron_task.time = dayjs(mutableModel.cron_task.date).format("HH:mm:ss");
 });
 
 async function handleSubmit(): Promise<void> {

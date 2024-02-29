@@ -34,9 +34,9 @@ v-row(v-if="items.rows")
                   template(v-if="expensesAverage")
                     v-card-subtitle.pl-10 {{ $t("revenus.averageMonthlySpending") }}
                     v-card-title.pr-10 {{ $n(expensesAverage, "currency") }}
-                  template(v-if="recurrentCosts")
+                  template(v-if="recurrent_costs")
                     .text-caption.text-disabled.pl-10 {{ $t("revenus.averageRecurrentSpending") }}
-                    v-card-subtitle.pr-10 {{ $n(recurrentCosts, "currency") }}
+                    v-card-subtitle.pr-10 {{ $n(recurrent_costs, "currency") }}
                 BarChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
       v-col(cols="12" md="6")
         v-card(elevation="3" class="mt-4")
@@ -46,9 +46,9 @@ v-row(v-if="items.rows")
                   template(v-if="revenusAverage")
                     v-card-subtitle.pl-10 {{ $t("revenus.averageRevenu") }}
                     v-card-title.pr-10 {{ $n(revenusAverage, "currency") }}
-                  template(v-if="recurrentCredits")
+                  template(v-if="recurrent_credits")
                     .text-caption.text-disabled.pl-10 {{ $t("revenus.averageRecurrentCredits") }}
-                    v-card-subtitle.pr-10 {{ $n(recurrentCredits, "currency") }}
+                    v-card-subtitle.pr-10 {{ $n(recurrent_credits, "currency") }}
                 BarChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
 
   v-col(cols="12" md="4")
@@ -59,14 +59,14 @@ v-row(v-if="items.rows")
           v-card-title {{ $n(revenusTotal, "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.totalSpending") }}
-          v-card-title {{ $n(revenusCostTotal, "currency") }}
+          v-card-title {{ $n(revenus_cost_total, "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.taxes") }}
           v-card-title {{ $n(- taxAmount, "currency") }}
         hr.mx-2.my-4
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.netResult") }}
-          v-card-title {{ $n(Math.round(revenusTotal + revenusCostTotal), "currency") }}
+          v-card-title {{ $n(Math.round(revenusTotal + revenus_cost_total), "currency") }}
 
     v-card.mt-4
       v-card-text
@@ -125,16 +125,16 @@ async function refreshRevenus(value) {
 
 const costPieChartData = computed(() => {
   if (!items.value.count) return;
-  const costs = items.value.rows.flatMap((revenu) => revenu.Costs);
+  const costs = items.value.rows.flatMap((revenu) => revenu.costs);
   const groupedModel = costs.reduce((acc, item) => {
-    if (!acc[item.CostCategoryId]) {
-      acc[item.CostCategoryId] = {
-        CostCategoryId: item.CostCategoryId,
+    if (!acc[item.cost_category_id]) {
+      acc[item.cost_category_id] = {
+        cost_category_id: item.cost_category_id,
         costs: [],
       };
     }
 
-    acc[item.CostCategoryId].costs.push(item);
+    acc[item.cost_category_id].costs.push(item);
     return acc;
   }, {});
 
@@ -161,16 +161,16 @@ const costPieChartData = computed(() => {
 
 const creditPieChartData = computed(() => {
   if (!items.value.count) return;
-  const credits = items.value.rows.flatMap((revenu) => revenu.Credits);
+  const credits = items.value.rows.flatMap((revenu) => revenu.credits);
   const groupedModel = credits.reduce((acc, item) => {
-    if (!acc[item.CreditCategoryId]) {
-      acc[item.CreditCategoryId] = {
-        CreditCategoryId: item.CreditCategoryId,
+    if (!acc[item.credit_category_id]) {
+      acc[item.credit_category_id] = {
+        credit_category_id: item.credit_category_id,
         credits: [],
       };
     }
 
-    acc[item.CreditCategoryId].credits.push(item);
+    acc[item.credit_category_id].credits.push(item);
     return acc;
   }, {});
 
@@ -274,7 +274,7 @@ const revenusTotal = computed(() => {
   return Math.round(totals);
 });
 
-const revenusCostTotal = computed(() => {
+const revenus_cost_total = computed(() => {
   if (!items.value.count) return 0;
   const total = items.value.rows.reduce((sum, revenu) => sum + revenu.expense, 0);
   return Math.round(total);
@@ -298,13 +298,13 @@ const revenusAverage = computed(() => {
   return Math.round(total_revenu / items.value.rows.length);
 });
 
-const recurrentCosts = computed(() => {
+const recurrent_costs = computed(() => {
   if (!items.value.count) return 0;
   const total_reccurent_costs = items.value.rows.reduce((sum: number, revenu) => sum + revenu.recurrent_costs, 0);
   return Math.round(total_reccurent_costs / items.value.rows.length);
 });
 
-const recurrentCredits = computed(() => {
+const recurrent_credits = computed(() => {
   if (!items.value.count) return 0;
   const total_reccurent_credits = items.value.rows.reduce((sum: number, revenu) => sum + revenu.recurrent_credits, 0);
   return Math.round(total_reccurent_credits / items.value.rows.length);

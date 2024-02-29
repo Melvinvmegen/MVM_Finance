@@ -16,12 +16,12 @@ export async function generatePDF() {
   const id = this.request.body.id;
   if (!id) throw new AppError("Body not supported");
 
-  const invoice = await prisma.invoices.findUnique({
+  const invoice = await prisma.invoice.findUnique({
     where: {
       id,
     },
     include: {
-      InvoiceItems: true,
+      invoice_items: true,
     },
   });
 

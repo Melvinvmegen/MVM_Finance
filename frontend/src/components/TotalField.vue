@@ -1,11 +1,11 @@
 <template lang="pug">
 v-card.pa-4(v-if="props.model")
-  template(v-if="props.model.InvoiceItems")
-    v-card-subtitle(v-if="quotationId")  {{ $t("totalField.quotationNumber", [quotationId]) }}
+  template(v-if="props.model.invoice_items")
+    v-card-subtitle(v-if="quotation_id")  {{ $t("totalField.quotationNumber", [quotation_id]) }}
     v-card-subtitle.d-flex.justify-end {{ $t("totalField.invoiceNumber", [props.model.id]) }}
     v-card-subtitle.d-flex.justify-end {{ props.model.company }}
     v-card-subtitle.d-flex.justify-end {{ $t("totalField.invoiceFor") }}
-    v-card-subtitle.d-flex.justify-end {{ props.model.firstName }} {{ props.model.lastName }}
+    v-card-subtitle.d-flex.justify-end {{ props.model.first_name }} {{ props.model.last_name }}
     v-card-subtitle.d-flex.justify-end.mb-12 {{ props.model.address }}  {{ props.model.zipcode }}  {{ props.model.city }}
   hr.mx-2.my-4
   v-row.mx-1(justify="space-between" align="center")
@@ -45,9 +45,9 @@ const props = defineProps({
   },
 });
 
-const quotationId = computed(() => {
-  if (props.model?.InvoiceItems?.length) {
-    return props.model?.InvoiceItems[0]?.QuotationId;
+const quotation_id = computed(() => {
+  if (props.model?.invoice_items?.length) {
+    return props.model?.invoice_items[0]?.quotation_id;
   }
   return "";
 });

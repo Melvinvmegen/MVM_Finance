@@ -8,344 +8,346 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Costs {
+model cost {
+  id               Int           @id @default(autoincrement())
+  name             String        @db.VarChar(255)
+  total            Float
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  revenu_id        Int
+  asset_id         Int?
+  withdrawal_id    Int?          @unique
+  tva_amount       Float?
+  recurrent        Boolean       @default(false)
+  payment_mean     String        @default("CARD")
+  cost_category_id Int           @default(1)
+  revenu           revenu        @relation(fields: [revenu_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  asset            asset?        @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  withdrawal       withdrawal?   @relation(fields: [withdrawal_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  cost_category    cost_category @relation(fields: [cost_category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model credit {
+  id                 Int             @id @default(autoincrement())
+  creditor           String          @db.VarChar(255)
+  reason             String?         @db.VarChar(255)
+  total              Float
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @updatedAt
+  revenu_id          Int
+  asset_id           Int?
+  withdrawal_id      Int?            @unique
+  credit_category_id Int             @default(1)
+  recurrent          Boolean         @default(false)
+  revenu             revenu          @relation(fields: [revenu_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  asset              asset?          @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  withdrawal         withdrawal?     @relation(fields: [withdrawal_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  credit_category    credit_category @relation(fields: [credit_category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model crypto_currency {
   id             Int           @id @default(autoincrement())
   name           String        @db.VarChar(255)
-  total          Float
+  price          Float
+  price_purchase Float
+  price_change   Float
   created_at     DateTime      @default(now())
   updated_at     DateTime      @updatedAt
-  RevenuId       Int
+  category       String?       @db.VarChar(255)
+  profit         Float?
+  sold           Boolean       @default(false)
+  user_id        Int?
   asset_id       Int?
-  WithdrawalId   Int?          @unique
-  tvaAmount      Float?
-  recurrent      Boolean       @default(false)
-  paymentMean    String        @default("CARD")
-  CostCategoryId Int           @default(1)
-  Revenus        Revenus       @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   asset          asset?        @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Withdrawal     Withdrawal?   @relation(fields: [WithdrawalId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  CostCategory   cost_category @relation(fields: [CostCategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user           user?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_crypto_currency_user")
+  transactions   transaction[]
 }
 
-model Credits {
-  id               Int             @id @default(autoincrement())
-  creditor         String          @db.VarChar(255)
-  reason           String?         @db.VarChar(255)
-  total            Float
-  created_at       DateTime        @default(now())
-  updated_at       DateTime        @updatedAt
-  RevenuId         Int
-  asset_id         Int?
-  WithdrawalId     Int?            @unique
-  CreditCategoryId Int             @default(1)
-  recurrent        Boolean         @default(false)
-  Revenus          Revenus         @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  asset            asset?          @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Withdrawal       Withdrawal?     @relation(fields: [WithdrawalId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  CreditCategory   credit_category @relation(fields: [CreditCategoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model customer {
+  id           Int           @id @default(autoincrement())
+  first_name   String        @db.VarChar(255)
+  last_name    String        @db.VarChar(255)
+  company      String?       @db.VarChar(255)
+  email        String        @db.VarChar(255)
+  phone        String?       @db.VarChar(255)
+  address      String?       @db.VarChar(255)
+  city         String?       @db.VarChar(255)
+  siret        String?       @db.VarChar(255)
+  vat_number   String?       @unique @db.VarChar(15)
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  stripe_id    String?       @unique
+  user_id      Int?
+  user         user?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_customer_user")
+  invoices     invoice[]
+  quotations   quotation[]
+  subscription subscription?
+  payments     payment[]
 }
 
-model CryptoCurrencies {
-  id            Int            @id @default(autoincrement())
-  name          String         @db.VarChar(255)
-  price         Float
-  pricePurchase Float
-  priceChange   Float
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
-  category      String?        @db.VarChar(255)
-  profit        Float?
-  sold          Boolean        @default(false)
-  UserId        Int?
-  asset_id      Int?
-  asset         asset?         @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Users         Users?         @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_crypto_currency_user")
-  Transactions  Transactions[]
+model invoice_item {
+  id           Int        @id @default(autoincrement())
+  name         String     @db.VarChar(255)
+  unit         Float      @default(0)
+  quantity     Float      @default(0)
+  total        Float      @default(0)
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+  invoice_id   Int?
+  quotation_id Int?
+  invoice      invoice?   @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  quotation    quotation? @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-model Customers {
-  id           Int            @id @default(autoincrement())
-  firstName    String         @db.VarChar(255)
-  lastName     String         @db.VarChar(255)
-  company      String?        @db.VarChar(255)
-  email        String         @db.VarChar(255)
-  phone        String?        @db.VarChar(255)
-  address      String?        @db.VarChar(255)
-  city         String?        @db.VarChar(255)
-  siret        String?        @db.VarChar(255)
-  vatNumber    String?        @unique @db.VarChar(15)
-  created_at   DateTime       @default(now())
-  updated_at   DateTime       @updatedAt
-  stripeId     String?        @unique
-  UserId       Int?
-  Users        Users?         @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_customer_user")
-  Invoices     Invoices[]
-  Quotations   Quotations[]
-  Subscription Subscriptions?
-  Payments     Payments[]
+model invoice {
+  id             Int             @id @default(autoincrement())
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  first_name     String          @db.VarChar(255)
+  last_name      String          @db.VarChar(255)
+  company        String?         @db.VarChar(255)
+  address        String?         @db.VarChar(255)
+  city           String?         @db.VarChar(255)
+  vat_number     String?         @db.VarChar(15)
+  payment_date   DateTime?       @db.Timestamptz(6)
+  total          Float           @default(0)
+  paid           Boolean?        @default(false)
+  recurrent      Boolean?        @default(false)
+  total_due      Float           @default(0)
+  tva_applicable Boolean         @default(false)
+  total_ttc      Float           @default(0)
+  tva_amount     Float           @default(0)
+  upload_url     String?         @db.VarChar(255)
+  customer_id    Int
+  revenu_id      Int?
+  invoice_items  invoice_item[]
+  payments       payment[]
+  customer       customer        @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  revenu         revenu?         @relation(fields: [revenu_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  quotation      quotation[]
+  pending_emails pending_email[]
 }
 
-model InvoiceItems {
-  id          Int         @id @default(autoincrement())
-  name        String      @db.VarChar(255)
-  unit        Float       @default(0)
-  quantity    Float       @default(0)
-  total       Float       @default(0)
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
-  InvoiceId   Int?
-  QuotationId Int?
-  Invoices    Invoices?   @relation(fields: [InvoiceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Quotations  Quotations? @relation(fields: [QuotationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model quotation {
+  id             Int             @id @default(autoincrement())
+  first_name     String          @db.VarChar(255)
+  last_name      String          @db.VarChar(255)
+  company        String?         @db.VarChar(255)
+  address        String?         @db.VarChar(255)
+  city           String?         @db.VarChar(255)
+  vat_number     String?         @db.VarChar(15)
+  total          Float           @default(0)
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  caution_paid   Boolean         @default(false)
+  tva_applicable Boolean         @default(false)
+  total_ttc      Float           @default(0)
+  tva_amount     Float           @default(0)
+  payment_date   DateTime?       @db.Timestamptz(6)
+  upload_url     String?         @db.VarChar(255)
+  customer_id    Int
+  revenu_id      Int?
+  invoice_id     Int?
+  invoice_items  invoice_item[]
+  customer       customer        @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  invoice        invoice?        @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  revenu         revenu?         @relation(fields: [revenu_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  pending_emails pending_email[]
 }
 
-model Invoices {
-  id            Int            @id @default(autoincrement())
-  firstName     String         @db.VarChar(255)
-  lastName      String         @db.VarChar(255)
-  company       String?        @db.VarChar(255)
-  address       String?        @db.VarChar(255)
-  city          String?        @db.VarChar(255)
-  vatNumber     String?        @db.VarChar(15)
-  paymentDate   DateTime?      @db.Timestamptz(6)
-  total         Float          @default(0)
-  paid          Boolean?       @default(false)
-  recurrent     Boolean?       @default(false)
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
-  CustomerId    Int
-  RevenuId      Int?
-  totalDue      Float          @default(0)
-  tvaApplicable Boolean        @default(false)
-  totalTTC      Float          @default(0)
-  tvaAmount     Float          @default(0)
-  uploadUrl     String?        @db.VarChar(255)
-  InvoiceItems  InvoiceItems[]
-  Payments      Payments[]
-  Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Revenus       Revenus?       @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Quotations    Quotations[]
-  PendingEmails PendingEmail[]
+model revenu {
+  id                Int           @id @default(autoincrement())
+  total             Float         @default(0)
+  pro               Float         @default(0)
+  perso             Float         @default(0)
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+  tax_percentage    Float         @default(0)
+  expense           Float         @default(0)
+  tva_collected     Float         @default(0)
+  tva_dispatched    Float         @default(0)
+  tva_balance       Float         @default(0)
+  recurrent_costs   Float         @default(0)
+  recurrent_credits Float         @default(0)
+  average_costs     Float         @default(0)
+  average_credits   Float         @default(0)
+  total_costs       Float         @default(0)
+  total_credits     Float         @default(0)
+  tax_amount        Float         @default(0)
+  total_net         Float         @default(0)
+  investments       Float         @default(0)
+  balance           Float         @default(0)
+  refund            Float         @default(0)
+  user_id           Int?
+  watchers          String?       @db.Text
+  user              user?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  costs             cost[]
+  credits           credit[]
+  invoices          invoice[]
+  quotations        quotation[]
+  transactions      transaction[]
+  withdrawals       withdrawal[]
 }
 
-model Quotations {
-  id            Int            @id @default(autoincrement())
-  firstName     String         @db.VarChar(255)
-  lastName      String         @db.VarChar(255)
-  company       String?        @db.VarChar(255)
-  address       String?        @db.VarChar(255)
-  city          String?        @db.VarChar(255)
-  vatNumber     String?        @db.VarChar(15)
-  total         Float          @default(0)
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
-  CustomerId    Int
-  RevenuId      Int?
-  cautionPaid   Boolean        @default(false)
-  InvoiceId     Int?
-  tvaApplicable Boolean        @default(false)
-  totalTTC      Float          @default(0)
-  tvaAmount     Float          @default(0)
-  paymentDate   DateTime?      @db.Timestamptz(6)
-  uploadUrl     String?        @db.VarChar(255)
-  InvoiceItems  InvoiceItems[]
-  Customers     Customers      @relation(fields: [CustomerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Invoices      Invoices?      @relation(fields: [InvoiceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Revenus       Revenus?       @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  PendingEmails PendingEmail[]
+model transaction {
+  id                 Int              @id @default(autoincrement())
+  buying_date        DateTime?        @db.Timestamptz(6)
+  exchange           String?          @db.VarChar(255)
+  price              Float            @default(0)
+  quantity           Float            @default(0)
+  fees               Float            @default(0)
+  total              Float            @default(0)
+  created_at         DateTime         @default(now())
+  updated_at         DateTime         @updatedAt
+  crypto_currency_id Int?
+  revenu_id          Int?
+  crypto_currency    crypto_currency? @relation(fields: [crypto_currency_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  revenu             revenu?          @relation(fields: [revenu_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-model Revenus {
-  id                Int            @id @default(autoincrement())
-  total             Float          @default(0)
-  pro               Float          @default(0)
-  perso             Float          @default(0)
-  created_at        DateTime       @default(now())
-  updated_at        DateTime       @updatedAt
-  taxPercentage     Float          @default(0)
-  expense           Float          @default(0)
-  tva_collected     Float          @default(0)
-  tva_dispatched    Float          @default(0)
-  tva_balance       Float          @default(0)
-  recurrent_costs   Float          @default(0)
-  recurrent_credits Float          @default(0)
-  average_costs     Float          @default(0)
-  average_credits   Float          @default(0)
-  total_costs       Float          @default(0)
-  total_credits     Float          @default(0)
-  tax_amount        Float          @default(0)
-  total_net         Float          @default(0)
-  investments       Float          @default(0)
-  balance           Float          @default(0)
-  refund            Float          @default(0)
-  UserId            Int?
-  watchers          String?        @db.Text
-  User              Users?         @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Costs             Costs[]
-  Credits           Credits[]
-  Invoices          Invoices[]
-  Quotations        Quotations[]
-  Transactions      Transactions[]
-  Withdrawals       Withdrawal[]
-}
-
-model Transactions {
-  id               Int               @id @default(autoincrement())
-  buyingDate       DateTime?         @db.Timestamptz(6)
-  exchange         String?           @db.VarChar(255)
-  price            Float             @default(0)
-  quantity         Float             @default(0)
-  fees             Float             @default(0)
-  total            Float             @default(0)
-  created_at       DateTime          @default(now())
-  updated_at       DateTime          @updatedAt
-  CryptoCurrencyId Int?
-  RevenuId         Int?
-  CryptoCurrencies CryptoCurrencies? @relation(fields: [CryptoCurrencyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Revenus          Revenus?          @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-}
-
-model Users {
-  id                    Int                 @id @default(autoincrement())
-  password              String              @db.VarChar(255)
-  email                 String              @unique @db.VarChar(255)
-  created_at            DateTime            @default(now())
-  updated_at            DateTime            @updatedAt
-  lastLogin             DateTime?
-  authTicket            String?
-  cryptosModuleActive   Boolean             @default(true)
-  customersModuleActive Boolean             @default(true)
-  revenusModuleActive   Boolean             @default(true)
-  assets                asset[]
-  Revenus               Revenus[]
-  CryptoCurrencies      CryptoCurrencies[]
-  Customers             Customers[]
-  CronTasks             CronTask[]
-  PendingEmails         PendingEmail[]
-  investment_profile    investment_profile?
+model user {
+  id                      Int                 @id @default(autoincrement())
+  password                String              @db.VarChar(255)
+  email                   String              @unique @db.VarChar(255)
+  created_at              DateTime            @default(now())
+  updated_at              DateTime            @updatedAt
+  last_login              DateTime?
+  auth_ticket             String?
+  cryptos_module_active   Boolean             @default(true)
+  customers_module_active Boolean             @default(true)
+  revenus_module_active   Boolean             @default(true)
+  assets                  asset[]
+  revenus                 revenu[]
+  crypto_currencies       crypto_currency[]
+  customers               customer[]
+  cron_tasks              cron_task[]
+  pending_emails          pending_email[]
+  payments                payment[]
+  investment_profile      investment_profile?
 }
 
 model asset {
-  id                     Int                @id @default(autoincrement())
-  name                   String             @db.VarChar(45)
+  id                     Int               @id @default(autoincrement())
+  name                   String            @db.VarChar(45)
   amount                 Float
-  created_at             DateTime           @default(now())
-  updated_at             DateTime           @updatedAt
-  creation_date          DateTime           @default(now())
+  created_at             DateTime          @default(now())
+  updated_at             DateTime          @updatedAt
+  creation_date          DateTime          @default(now())
   amount_date            DateTime?
   interest_rate          Int?
   user_id                Int
   asset_type_id          Int?
-  growth_last_month      Float              @default(0)
-  growth_last_six_months Float              @default(0)
-  growth_last_year       Float              @default(0)
-  asset_type             asset_type?        @relation(fields: [asset_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_asset_asset_type")
-  Users                  Users              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_asset_user")
-  Credits                Credits[]
-  Costs                  Costs[]
-  CryptoCurrencies       CryptoCurrencies[]
+  growth_last_month      Float             @default(0)
+  growth_last_six_months Float             @default(0)
+  growth_last_year       Float             @default(0)
+  asset_type             asset_type?       @relation(fields: [asset_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_asset_asset_type")
+  user                   user              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_asset_user")
+  credits                credit[]
+  costs                  cost[]
+  crypto_currencies      crypto_currency[]
 }
 
-model Subscriptions {
-  id             Int                @id @default(autoincrement())
-  created_at     DateTime           @default(now())
-  updated_at     DateTime           @updatedAt
-  status         SubscriptionStatus @default(DRAFT)
-  amount         Float              @default(0)
-  startDate      DateTime?
-  endDate        DateTime?
-  proratedAmount Float?
-  stripeId       String             @unique
-  refundId       String?            @unique
-  CustomerId     Int                @unique
-  Customers      Customers?         @relation(fields: [CustomerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subscription_customer")
-  PaymentIntents PaymentIntents[]
+model subscription {
+  id              Int                @id @default(autoincrement())
+  created_at      DateTime           @default(now())
+  updated_at      DateTime           @updatedAt
+  status          SubscriptionStatus @default(DRAFT)
+  amount          Float              @default(0)
+  start_date      DateTime?
+  end_date        DateTime?
+  prorated_amount Float?
+  stripe_id       String             @unique
+  refund_id       String?            @unique
+  customer_id     Int                @unique
+  customer        customer?          @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subscription_customer")
+  payment_intents payment_intent[]
 }
 
-model PaymentIntents {
-  id             Int                 @id @default(autoincrement())
-  created_at     DateTime            @default(now())
-  updated_at     DateTime            @updatedAt
-  status         PaymentIntentStatus @default(DRAFT)
-  amount         Float               @default(0)
-  stripeId       String              @unique
-  PaymentId      Int?
-  SubscriptionId Int?
-  Payments       Payments?           @relation(fields: [PaymentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Subscriptions  Subscriptions?      @relation(fields: [SubscriptionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model payment_intent {
+  id              Int                 @id @default(autoincrement())
+  created_at      DateTime            @default(now())
+  updated_at      DateTime            @updatedAt
+  status          PaymentIntentStatus @default(DRAFT)
+  amount          Float               @default(0)
+  stripe_id       String              @unique
+  payment_id      Int?
+  subscription_id Int?
+  payment         payment?            @relation(fields: [payment_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subscription    subscription?       @relation(fields: [subscription_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model Payments {
-  id             Int              @id @default(autoincrement())
-  created_at     DateTime         @default(now())
-  updated_at     DateTime         @updatedAt
-  status         PaymentStatus    @default(DRAFT)
-  amount         Float            @default(0)
-  billingAddress String
-  billingZipCode String
-  billingCity    String
-  billingCountry String
-  paymentTries   Int              @default(1)
-  stripeRefundId String?          @unique
-  stripePriceId  String?
-  CustomerId     Int
-  UserId         Int
-  InvoiceId      Int?
-  Customers      Customers?       @relation(fields: [CustomerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subscription_customer")
-  Invoices       Invoices?        @relation(fields: [InvoiceId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subscription_invoice")
-  PaymentIntents PaymentIntents[]
+model payment {
+  id               Int              @id @default(autoincrement())
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+  status           PaymentStatus    @default(DRAFT)
+  amount           Float            @default(0)
+  billing_address  String
+  billing_zip_code String
+  billing_city     String
+  billing_country  String
+  payment_tries    Int              @default(1)
+  stripe_refund_id String?          @unique
+  stripe_price_id  String?
+  customer_id      Int
+  user_id          Int
+  invoice_id       Int?
+  customer         customer?        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subscription_customer")
+  invoice          invoice?         @relation(fields: [invoice_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subscription_invoice")
+  user             user?            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_payment_user")
+  payment_intents  payment_intent[]
 }
 
-model Withdrawal {
-  id           Int      @id @default(autoincrement())
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-  date         DateTime
-  name         String   @db.VarChar(45)
-  amount       Float
-  exchangeFees Float
-  RevenuId     Int
-  Revenus      Revenus  @relation(fields: [RevenuId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_withdrawal_revenu")
-  Cost         Costs?
-  Credit       Credits?
+model withdrawal {
+  id            Int      @id @default(autoincrement())
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  date          DateTime
+  name          String   @db.VarChar(45)
+  amount        Float
+  exchange_fees Float
+  revenu_id     Int
+  revenu        revenu   @relation(fields: [revenu_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_withdrawal_revenu")
+  cost          cost?
+  credit        credit?
 }
 
-model PendingEmail {
-  id                Int         @id @default(autoincrement())
-  created_at        DateTime    @default(now())
-  updated_at        DateTime    @updatedAt
-  recipientEmail    String      @db.VarChar(100)
-  fromName          String      @db.VarChar(100)
-  fromAddress       String      @db.VarChar(100)
-  subject           String      @db.VarChar(100)
-  bbcRecipientEmail String      @db.VarChar(100)
-  content           String      @db.VarChar(400)
-  sent              Boolean     @default(false)
-  InvoiceId         Int?
-  QuotationId       Int?
-  UserId            Int?
-  Invoice           Invoices?   @relation(fields: [InvoiceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  Quotation         Quotations? @relation(fields: [QuotationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  User              Users?      @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  CronTask          CronTask?
+model pending_email {
+  id                  Int        @id @default(autoincrement())
+  created_at          DateTime   @default(now())
+  updated_at          DateTime   @updatedAt
+  recipient_email     String     @db.VarChar(100)
+  from_name           String     @db.VarChar(100)
+  from_address        String     @db.VarChar(100)
+  subject             String     @db.VarChar(100)
+  bbc_recipient_email String     @db.VarChar(100)
+  content             String     @db.VarChar(400)
+  sent                Boolean    @default(false)
+  invoice_id          Int?
+  quotation_id        Int?
+  user_id             Int?
+  invoice             invoice?   @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  quotation           quotation? @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user                user?      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  cron_task           cron_task?
 }
 
-model CronTask {
-  id                Int           @id @default(autoincrement())
-  created_at        DateTime      @default(now())
-  updated_at        DateTime      @updatedAt
-  date              DateTime
-  dateIntervalType  String        @default("month") @db.VarChar(10)
-  dateIntervalValue Int           @default(1)
-  active            Boolean       @default(true)
-  function          String        @db.VarChar(50)
-  errorMessage      String?       @db.VarChar(500)
-  tryCounts         Int           @default(0)
-  params            Json?
-  UserId            Int?
-  PendingEmailId    Int?          @unique
-  User              Users?        @relation(fields: [UserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  PendingEmail      PendingEmail? @relation(fields: [PendingEmailId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model cron_task {
+  id                  Int            @id @default(autoincrement())
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
+  date                DateTime
+  date_interval_type  String         @default("month") @db.VarChar(10)
+  date_interval_value Int            @default(1)
+  active              Boolean        @default(true)
+  function            String         @db.VarChar(50)
+  error_message       String?        @db.VarChar(500)
+  try_counts          Int            @default(0)
+  params              Json?
+  user_id             Int?
+  pending_email_id    Int?           @unique
+  user                user?          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  pending_email       pending_email? @relation(fields: [pending_email_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model asset_type {
@@ -369,17 +371,17 @@ model cost_category {
   name       String   @db.VarChar(50)
   icon       String?  @db.VarChar(100)
   color      String?  @db.VarChar(10)
-  Costs      Costs[]
+  costs      cost[]
 }
 
 model credit_category {
-  id         Int       @id @default(autoincrement())
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  name       String    @db.VarChar(50)
-  icon       String?   @db.VarChar(100)
-  color      String?   @db.VarChar(10)
-  Credits    Credits[]
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  name       String   @db.VarChar(50)
+  icon       String?  @db.VarChar(100)
+  color      String?  @db.VarChar(10)
+  credits    credit[]
 }
 
 model investment_profile {
@@ -396,7 +398,7 @@ model investment_profile {
   average_investments    Float    @default(0)
   investment_capacity    Float    @default(0)
   user_id                Int      @unique
-  user                   Users    @relation(fields: [user_id], references: [id])
+  user                   user     @relation(fields: [user_id], references: [id])
 }
 
 enum SubscriptionStatus {

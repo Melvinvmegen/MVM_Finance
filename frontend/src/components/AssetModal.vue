@@ -37,6 +37,13 @@ async function submit(): Promise<void> {
     loadingStore.setLoading(false);
   }
 }
+
+function itemProps(item) {
+  return {
+    title: item.name,
+    value: item.id,
+  };
+}
 </script>
 
 <template lang="pug">

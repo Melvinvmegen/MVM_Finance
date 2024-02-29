@@ -11,46 +11,46 @@ export default async function (app) {
 
 /**
  * @this {API.This}
- * @param {Models.Prisma.CustomersUncheckedCreateInput} body
- * @returns {Promise<Models.Customers>}
+ * @param {Models.Prisma.customerUncheckedCreateInput} body
+ * @returns {Promise<Models.customer>}
  */
 async function createCustomer(body) {
-  const { firstName, lastName, email } = body;
-  let customer = await prisma.customers.findFirst({
+  const { first_name, last_name, email } = body;
+  let customer = await prisma.customer.findFirst({
     where: {
       email,
     },
   });
 
   let stripeCustomer;
-  if (!(customer && customer.stripeId)) {
+  if (!(customer && customer.stripe_id)) {
     stripeCustomer = await stripe.customers.create({
       email,
-      name: `${firstName} ${lastName}`,
+      name: `${first_name} ${last_name}`,
     });
   }
 
   if (!stripeCustomer) throw new AppError(401, "Unauthorized");
 
   if (customer) {
-    customer = await prisma.customers.update({
+    customer = await prisma.customer.update({
       where: {
         id: +customer.id,
       },
       data: {
-        stripeId: stripeCustomer?.id,
+        stripe_id: stripeCustomer?.id,
         email,
-        firstName,
-        lastName,
+        first_name,
+        last_name,
       },
     });
   } else {
-    customer = await prisma.customers.create({
+    customer = await prisma.customer.create({
       data: {
-        stripeId: stripeCustomer?.id,
+        stripe_id: stripeCustomer?.id,
         email,
-        firstName,
-        lastName,
+        first_name,
+        last_name,
       },
     });
   }

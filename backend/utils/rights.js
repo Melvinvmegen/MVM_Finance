@@ -1,10 +1,10 @@
 import { prisma } from "./prisma.js";
 
 export const validateCustomerBelongsToUser = async (req) => {
-  const customer = await prisma.customers.findFirst({
+  const customer = await prisma.customer.findFirst({
     where: {
-      id: +req?.params?.CustomerId,
-      UserId: +req?.user?.id,
+      id: +req?.params?.customer_id,
+      user_id: +req?.user?.id,
     },
   });
 

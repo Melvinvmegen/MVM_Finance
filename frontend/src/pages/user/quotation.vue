@@ -12,14 +12,14 @@ v-container
           v-card-text
             v-row(dense)
               v-col(cols="3" lg="2")
-                v-switch(name='tvaApplicable' :label='$t("quotation.vatApplicable")' v-model="quotation.tvaApplicable" @change="updateTotal(quotation)" color="secondary" )
+                v-switch(:label='$t("quotation.vatApplicable")' v-model="quotation.tva_applicable" @change="updateTotal(quotation)" color="secondary" )
               v-col(cols="3" lg="2")
-                v-switch(name='cautionPaid' :label='$t("quotation.paid")' v-model="quotation.cautionPaid" color="secondary" )
-              template(v-if="quotation.cautionPaid")
+                v-switch(:label='$t("quotation.paid")' v-model="quotation.caution_paid" color="secondary" )
+              template(v-if="quotation.caution_paid")
                 v-col(cols="4" lg="3" xl="2")
-                  v-select(:items="revenus" :item-props="itemProps" name='revenuId' v-model="quotation.RevenuId" :label='$t("quotation.revenu")' :rules="[$v.required()]")
+                  v-select(:items="revenus" :item-props="itemProps" name='revenuId' v-model="quotation.revenu_id" :label='$t("quotation.revenu")' :rules="[$v.required()]")
                 v-col(cols="4" lg="3" xl="2")
-                  DateInput(v-model="quotation.paymentDate")
+                  DateInput(v-model="quotation.payment_date")
             v-row
               v-col(cols="3") {{ $t("quotation.reference") }}
               v-col(cols="3") {{ $t("quotation.priceUnit") }}
@@ -27,8 +27,8 @@ v-container
               v-col(cols="2") {{ $t("quotation.total") }}
               v-col(cols="1")
             br
-            transition-group(name='slide-up' v-if="quotation.InvoiceItems.length")
-              div(v-for='(item, index) in quotation.InvoiceItems' :key="item.id || index")
+            transition-group(name='slide-up' v-if="quotation.invoice_items.length")
+              div(v-for='(item, index) in quotation.invoice_items' :key="item.id || index")
                 v-row(v-if="item?.markedForDestruction !== true")
                   v-col(cols="3")
                     v-text-field(v-model="item.name" :rules="[$v.required()]")
@@ -54,10 +54,10 @@ v-container
                 v-btn.bg-secondary.text-white(type="submit") {{ quotation?.id ? $t("quotation.editQuotation") : $t("quotation.createQuotation") }}
     v-col(cols='3')
       TotalField(
-        :initial-total='itemsTotal || quotation.total',
-        :initial-tva-applicable='quotation.tvaApplicable',
-        :initial-tva-amount='tvaAmount || quotation.tvaAmount'
-        :initial-total-t-t-c='totalTTC || quotation.totalTTC',
+        :initial-total='items_total || quotation.total',
+        :initial-tva-applicable='quotation.tva_applicable',
+        :initial-tva-amount='tva_amount || quotation.tva_amount'
+        :initial-total-t-t-c='total_ttc || quotation.total_ttc',
         :model='quotation')
 </template>
 
@@ -70,21 +70,21 @@ import {
   updateQuotation,
   getRevenuIds,
 } from "../../utils/generated/api-user";
-import type { Customers, Revenus, Prisma } from "../../../types/models";
+import type { customer, revenu, Prisma } from "../../../types/models";
 
-type QuotationWithInvoiceItems = Prisma.QuotationsUncheckedCreateInput & {
-  InvoiceItems: Prisma.InvoiceItemsCreateInput[];
+type QuotationWithInvoiceItems = Prisma.quotationUncheckedCreateInput & {
+  invoice_items: Prisma.invoice_itemCreateInput[];
 };
 const loadingStore = useLoadingStore();
 const route = useRoute();
 const valid = ref(false);
 const router = useRouter();
 const quotation = ref<QuotationWithInvoiceItems>();
-const customer = ref<Customers>();
-const revenus = ref<Revenus[]>([]);
-const customerId = route.params.customerId;
-const { itemsTotal, totalTTC, tvaAmount } = useTotal();
-const quotationItemTemplate: Prisma.InvoiceItemsUncheckedCreateInput = {
+const customer = ref<customer>();
+const revenus = ref<revenu[]>([]);
+const customer_id = route.params.customer_id;
+const { items_total, total_ttc, tva_amount } = useTotal();
+const quotationItemTemplate: Prisma.invoice_itemUncheckedCreateInput = {
   quantity: 0,
   name: "",
   unit: 0,
@@ -92,8 +92,8 @@ const quotationItemTemplate: Prisma.InvoiceItemsUncheckedCreateInput = {
 };
 
 onMounted(async () => {
-  const setupPromises = [getCustomer(customerId), getRevenuIds()];
-  if (route.params.id) setupPromises.push(getQuotation(customerId, route.params.id));
+  const setupPromises = [getCustomer(customer_id), getRevenuIds()];
+  if (route.params.id) setupPromises.push(getQuotation(customer_id, route.params.id));
 
   loadingStore.setLoading(true);
 
@@ -105,27 +105,27 @@ onMounted(async () => {
     if (data.length > 2) {
       quotation.value = { ...data[2] };
       if (quotation.value) {
-        quotation.value.paymentDate = quotation.value.cautionPaid
-          ? dayjs(quotation.value.paymentDate || undefined).toDate()
+        quotation.value.payment_date = quotation.value.caution_paid
+          ? dayjs(quotation.value.payment_date || undefined).toDate()
           : null;
-        quotationItemTemplate.QuotationId = quotation.value.id;
+        quotationItemTemplate.quotation_id = quotation.value.id;
       }
     } else {
       quotation.value = {
-        firstName: customer.value.firstName,
-        lastName: customer.value.lastName,
+        first_name: customer.value.first_name,
+        last_name: customer.value.last_name,
         company: customer.value.company,
         address: customer.value.address,
         city: customer.value.city,
-        vatNumber: customer.value.vatNumber,
-        paymentDate: null,
+        vat_number: customer.value.vat_number,
+        payment_date: null,
         total: 0,
-        tvaAmount: 0,
-        tvaApplicable: false,
-        cautionPaid: false,
-        CustomerId: customer.value.id,
-        RevenuId: null,
-        InvoiceItems: [],
+        tva_amount: 0,
+        tva_applicable: false,
+        caution_paid: false,
+        customer_id: customer.value.id,
+        revenu_id: null,
+        invoice_items: [],
       };
     }
     loadingStore.setLoading(false);
@@ -133,21 +133,21 @@ onMounted(async () => {
 });
 
 watch(
-  () => quotation.value?.RevenuId,
-  (newRevenuId) => {
+  () => quotation.value?.revenu_id,
+  (new_revenu_id) => {
     if (!quotation.value) return;
-    const revenu = revenus.value.find((r) => r.id === newRevenuId);
+    const revenu = revenus.value.find((r) => r.id === new_revenu_id);
     if (!revenu) return;
-    quotation.value.paymentDate = dayjs(revenu.created_at).toDate();
+    quotation.value.payment_date = dayjs(revenu.created_at).toDate();
   },
 );
 
 watch(
-  () => quotation.value?.cautionPaid,
+  () => quotation.value?.caution_paid,
   () => {
-    if (!quotation.value || quotation.value?.cautionPaid) return;
-    quotation.value.paymentDate = null;
-    quotation.value.RevenuId = null;
+    if (!quotation.value || quotation.value?.caution_paid) return;
+    quotation.value.payment_date = null;
+    quotation.value.revenu_id = null;
   },
 );
 
@@ -161,24 +161,24 @@ function itemProps(item) {
 function updateTotal(item) {
   if (!quotation.value) return;
   item.total = item.quantity * item.unit;
-  quotation.value.total = quotation.value.InvoiceItems?.reduce((sum, quotation) => sum + quotation.total, 0);
-  if (quotation.value.tvaApplicable) {
-    quotation.value.tvaAmount = quotation.value.total * 0.2;
+  quotation.value.total = quotation.value.invoice_items?.reduce((sum, quotation) => sum + quotation.total, 0);
+  if (quotation.value.tva_applicable) {
+    quotation.value.tva_amount = quotation.value.total * 0.2;
   }
-  quotation.value.totalTTC = quotation.value.total + quotation.value.tvaAmount;
+  quotation.value.total_ttc = quotation.value.total + quotation.value.tva_amount;
 }
 
 function addItem() {
   if (!quotation.value) return;
-  if (!quotation.value.InvoiceItems) quotation.value.InvoiceItems = [];
-  quotation.value.InvoiceItems.push({ ...quotationItemTemplate });
+  if (!quotation.value.invoice_items) quotation.value.invoice_items = [];
+  quotation.value.invoice_items.push({ ...quotationItemTemplate });
 }
 
 function removeItem(item) {
   if (!quotation.value) return;
-  const index = quotation.value.InvoiceItems.findIndex((quotationItem) => quotationItem.id === item.id);
-  quotation.value.InvoiceItems.splice(index, 1);
-  quotation.value.InvoiceItems?.reduce((sum, quotation) => sum + quotation.total, 0);
+  const index = quotation.value.invoice_items.findIndex((quotationItem) => quotationItem.id === item.id);
+  quotation.value.invoice_items.splice(index, 1);
+  quotation.value.invoice_items?.reduce((sum, quotation) => sum + quotation.total, 0);
   updateTotal(item);
 }
 
@@ -187,13 +187,13 @@ async function handleSubmit(): Promise<void> {
   loadingStore.setLoading(true);
   try {
     if (quotation.value.id) {
-      await updateQuotation(quotation.value.CustomerId, quotation.value.id, quotation.value);
+      await updateQuotation(quotation.value.customer_id, quotation.value.id, quotation.value);
       useMessageStore().i18nMessage("success", "quotations.updated");
     } else {
-      await createQuotation(quotation.value.CustomerId, quotation.value);
+      await createQuotation(quotation.value.customer_id, quotation.value);
       useMessageStore().i18nMessage("success", "quotations.created");
     }
-    router.push({ path: `/customers/${customerId}` });
+    router.push({ path: `/customers/${customer_id}` });
   } finally {
     loadingStore.setLoading(false);
   }
