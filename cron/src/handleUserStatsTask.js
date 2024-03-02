@@ -1,3 +1,4 @@
+import { sendAlert } from "../utils/transporter.js";
 import { database } from "../utils/database.js";
 import { settings } from "../utils/settings.js";
 import { ofetch } from "ofetch";
@@ -46,7 +47,10 @@ export async function handleUserStatsTask() {
     console.log("[User Task] investment_profiles stats successfully updated");
   } catch (err) {
     console.log(`[User Task] An error occured`, err);
-    // TODO: send email to myself
+    sendAlert(
+      `[Cron alert] handleUserStatsTask failed`,
+      `An error occured for handleUserStatsTask with error ${err}`
+    );
   }
 }
 
@@ -95,6 +99,9 @@ export async function handleAssetStatsTask() {
     console.log("[Asset Task] assets stats successfully updated");
   } catch (err) {
     console.log(`[Asset Task] An error occured`, err);
-    // TODO: send email to myself
+    sendAlert(
+      `[Cron alert] handleAssetStatsTask failed`,
+      `An error occured for handleAssetStatsTask with error ${err}`
+    );
   }
 }

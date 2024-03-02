@@ -26,6 +26,10 @@ export const functions = {
       console.log(
         `[Cron task] createMonthlyRevenu An error occured for date ${beginningOfMonth}`
       );
+      sendAlert(
+        `[Cron alert] createMonthlyRevenu failed`,
+        `An error occured for createMonthlyRevenu with error ${err}`
+      );
       throw new Error(err);
     }
   },
@@ -127,7 +131,10 @@ export const functions = {
             `[Cron task] An error occured while generating the pdf for invoice`,
             err
           );
-          // TODO: send email to myself
+          sendAlert(
+            `[Cron alert] PDF generation error`,
+            `An error occured while generating the pdf for invoice #${invoice.id} with error ${err}`
+          );
         }
 
         const [pending_email] = await database("pending_email")
@@ -176,6 +183,10 @@ export const functions = {
     } catch (err) {
       console.log(
         `[Cron task] createCustomerRecurrentInvoice An error occured`
+      );
+      sendAlert(
+        `[Cron alert] createCustomerRecurrentInvoice faled`,
+        `An error occured while generating recurrent invoice with error ${err}`
       );
       throw new Error(err);
     }
@@ -250,6 +261,10 @@ export const functions = {
     } catch (err) {
       console.error(
         `Failed to send message through smtp for pending_email_id #${pending_email_id}`
+      );
+      sendAlert(
+        `[Cron alert] sendPendingEmail faled`,
+        `An error occured while sending pending email with error: ${err}`
       );
       throw new Error("Transporter failed to send email " + err);
     }

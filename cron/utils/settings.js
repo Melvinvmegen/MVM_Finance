@@ -16,6 +16,10 @@ export const settings = {
     smtp_service: process.env.SMTP_SERVICE || "SendinBlue",
     smtp_user: process.env.SMTP_USER,
     smtp_pass: process.env.SMTP_PASS,
+    alert: process.env.MAIL_ALERT || "melvin.vmegen@gmail.com",
+    alert_from_name: process.env.MAIL_ALERT_FROM_NAME || "MVM Alert",
+    alert_from_address:
+      process.env.MAIL_ALERT_FROM_ADDRESS || "alert@melvinvmegen.com",
   },
   finance: {
     baseRequestsUrl: process.env["FINANCE_BASE_REQUESTS_URL"],

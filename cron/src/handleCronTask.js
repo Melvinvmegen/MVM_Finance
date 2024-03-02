@@ -40,9 +40,8 @@ export async function handleCronTask() {
             .toDate(),
         });
     } catch (err) {
-      console.log(`[Cron task] An error occured`, err);
       const tryCount = (cronTask.try_counts += 1);
-      // TODO: if active: false send email to myself
+      console.log(`[Cron task] An error occured`, err);
       await database("cron_task")
         .where({ id: cronTask.id })
         .update({

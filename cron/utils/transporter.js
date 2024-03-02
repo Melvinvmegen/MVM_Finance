@@ -20,4 +20,18 @@ transporter.verify(function (error) {
   }
 });
 
-export { transporter };
+function sendAlert(subject, text) {
+  transporter.sendMail({
+    to: settings.email.from,
+    bcc: null,
+    from: {
+      name: settings.email.alert_from_name,
+      address: settings.email.alert_from_address,
+    },
+    reply_to: null,
+    subject,
+    text,
+  });
+}
+
+export { transporter, sendAlert };
