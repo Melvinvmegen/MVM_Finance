@@ -262,7 +262,16 @@
     "fileInput": "File",
     "vatBalance": "VAT Balance",
     "averageRecurrentCredits": "Average Monthly recurrent credits",
-    "assets": "Assets"
+    "assets": "Assets",
+    "import_sample": "Download a sample of the expected format",
+    "import_successful": "The import succeeded for {0} rows on a total of {1}.",
+    "created": "{0} rows created",
+    "updated": "- {0} rows updated",
+    "import_failed": "The import failed for {0} rows on a total of {1}.",
+    "import_failed_report": "Download the report of the rows that failed",
+    "cancel": "Cancel",
+    "reset": "Reset",
+    "inserted": "- {0} rows inserted"
   },
   "invoices": {
     "title": "Invoices:",

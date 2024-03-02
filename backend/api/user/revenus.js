@@ -3,6 +3,7 @@ import { getOrSetCache, invalidateCache } from "../../utils/cacheManager.js";
 import { setFilters } from "../../utils/filter.js";
 import { AppError } from "../../utils/AppError.js";
 import { prisma, Models } from "../../utils/prisma.js";
+import { ExcelService } from "../../utils/excelService.js";
 import { parse } from "csv-parse";
 import dayjs from "dayjs";
 
@@ -18,6 +19,7 @@ export default async function (app) {
   app.$post("/revenus/:id/costs/:cost_id", updateOrCreateRevenuCost);
   app.$post("/revenus/:id/withdrawals", createRevenuWithdrawal);
   app.$get("/revenus/categories", getCategories);
+  app.$download("/revenus/import-sample", downloadSample);
 }
 
 /**
@@ -69,6 +71,7 @@ export async function getRevenus(params) {
 
         return { rows, count };
       } catch (err) {
+        console.log("error", err);
         error = err;
         throw new Error(err);
       }
@@ -189,6 +192,10 @@ export async function createRevenu(asset_id, upload) {
   if (!asset) throw new AppError(401, "Asset not found!");
   if (!upload.mimetype.includes("csv")) throw new AppError("Please upload a CSV file!");
   let revenu;
+  let inserted = 0;
+  let updated = 0;
+  let rows = 0;
+  const failed = [];
   const costs = [];
   const credits = [];
   const revenus = [];
@@ -219,6 +226,7 @@ export async function createRevenu(asset_id, upload) {
     })
     .on("end", async () => {
       for (let obj of [...costs, ...credits]) {
+        rows++;
         const created_at = dayjs(obj.created_at);
         const beginningOfMonth = created_at.startOf("month").toDate();
         const endOfMonth = created_at.endOf("month").toDate();
@@ -284,33 +292,40 @@ export async function createRevenu(asset_id, upload) {
             }
           }
 
-          let cost = await prisma.cost.findFirst({
-            where: {
-              name: obj.name,
-              total: obj.total,
-              revenu_id: revenu.id,
-            },
-          });
-
-          if (cost) {
-            cost = await prisma.cost.update({
+          try {
+            let cost = await prisma.cost.findFirst({
               where: {
-                id: cost.id,
-              },
-              data: {
-                ...newObj,
-                asset_id: +asset_id,
+                name: obj.name,
+                total: obj.total,
+                revenu_id: revenu.id,
               },
             });
-          } else {
-            cost = await prisma.cost.create({
-              data: {
-                ...newObj,
-                asset_id: +asset_id,
-              },
-            });
+
+            if (cost) {
+              cost = await prisma.cost.update({
+                where: {
+                  id: cost.id,
+                },
+                data: {
+                  ...newObj,
+                  asset_id: +asset_id,
+                },
+              });
+              updated++;
+            } else {
+              cost = await prisma.cost.create({
+                data: {
+                  ...newObj,
+                  asset_id: +asset_id,
+                },
+              });
+              inserted++;
+            }
+            revenu.costs.push(cost);
+          } catch (err) {
+            console.error(`Cost failed to import with obj : ${obj}`);
+            failed.push(obj);
           }
-          revenu.costs.push(cost);
         } else {
           let credit_category = credit_category_cache[name];
           if (credit_category) {
@@ -335,32 +350,38 @@ export async function createRevenu(asset_id, upload) {
             }
           }
 
-          let credit = await prisma.credit.findFirst({
-            where: {
-              creditor: obj.creditor,
-              total: obj.total,
-              revenu_id: revenu.id,
-            },
-          });
-          if (credit) {
-            credit = await prisma.credit.update({
+          try {
+            let credit = await prisma.credit.findFirst({
               where: {
-                id: credit.id,
-              },
-              data: {
-                ...newObj,
-                asset_id: +asset_id,
+                creditor: obj.creditor,
+                total: obj.total,
+                revenu_id: revenu.id,
               },
             });
-          } else {
-            credit = await prisma.credit.create({
-              data: {
-                ...newObj,
-                asset_id: +asset_id,
-              },
-            });
+            if (credit) {
+              credit = await prisma.credit.update({
+                where: {
+                  id: credit.id,
+                },
+                data: {
+                  ...newObj,
+                  asset_id: +asset_id,
+                },
+              });
+              updated++;
+            } else {
+              credit = await prisma.credit.create({
+                data: {
+                  ...newObj,
+                  asset_id: +asset_id,
+                },
+              });
+              inserted++;
+            }
+          } catch (err) {
+            console.error(`Credit failed to import with obj : ${obj}`);
+            failed.push(obj);
           }
-          revenu.credits.push(credit);
         }
 
         const revenuIndex = revenus.findIndex((i) => i.id == revenu.id);
@@ -385,6 +406,13 @@ export async function createRevenu(asset_id, upload) {
 
       await invalidateCache(`user_${this.request.user?.id}_revenus`);
       await invalidateCache(`user_${this.request.user?.id}_dashboard_revenu`);
+
+      return {
+        inserted,
+        updated,
+        failed,
+        rows,
+      };
     })
     .on("error", (error) => {
       throw error;
@@ -556,6 +584,10 @@ export async function createRevenuWithdrawal(revenu_id, body) {
   return { withdrawal, cost, credit };
 }
 
+/**
+ * @this {API.This}
+ * @returns {Promise<{ cost_categories: {id: number, name: string, icon: string, color: string}[], credit_categories: {id: number, name: string, icon: string, color: string}[] }>}
+ */
 export async function getCategories() {
   const cost_categories = await prisma.cost_category.findMany({
     select: {
@@ -575,6 +607,37 @@ export async function getCategories() {
   });
 
   return { cost_categories, credit_categories };
+}
+
+/**
+ * @this {API.This}
+ * @returns {Promise<{ withdrawal: Models.withdrawal, cost: Models.cost, credit: Models.credit }>}
+ */
+export async function downloadSample() {
+  let rows;
+  if (this.request.query?.entries) {
+    rows = this.request.query.entries.map((e) => JSON.parse(e));
+  } else {
+    const cost = await prisma.cost.findFirst({
+      orderBy: { created_at: "desc" },
+    });
+
+    const credit = await prisma.credit.findFirst({
+      orderBy: { created_at: "desc" },
+    });
+
+    rows = [
+      { date: credit.created_at, name: credit.creditor, total: credit.total },
+      { date: cost.created_at, name: cost.name, total: cost.total },
+    ];
+  }
+
+  const headers = ["date", "date", "name", "total"];
+
+  return {
+    stream: ExcelService.getReport(rows, headers, "Report", "csv"),
+    filename: "revenu-download-sample.csv",
+  };
 }
 
 /**

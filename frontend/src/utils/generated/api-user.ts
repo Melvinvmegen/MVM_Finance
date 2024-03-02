@@ -389,3 +389,19 @@ export async function createRevenuWithdrawal(id, body = undefined, query = undef
 export async function getCategories(query = undefined) {
   return await useOFetch(`/api/user/revenus/categories`, { method: "GET", query });
 }
+/**
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {void}
+**/
+export async function downloadSample(query = undefined) {
+  const response = await useOFetchRaw(`/api/user/revenus/import-sample`, { responseType: "blob", query });
+  const href = URL.createObjectURL(response._data);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = ((response.headers.get("content-disposition") || "").match(/filename="?(.+)"?/) || [])[1] || "import-sample";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(href);
+  return null;
+}
