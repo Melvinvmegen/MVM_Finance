@@ -11,7 +11,7 @@ export const settings = {
     from: process.env.MAIL_FROM || "invoices@melvinvmegen.com",
     from_name: process.env.MAIL_FROM_NAME || "Melvin Van Megen",
     bcc: process.env.MAIL_BCC || "melvin.vmegen@gmail.com",
-    replace: process.env.MAIL_REPLACE_EMAIL || "melvin.vmegen@gmail.com", //do not fill this in dev env, use .env instead
+    replace: process.env.MAIL_REPLACE_EMAIL || null, //do not fill this in dev env, use .env instead
     smtp_url: process.env.SMTP_URL || null, // alternative connection method
     smtp_service: process.env.SMTP_SERVICE || "SendinBlue",
     smtp_user: process.env.SMTP_USER,
