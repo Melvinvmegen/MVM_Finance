@@ -7,24 +7,48 @@ v-row(v-if="items.rows")
           v-col.text-uppercase(cols="11") {{ $t("revenus.title") }}
           v-spacer
           v-col(cols="1")
-            v-btn(icon="mdi-plus" @click="showModal = true;" color="primary")
+            v-btn(icon="mdi-plus" @click="show_modal = true;" color="primary")
       v-card-text
         RevenuTable(:items="items" @filter="refreshRevenus")
 
-    v-dialog(v-model='showModal' width='600')
+    v-dialog(v-model='show_modal' width='600')
       v-card(width="100%")
-        v-form(@submit.prevent="uploadFile")
-          v-card-title.text-center {{ $t("revenus.import") }}
-          v-card-text.mt-4
-            v-row(dense justify="center")
-              v-col(cols="10")
-                v-select(:items="assets" :item-props="itemProps" v-model="mutableImport.asset_id" :label='$t("revenus.assets")')
-              v-col(cols="10")
-                v-file-input(clearable :label="$t('revenus.fileInput')" accept=".csv" v-model="mutableImport.file")
-          v-card-actions.mb-2
-            v-row(dense justify="center")
-              v-col.d-flex.justify-center(cols="12" lg="8")
-                v-btn.bg-secondary.text-white(type="submit") {{ $t("revenus.import") }}
+        v-stepper.hide-stepper-header(v-model="step" :items="['upload', 'report']" hide-actions flat)
+          template(#item.1)
+            v-form(@submit.prevent="uploadFile")
+              v-card-title.text-center {{ $t("revenus.import") }}
+              v-card-text.mt-4
+                v-row(dense justify="center")
+                  v-col(cols="10")
+                    v-select(:items="assets" :item-props="itemProps" v-model="mutableImport.asset_id" :label='$t("revenus.assets")')
+                  v-col(cols="10")
+                    v-file-input(clearable :label="$t('revenus.fileInput')" accept=".csv" v-model="mutableImport.file" :rules="[$v.required()]")
+                  v-col(cols="10")
+                    a.text-body-2.mb-2.text-decoration-underline(href="javascript:void(0)" @click="downloadImportSample") {{ $t("revenus.import_sample") }}
+              v-card-actions.mb-2
+                v-row(dense justify="center")
+                  v-col.d-flex.justify-center(cols="12" lg="8")
+                    v-btn(@click="show_modal = false") {{ $t("dashboard.cancel") }}
+                    v-btn.bg-secondary.text-white(type="submit") {{ $t("revenus.import") }}
+          template(#item.2)
+            div(v-if="report?.inserted || report?.updated" class="d-flex justify-center flex-column align-center")
+              v-icon(class="text-center" color="success" large) mdi-check-circle-outline
+              v-card-title {{ $t("revenus.import_successful", [(report.inserted || 0) + (report?.updated || 0), (report?.rows || 0)]) }}
+              v-card-text
+                p(v-if="report?.inserted") {{ $t("revenus.inserted", [report?.inserted]) }}
+                p(v-if="report?.updated") {{ $t("revenus.updated", [report?.updated]) }}
+            hr.my-2(v-if="(report?.inserted || report?.updated) && report?.failed?.length")
+            div(v-if="report?.failed?.length" class="d-flex justify-center flex-column align-center")
+              v-icon(color="error" large) mdi-alert-outline
+              v-card-title {{ $t("revenus.import_failed", [report?.failed.length, (report?.rows || 0)]) }}
+              v-card-text
+                a.text-body-2.mb-2.text-decoration-underline(href="javascript:void(0)" @click="downloadImportSample" class="text-body-1") {{ $t("revenus.import_failed_report") }}
+            v-card-actions
+              v-row(dense justify="center")   
+                v-col.d-flex.justify-center(cols="12" lg="8")
+                  v-btn(@click="show_modal = false") {{ $t("revenus.cancel") }}
+                  v-btn(@click="resetImport") {{ $t("revenus.reset") }}
+
     v-row
       v-col(cols="12" md="6")
         v-card(elevation="3" class="mt-4")
@@ -34,9 +58,9 @@ v-row(v-if="items.rows")
                   template(v-if="expensesAverage")
                     v-card-subtitle.pl-10 {{ $t("revenus.averageMonthlySpending") }}
                     v-card-title.pr-10 {{ $n(expensesAverage, "currency") }}
-                  template(v-if="recurrentCosts")
+                  template(v-if="recurrent_costs")
                     .text-caption.text-disabled.pl-10 {{ $t("revenus.averageRecurrentSpending") }}
-                    v-card-subtitle.pr-10 {{ $n(recurrentCosts, "currency") }}
+                    v-card-subtitle.pr-10 {{ $n(recurrent_costs, "currency") }}
                 BarChart(v-if="costChartData" :chart-data='costChartData' :chart-options='chartOptions')
       v-col(cols="12" md="6")
         v-card(elevation="3" class="mt-4")
@@ -46,9 +70,9 @@ v-row(v-if="items.rows")
                   template(v-if="revenusAverage")
                     v-card-subtitle.pl-10 {{ $t("revenus.averageRevenu") }}
                     v-card-title.pr-10 {{ $n(revenusAverage, "currency") }}
-                  template(v-if="recurrentCredits")
+                  template(v-if="recurrent_credits")
                     .text-caption.text-disabled.pl-10 {{ $t("revenus.averageRecurrentCredits") }}
-                    v-card-subtitle.pr-10 {{ $n(recurrentCredits, "currency") }}
+                    v-card-subtitle.pr-10 {{ $n(recurrent_credits, "currency") }}
                 BarChart(v-if="creditChartData" :chart-data='creditChartData' :chart-options='chartOptions')
 
   v-col(cols="12" md="4")
@@ -59,14 +83,14 @@ v-row(v-if="items.rows")
           v-card-title {{ $n(revenusTotal, "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.totalSpending") }}
-          v-card-title {{ $n(revenusCostTotal, "currency") }}
+          v-card-title {{ $n(revenus_cost_total, "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.taxes") }}
           v-card-title {{ $n(- taxAmount, "currency") }}
         hr.mx-2.my-4
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("revenus.netResult") }}
-          v-card-title {{ $n(Math.round(revenusTotal + revenusCostTotal), "currency") }}
+          v-card-title {{ $n(Math.round(revenusTotal + revenus_cost_total), "currency") }}
 
     v-card.mt-4
       v-card-text
@@ -90,13 +114,13 @@ v-row(v-if="items.rows")
 
 <script setup lang="ts">
 import dayjs from "dayjs";
-import { getAssets, getRevenus, createRevenu, getCategories } from "../../utils/generated/api-user";
+import { getAssets, getRevenus, createRevenu, getCategories, downloadSample } from "../../utils/generated/api-user";
 import type { asset, cost_category, credit_category } from "../../../types/models";
 
 const loadingStore = useLoadingStore();
 const assets = ref<asset[]>([]);
 const { filterAll, items } = useFilter(getRevenus);
-const showModal = ref(false);
+const show_modal = ref(false);
 const mutableImport = ref();
 const costCategories = ref<cost_category[]>([]);
 const creditCategories = ref<credit_category[]>([]);
@@ -125,16 +149,16 @@ async function refreshRevenus(value) {
 
 const costPieChartData = computed(() => {
   if (!items.value.count) return;
-  const costs = items.value.rows.flatMap((revenu) => revenu.Costs);
+  const costs = items.value.rows.flatMap((revenu) => revenu.costs);
   const groupedModel = costs.reduce((acc, item) => {
-    if (!acc[item.CostCategoryId]) {
-      acc[item.CostCategoryId] = {
-        CostCategoryId: item.CostCategoryId,
+    if (!acc[item.cost_category_id]) {
+      acc[item.cost_category_id] = {
+        cost_category_id: item.cost_category_id,
         costs: [],
       };
     }
 
-    acc[item.CostCategoryId].costs.push(item);
+    acc[item.cost_category_id].costs.push(item);
     return acc;
   }, {});
 
@@ -161,16 +185,16 @@ const costPieChartData = computed(() => {
 
 const creditPieChartData = computed(() => {
   if (!items.value.count) return;
-  const credits = items.value.rows.flatMap((revenu) => revenu.Credits);
+  const credits = items.value.rows.flatMap((revenu) => revenu.credits);
   const groupedModel = credits.reduce((acc, item) => {
-    if (!acc[item.CreditCategoryId]) {
-      acc[item.CreditCategoryId] = {
-        CreditCategoryId: item.CreditCategoryId,
+    if (!acc[item.credit_category_id]) {
+      acc[item.credit_category_id] = {
+        credit_category_id: item.credit_category_id,
         credits: [],
       };
     }
 
-    acc[item.CreditCategoryId].credits.push(item);
+    acc[item.credit_category_id].credits.push(item);
     return acc;
   }, {});
 
@@ -260,9 +284,9 @@ async function uploadFile() {
   if (!assets.value.length) return;
   loadingStore.setLoading(true);
   try {
-    await createRevenu(mutableImport.value.asset_id, { file: mutableImport.value.file });
+    report.value = await createRevenu(mutableImport.value.asset_id, { file: mutableImport.value.file });
     await refreshRevenus({});
-    showModal.value = false;
+    step.value++;
   } finally {
     loadingStore.setLoading(false);
   }
@@ -274,7 +298,7 @@ const revenusTotal = computed(() => {
   return Math.round(totals);
 });
 
-const revenusCostTotal = computed(() => {
+const revenus_cost_total = computed(() => {
   if (!items.value.count) return 0;
   const total = items.value.rows.reduce((sum, revenu) => sum + revenu.expense, 0);
   return Math.round(total);
@@ -298,13 +322,13 @@ const revenusAverage = computed(() => {
   return Math.round(total_revenu / items.value.rows.length);
 });
 
-const recurrentCosts = computed(() => {
+const recurrent_costs = computed(() => {
   if (!items.value.count) return 0;
   const total_reccurent_costs = items.value.rows.reduce((sum: number, revenu) => sum + revenu.recurrent_costs, 0);
   return Math.round(total_reccurent_costs / items.value.rows.length);
 });
 
-const recurrentCredits = computed(() => {
+const recurrent_credits = computed(() => {
   if (!items.value.count) return 0;
   const total_reccurent_credits = items.value.rows.reduce((sum: number, revenu) => sum + revenu.recurrent_credits, 0);
   return Math.round(total_reccurent_credits / items.value.rows.length);
@@ -316,4 +340,40 @@ function itemProps(item) {
     value: item.id,
   };
 }
+
+const report = ref({
+  inserted: 27,
+  updated: 12,
+  failed: [
+    { date: new Date(), name: "TEST", total: 2000 },
+    { date: new Date(), name: "TEST2", total: 200 },
+  ],
+  rows: 41,
+});
+const step = ref(2);
+function resetImport() {
+  report.value = null;
+  step.value = 1;
+  mutableImport.value = {
+    model_kind_id: null,
+    file: null,
+  };
+}
+
+async function downloadImportSample() {
+  loadingStore.setLoading(true);
+  try {
+    const response = await downloadSample({ entries: report.value.failed });
+    if (response && !report.value) {
+      report.value = response;
+    }
+  } finally {
+    loadingStore.setLoading(false);
+  }
+}
 </script>
+<style>
+.hide-stepper-header .v-stepper-header {
+  display: none;
+}
+</style>

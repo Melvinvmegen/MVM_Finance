@@ -136,30 +136,30 @@ export async function updateInvestmentProfile(id, body = undefined, query = unde
   return await useOFetch(`/api/user/investment-profiles/${id}`, { method: "PUT", body, query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").getInvoices>>}
 **/
-export async function getInvoices(CustomerId, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/invoices`, { method: "GET", query });
+export async function getInvoices(customer_id, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/invoices`, { method: "GET", query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {string|string[]|number} id
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").getInvoice>>}
 **/
-export async function getInvoice(CustomerId, id, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/invoices/${id}`, { method: "GET", query });
+export async function getInvoice(customer_id, id, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/invoices/${id}`, { method: "GET", query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {string|string[]|number} id
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {void}
 **/
-export async function downloadInvoice(CustomerId, id, query = undefined) {
-  const response = await useOFetchRaw(`/api/user/customers/${CustomerId}/invoices/${id}/download`, { responseType: "blob", query });
+export async function downloadInvoice(customer_id, id, query = undefined) {
+  const response = await useOFetchRaw(`/api/user/customers/${customer_id}/invoices/${id}/download`, { responseType: "blob", query });
   const href = URL.createObjectURL(response._data);
   const a = document.createElement("a");
   a.href = href;
@@ -171,32 +171,32 @@ export async function downloadInvoice(CustomerId, id, query = undefined) {
   return null;
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {Parameters<import("../../../../backend/api/user/invoices.js").createInvoice>[1]} body
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").createInvoice>>}
 **/
-export async function createInvoice(CustomerId, body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/invoices`, { method: "POST", body, query });
+export async function createInvoice(customer_id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/invoices`, { method: "POST", body, query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {string|string[]|number} id
  * @param {Parameters<import("../../../../backend/api/user/invoices.js").updateInvoice>[2]} body
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").updateInvoice>>}
 **/
-export async function updateInvoice(CustomerId, id, body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/invoices/${id}`, { method: "PUT", body, query });
+export async function updateInvoice(customer_id, id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/invoices/${id}`, { method: "PUT", body, query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {string|string[]|number} id
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/invoices.js").deleteInvoice>>}
 **/
-export async function deleteInvoice(CustomerId, id, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/invoices/${id}`, { method: "DELETE", query });
+export async function deleteInvoice(customer_id, id, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/invoices/${id}`, { method: "DELETE", query });
 }
 /**
  * @param {string|string[]|number} id
@@ -232,30 +232,30 @@ export async function deletePendingEmail(id, query = undefined) {
   return await useOFetch(`/api/user/pending_emails/${id}`, { method: "DELETE", query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").getQuotations>>}
 **/
-export async function getQuotations(CustomerId, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/quotations`, { method: "GET", query });
+export async function getQuotations(customer_id, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/quotations`, { method: "GET", query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {string|string[]|number} id
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").getQuotation>>}
 **/
-export async function getQuotation(CustomerId, id, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/quotations/${id}`, { method: "GET", query });
+export async function getQuotation(customer_id, id, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/quotations/${id}`, { method: "GET", query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {string|string[]|number} id
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {void}
 **/
-export async function downloadQuotation(CustomerId, id, query = undefined) {
-  const response = await useOFetchRaw(`/api/user/customers/${CustomerId}/quotations/${id}/download`, { responseType: "blob", query });
+export async function downloadQuotation(customer_id, id, query = undefined) {
+  const response = await useOFetchRaw(`/api/user/customers/${customer_id}/quotations/${id}/download`, { responseType: "blob", query });
   const href = URL.createObjectURL(response._data);
   const a = document.createElement("a");
   a.href = href;
@@ -267,42 +267,42 @@ export async function downloadQuotation(CustomerId, id, query = undefined) {
   return null;
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {Parameters<import("../../../../backend/api/user/quotations.js").createQuotation>[1]} body
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").createQuotation>>}
 **/
-export async function createQuotation(CustomerId, body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/quotations`, { method: "POST", body, query });
+export async function createQuotation(customer_id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/quotations`, { method: "POST", body, query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {string|string[]|number} id
  * @param {Parameters<import("../../../../backend/api/user/quotations.js").updateQuotation>[2]} body
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").updateQuotation>>}
 **/
-export async function updateQuotation(CustomerId, id, body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/quotations/${id}`, { method: "PUT", body, query });
+export async function updateQuotation(customer_id, id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/quotations/${id}`, { method: "PUT", body, query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {string|string[]|number} id
  * @param {Parameters<import("../../../../backend/api/user/quotations.js").convertQuotationToInvoice>[2]} body
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").convertQuotationToInvoice>>}
 **/
-export async function convertQuotationToInvoice(CustomerId, id, body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/quotations/convert-quotation/${id}`, { method: "POST", body, query });
+export async function convertQuotationToInvoice(customer_id, id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/quotations/convert-quotation/${id}`, { method: "POST", body, query });
 }
 /**
- * @param {string|string[]|number} CustomerId
+ * @param {string|string[]|number} customer_id
  * @param {string|string[]|number} id
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/quotations.js").deleteQuotation>>}
 **/
-export async function deleteQuotation(CustomerId, id, query = undefined) {
-  return await useOFetch(`/api/user/customers/${CustomerId}/quotations/${id}`, { method: "DELETE", query });
+export async function deleteQuotation(customer_id, id, query = undefined) {
+  return await useOFetch(`/api/user/customers/${customer_id}/quotations/${id}`, { method: "DELETE", query });
 }
 /**
  * @param {Record<string,string|string[]|number>} [query]
@@ -365,13 +365,13 @@ export async function updateRevenu(id, body = undefined, query = undefined) {
 }
 /**
  * @param {string|string[]|number} id
- * @param {string|string[]|number} CostId
+ * @param {string|string[]|number} cost_id
  * @param {Parameters<import("../../../../backend/api/user/revenus.js").updateOrCreateRevenuCost>[2]} body
  * @param {Record<string,string|string[]|number>} [query]
  * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").updateOrCreateRevenuCost>>}
 **/
-export async function updateOrCreateRevenuCost(id, CostId, body = undefined, query = undefined) {
-  return await useOFetch(`/api/user/revenus/${id}/costs/${CostId}`, { method: "POST", body, query });
+export async function updateOrCreateRevenuCost(id, cost_id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/revenus/${id}/costs/${cost_id}`, { method: "POST", body, query });
 }
 /**
  * @param {string|string[]|number} id
@@ -388,4 +388,20 @@ export async function createRevenuWithdrawal(id, body = undefined, query = undef
 **/
 export async function getCategories(query = undefined) {
   return await useOFetch(`/api/user/revenus/categories`, { method: "GET", query });
+}
+/**
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {void}
+**/
+export async function downloadSample(query = undefined) {
+  const response = await useOFetchRaw(`/api/user/revenus/import-sample`, { responseType: "blob", query });
+  const href = URL.createObjectURL(response._data);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = ((response.headers.get("content-disposition") || "").match(/filename="?(.+)"?/) || [])[1] || "import-sample";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(href);
+  return null;
 }

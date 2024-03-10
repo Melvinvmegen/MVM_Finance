@@ -1,13 +1,13 @@
 export function useTotal() {
-  const itemsTotal = ref(0);
-  const totalTTC = ref(0);
-  const tvaAmount = ref(0);
+  const items_total = ref(0);
+  const total_ttc = ref(0);
+  const tva_amount = ref(0);
 
   function setTotal(total: number) {
-    itemsTotal.value = total;
-    totalTTC.value = +(itemsTotal.value * 1.2).toFixed(2);
-    tvaAmount.value = +(totalTTC.value - itemsTotal.value).toFixed(2);
+    items_total.value = total;
+    total_ttc.value = +(items_total.value * 1.2).toFixed(2);
+    tva_amount.value = +(total_ttc.value - items_total.value).toFixed(2);
   }
 
-  return { setTotal, itemsTotal, totalTTC, tvaAmount };
+  return { setTotal, items_total, total_ttc, tva_amount };
 }

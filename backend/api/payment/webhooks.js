@@ -28,10 +28,10 @@ async function routes(app) {
     let customer;
     // @ts-ignore
     if (object?.customer) {
-      customer = await prisma.customers.findFirst({
+      customer = await prisma.customer.findFirst({
         where: {
           // @ts-ignore
-          stripeId: object?.customer,
+          stripe_id: object?.customer,
         },
       });
 
@@ -44,49 +44,47 @@ async function routes(app) {
           // @ts-ignore
           const objectId = object?.id;
           console.log("[Stripe] Handling payment_intent.succeeded event...", objectId);
-          const paymentIntent = await prisma.paymentIntents.findUnique({
+          const payment_intent = await prisma.payment_intent.findUnique({
             where: {
-              stripeId: objectId,
+              stripe_id: objectId,
             },
           });
 
-          if (!paymentIntent) throw new AppError("PaymentIntent Not found");
+          if (!payment_intent) throw new AppError("PaymentIntent Not found");
 
-          const { PaymentId } = await prisma.paymentIntents.update({
+          const { payment_id } = await prisma.payment_intent.update({
             where: {
-              stripeId: objectId,
+              stripe_id: objectId,
             },
             data: {
               status: "CAPTURED",
             },
           });
 
-          if (!PaymentId) throw new AppError("PaymentId Not found");
+          if (!payment_id) throw new AppError("PaymentId Not found");
 
-          let payment = await prisma.payments.findUnique({
+          let payment = await prisma.payment.findUnique({
             where: {
-              id: PaymentId,
+              id: payment_id,
             },
           });
 
-          if (!payment.stripePriceId || !payment.CustomerId) throw new AppError("Payment not found");
+          if (!payment.stripe_price_id || !payment.customer_id) throw new AppError("Payment not found");
 
-          payment = await prisma.payments.update({
+          payment = await prisma.payment.update({
             where: {
-              id: PaymentId,
+              id: payment_id,
             },
             data: {
               status: "CAPTURED",
             },
           });
 
-          const price = await stripe.prices.retrieve(payment.stripePriceId);
+          const price = await stripe.prices.retrieve(payment.stripe_price_id);
 
-          console.log("payment?.CustomerId", payment?.CustomerId);
-          console.log("price.nickname", price);
-          if (payment?.CustomerId && price.nickname) {
+          if (payment?.customer_id && price.nickname) {
             await sendWebhook({
-              customerId: payment?.CustomerId,
+              customer_id: payment?.customer_id,
               tokens: price.nickname?.split(" tokens")?.[0],
             });
           }
@@ -102,32 +100,32 @@ async function routes(app) {
           // @ts-ignore
           const objectId = object?.id;
           console.log("[Stripe] Handling payment_intent.payment_failed event...", objectId);
-          let paymentIntent = await prisma.paymentIntents.findUnique({
+          let payment_intent = await prisma.payment_intent.findUnique({
             where: {
-              stripeId: objectId,
+              stripe_id: objectId,
             },
           });
 
-          if (!paymentIntent) throw new AppError("paymentIntent Not found");
+          if (!payment_intent) throw new AppError("payment_intent Not found");
 
-          paymentIntent = await prisma.paymentIntents.update({
+          payment_intent = await prisma.payment_intent.update({
             where: {
-              stripeId: objectId,
+              stripe_id: objectId,
             },
             data: {
               status: "FAILED",
             },
           });
 
-          if (!paymentIntent.PaymentId) throw new AppError("PaymentId Not found");
+          if (!payment_intent.payment_id) throw new AppError("PaymentId Not found");
 
-          await prisma.payments.update({
+          await prisma.payment.update({
             where: {
-              id: paymentIntent.PaymentId,
+              id: payment_intent.payment_id,
             },
             data: {
               status: "FAILED",
-              paymentTries: { increment: 1 },
+              payment_tries: { increment: 1 },
             },
           });
 
@@ -139,13 +137,13 @@ async function routes(app) {
         break;
       case "invoice.paid":
         try {
-          if (!customer || !customer.stripeId) throw new AppError("Missing informations");
+          if (!customer || !customer.stripe_id) throw new AppError("Missing informations");
           // @ts-ignore
           const objectPaymentIntent = object.payment_intent;
           console.log("[Stripe] Handling invoice.paid event...", objectPaymentIntent);
-          const subscription = await prisma.subscriptions.findFirst({
+          const subscription = await prisma.subscription.findFirst({
             where: {
-              CustomerId: customer.id,
+              customer_id: customer.id,
             },
           });
 
@@ -153,49 +151,49 @@ async function routes(app) {
 
           // @ts-ignore
           const objectAmountDue = object.amount_due;
-          const paymentIntent = await prisma.paymentIntents.findUnique({
+          const payment_intent = await prisma.payment_intent.findUnique({
             where: {
-              stripeId: objectPaymentIntent,
+              stripe_id: objectPaymentIntent,
             },
           });
 
-          if (paymentIntent) {
-            await prisma.paymentIntents.update({
+          if (payment_intent) {
+            await prisma.payment_intent.update({
               where: {
-                stripeId: objectPaymentIntent,
+                stripe_id: objectPaymentIntent,
               },
               data: {
                 status: "CAPTURED",
-                SubscriptionId: subscription.id,
+                subscription_id: subscription.id,
                 amount: objectAmountDue / 100,
               },
             });
           } else {
-            await prisma.paymentIntents.create({
+            await prisma.payment_intent.create({
               data: {
                 status: "CAPTURED",
-                stripeId: objectPaymentIntent,
-                SubscriptionId: subscription.id,
+                stripe_id: objectPaymentIntent,
+                subscription_id: subscription.id,
                 amount: objectAmountDue / 100,
               },
             });
           }
 
-          await prisma.subscriptions.update({
+          await prisma.subscription.update({
             where: {
               id: subscription.id,
             },
             data: {
               status: "VALIDATED",
-              startDate: subscription.startDate || dayjs().toDate(),
+              start_date: subscription.start_date || dayjs().toDate(),
               amount: objectAmountDue / 100,
             },
           });
 
           // TODO : set paid invoice
           await sendWebhook({
-            customerId: customer.id,
-            subscriptionId: subscription.id,
+            customer_id: customer.id,
+            subscription_id: subscription.id,
           });
 
           console.log("[Stripe] invoice.paid successfully handled for", objectPaymentIntent);
@@ -206,63 +204,63 @@ async function routes(app) {
         break;
       case "invoice.payment_failed":
         try {
-          if (!customer || !customer.stripeId) throw new AppError("Missing informations");
+          if (!customer || !customer.stripe_id) throw new AppError("Missing informations");
           // @ts-ignore
           const objectPaymentIntent = object.payment_intent;
           console.log("[Stripe] Handling invoice.payment_failed event...", objectPaymentIntent);
-          const subscription = await prisma.subscriptions.findUnique({
+          const subscription = await prisma.subscription.findUnique({
             where: {
-              CustomerId: customer.id,
+              customer_id: customer.id,
             },
           });
 
           if (!subscription) throw new AppError("Subscription Not found");
 
-          await prisma.subscriptions.update({
+          await prisma.subscription.update({
             where: {
               id: subscription.id,
             },
             data: {
               status: "FAILED",
-              endDate: dayjs().toDate(),
+              end_date: dayjs().toDate(),
             },
           });
 
           // @ts-ignore
           const objectAmountDue = object.amount_due;
-          const paymentIntent = await prisma.paymentIntents.findUnique({
+          const payment_intent = await prisma.payment_intent.findUnique({
             where: {
-              stripeId: objectPaymentIntent,
+              stripe_id: objectPaymentIntent,
             },
           });
 
-          if (paymentIntent) {
-            await prisma.paymentIntents.update({
+          if (payment_intent) {
+            await prisma.payment_intent.update({
               where: {
-                stripeId: objectPaymentIntent,
+                stripe_id: objectPaymentIntent,
               },
               data: {
                 status: "FAILED",
-                SubscriptionId: subscription.id,
+                subscription_id: subscription.id,
                 amount: objectAmountDue / 100,
               },
             });
           } else {
-            await prisma.paymentIntents.create({
+            await prisma.payment_intent.create({
               data: {
                 status: "FAILED",
-                stripeId: objectPaymentIntent,
-                SubscriptionId: subscription.id,
+                stripe_id: objectPaymentIntent,
+                subscription_id: subscription.id,
                 amount: objectAmountDue / 100,
               },
             });
           }
 
-          await stripe.subscriptions.del(subscription.stripeId);
+          await stripe.subscriptions.del(subscription.stripe_id);
 
           await sendWebhook({
-            customerId: customer.id,
-            subscriptionId: null,
+            customer_id: customer.id,
+            subscription_id: null,
           });
 
           // TODO : set failed invoice
@@ -274,7 +272,7 @@ async function routes(app) {
         break;
       case "invoice.finalized":
         try {
-          if (!customer || !customer.stripeId) throw new AppError("Missing informations");
+          if (!customer || !customer.stripe_id) throw new AppError("Missing informations");
           console.log("[Stripe] Handling invoice.finalized event...", object.id);
           // TODO : create Invoices
         } catch (error) {

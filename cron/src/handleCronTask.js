@@ -7,10 +7,10 @@ export async function handleCronTask() {
   // TODO: send with file
   const cronTasks = await database
     .select("*")
-    .from("CronTask")
+    .from("cron_task")
     .where("active", "=", 1)
     .andWhere("date", "<=", dayjs().toDate())
-    .andWhere("tryCounts", "<", 5);
+    .andWhere("try_counts", "<", 5);
 
   if (cronTasks.length) {
     console.log(`[Cron task] Found ${cronTasks.length} cronTasks to handle`);
@@ -29,25 +29,24 @@ export async function handleCronTask() {
       } else {
         await functions[cronTask.function]();
       }
-      await database("CronTask")
+      await database("cron_task")
         .where({ id: cronTask.id })
         .update({
-          active: !!cronTask.dateIntervalValue,
-          tryCounts: 0,
-          errorMessage: null,
+          active: !!cronTask.date_interval_value,
+          try_counts: 0,
+          error_message: null,
           date: dayjs(cronTask.date)
-            .add(cronTask.dateIntervalValue, cronTask.dateIntervalType)
+            .add(cronTask.date_interval_value, cronTask.date_interval_type)
             .toDate(),
         });
     } catch (err) {
+      const tryCount = (cronTask.try_counts += 1);
       console.log(`[Cron task] An error occured`, err);
-      const tryCount = (cronTask.tryCounts += 1);
-      // TODO: if active: false send email to myself
-      await database("CronTask")
+      await database("cron_task")
         .where({ id: cronTask.id })
         .update({
-          tryCounts: tryCount,
-          errorMessage: err.message,
+          try_counts: tryCount,
+          error_message: err.message,
           ...(tryCount >= 5 && { active: false }),
         });
     }

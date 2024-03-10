@@ -30,8 +30,8 @@ export function useFilter(callbackFn: any) {
     try {
       if (items.value?.rows.length > 0 && filters && !filters.force) return;
       if (!items.value.count || filters?.force) {
-        if (filters?.CustomerId) {
-          items.value = await callbackFn(filters.CustomerId, {
+        if (filters?.customer_id) {
+          items.value = await callbackFn(filters.customer_id, {
             ...navigation_state,
             ...filters,
           });

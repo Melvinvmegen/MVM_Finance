@@ -18,13 +18,13 @@ v-row
       v-card-text
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("customers.turnover") }}
-          v-card-title {{ $n(returnTotals(true, "totalTTC"), "currency") }}
+          v-card-title {{ $n(returnTotals(true, "total_ttc"), "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("customers.unpaid") }}
-          v-card-title {{ $n(returnTotals(false, "totalTTC"), "currency") }}
+          v-card-title {{ $n(returnTotals(false, "total_ttc"), "currency") }}
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("customers.vatCollected") }}
-          v-card-title {{ $n(returnTotals(true, "tvaAmount"), "currency") }} €
+          v-card-title {{ $n(returnTotals(true, "tva_amount"), "currency") }} €
     v-card.mt-4
       v-card-text
         v-card-title.text-center.mb-2 {{ $t("customers.turnoverByCustomer") }} 
@@ -63,11 +63,11 @@ const chartData = computed(() => {
       },
     ],
   };
-  const total = returnTotals(true, "totalTTC");
+  const total = returnTotals(true, "total_ttc");
   for (let customer of items.value.rows) {
-    if (customer.Invoices) {
+    if (customer.invoices) {
       const invoices_percentage_of_total = (
-        (customer.Invoices.reduce((sum, invoice) => sum + invoice.totalTTC, 0) / total) *
+        (customer.invoices.reduce((sum, invoice) => sum + invoice.total_ttc, 0) / total) *
         100
       ).toFixed(2);
       chartData.datasets[0].data.push(invoices_percentage_of_total);
@@ -95,7 +95,7 @@ const chartOptions = {
 function returnTotals(paid: boolean, field: string) {
   let total = 0;
   for (let customer of items.value.rows) {
-    total += customer.Invoices.filter((invoice) => invoice.paid === paid).reduce(
+    total += customer.invoices.filter((invoice) => invoice.paid === paid).reduce(
       (sum, invoice) => sum + invoice[field],
       0,
     );

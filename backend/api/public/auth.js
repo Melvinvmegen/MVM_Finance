@@ -17,16 +17,16 @@ export default async function (app) {
 /**
  * @this {API.This}
  * @param {{ email: string, password: string }} body
- * @returns {Promise<Models.Users>}
+ * @returns {Promise<Models.user>}
  */
 export async function signUp(body) {
   const { email, password } = body;
-  let user = await prisma.users.findUnique({
+  let user = await prisma.user.findUnique({
     where: { email: email.trim().toLowerCase() },
   });
   if (user) throw new AppError("A user with this email already exists !");
   const hashedPassword = await bcrypt.hash(password, 12);
-  user = await prisma.users.create({
+  user = await prisma.user.create({
     data: {
       email,
       password: hashedPassword,
@@ -39,11 +39,14 @@ export async function signUp(body) {
 /**
  * @this {API.This}
  * @param {{ email: string, password: string }} body
- * @returns {Promise<{id: number, email: string, cryptosModuleActive: boolean, customersModuleActive: boolean, revenusModuleActive: boolean, authTicket: string }>}
+ * @returns {Promise<{id: number, email: string, cryptos_module_active: boolean, customers_module_active: boolean, withholding_tax_active: boolean, auth_ticket: string, investment_goal: number, cryptos_module_active: boolean }>}
  */
 export async function signIn({ email, password }) {
-  const user = await prisma.users.findUnique({
-    where: { email: email.trim(). toLowerCase() },
+  const user = await prisma.user.findUnique({
+    where: { email: email.trim().toLowerCase() },
+    include: {
+      investment_profile: true,
+    },
   });
   if (!user) throw new AppError("errors.server.noUserFound");
 
@@ -52,26 +55,26 @@ export async function signIn({ email, password }) {
     throw new AppError("errors.server.wrongCredentials");
   }
 
-  const authTicket = randomUUID();
+  const auth_ticket = randomUUID();
 
-  await prisma.users.update({
+  await prisma.user.update({
     where: {
       id: user.id,
     },
     data: {
-      authTicket: authTicket,
-      lastLogin: dayjs().toDate(),
+      auth_ticket,
+      last_login: dayjs().toDate(),
     },
   });
 
   const me = {
     id: user.id,
     email: user.email,
-    cryptosModuleActive: user.cryptosModuleActive,
-    customersModuleActive: user.customersModuleActive,
-    revenusModuleActive: user.revenusModuleActive,
-    investment_goal: user.investment_goal,
-    withholding_tax_active: user.withholding_tax_active,
+    cryptos_module_active: user.cryptos_module_active,
+    customers_module_active: user.customers_module_active,
+    revenus_module_active: user.revenus_module_active,
+    investment_goal: user.investment_profile.investment_goal,
+    withholding_tax_active: user.investment_profile.withholding_tax_active,
   };
 
   this.reply.setCookie("MVMTOKEN", await this.reply.jwtSign(me), {
@@ -84,7 +87,7 @@ export async function signIn({ email, password }) {
     sameSite: true, // alternative CSRF protection
   });
 
-  return { ...me, authTicket };
+  return { ...me, auth_ticket };
 }
 
 /**

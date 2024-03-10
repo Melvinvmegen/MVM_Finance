@@ -22,7 +22,7 @@ export const pdfGenerator = function (invoice) {
     cloudinary.uploader.upload_stream(
       {
         resource_type: "raw",
-        public_id: `${"cautionPaid" in invoice ? "quotation" : "invoice"}-${invoice.id}`,
+        public_id: `${"caution_paid" in invoice ? "quotation" : "invoice"}-${invoice.id}`,
         folder: "finance",
       },
       async (error, result) => {
@@ -30,22 +30,22 @@ export const pdfGenerator = function (invoice) {
           console.error(`[Cloudinary] Error uploading for model ${invoice.id}, error: ${error}`);
         } else {
           console.log(`[Cloudinary] Upload successful for model ${invoice.id}, secure_url: ${result.secure_url}`);
-          if ("cautionPaid" in invoice) {
-            await prisma.quotations.update({
+          if ("caution_paid" in invoice) {
+            await prisma.quotation.update({
               where: {
                 id: invoice.id,
               },
               data: {
-                uploadUrl: result.secure_url,
+                upload_url: result.secure_url,
               },
             });
           } else {
-            await prisma.invoices.update({
+            await prisma.invoice.update({
               where: {
                 id: invoice.id,
               },
               data: {
-                uploadUrl: result.secure_url,
+                upload_url: result.secure_url,
               },
             });
           }
@@ -71,11 +71,11 @@ function generateHeader(doc, invoice) {
     .text(invoice.company, 50, 150, { align: "right" })
     .font("Helvetica")
     .text("A l'attention de M. ou Mme", 50, 170, { align: "right" })
-    .text(`${invoice.firstName} ${invoice.lastName}`, 50, 190, { align: "right" })
+    .text(`${invoice.first_name} ${invoice.last_name}`, 50, 190, { align: "right" })
     .text(`${invoice.address}`, 50, 210, { align: "right" })
     .text(`${invoice.city}`, 50, 230, { align: "right" });
-  if (invoice.vatNumber) {
-    doc.text(`N°TVA ${invoice.vatNumber}`, 50, 250, { align: "right" });
+  if (invoice.vat_number) {
+    doc.text(`N°TVA ${invoice.vat_number}`, 50, 250, { align: "right" });
   }
   doc.moveDown();
 }
@@ -85,7 +85,7 @@ function generateTableHeader(doc, invoice) {
   doc
     .fillColor("#444444")
     .fontSize(20)
-    .text(`${"cautionPaid" in invoice ? "Devis" : "Facture"} n° : ${invoice.id}`, 50, 260)
+    .text(`${"caution_paid" in invoice ? "Devis" : "Facture"} n° : ${invoice.id}`, 50, 260)
     .fontSize(10)
     .text(`Le : ${date}`, 50, 290)
     .text(`Mode de réglement : paiement à réception (RIB ci-dessous).`, 50, 310);
@@ -101,7 +101,7 @@ function generateInvoiceTable(doc, invoice) {
   generateHr(doc, invoiceTableTop + 30);
   doc.font("Helvetica");
 
-  for (const invoice_item of invoice.InvoiceItems) {
+  for (const invoice_item of invoice.invoice_items) {
     i += 1;
     let position = invoiceTableTop + (i + 1) * 20;
     if (position > 630) {
@@ -121,11 +121,11 @@ function generateInvoiceTable(doc, invoice) {
   }
 
   const subtotalPosition = invoiceTableTop + (i + 3) * 20;
-  let totalTTCPostition = subtotalPosition + 20;
-  if (invoice.tvaApplicable) {
-    generateTableRow(doc, totalTTCPostition, "", "", "Total (HT)", formatCurrency(invoice.total * 100));
+  let total_ttc_position = subtotalPosition + 20;
+  if (invoice.tva_applicable) {
+    generateTableRow(doc, total_ttc_position, "", "", "Total (HT)", formatCurrency(invoice.total * 100));
     doc.fontSize(8).font("Helvetica");
-    generateTableRow(doc, subtotalPosition + 40, "", "", "TVA 20%", formatCurrency(invoice.tvaAmount * 100));
+    generateTableRow(doc, subtotalPosition + 40, "", "", "TVA 20%", formatCurrency(invoice.tva_amount * 100));
     // Dirty exception of generateHr as it used only
     doc
       .strokeColor("#aaaaaa")
@@ -133,12 +133,12 @@ function generateInvoiceTable(doc, invoice) {
       .moveTo(350, subtotalPosition + 55)
       .lineTo(550, subtotalPosition + 55)
       .stroke();
-    totalTTCPostition += 50;
+    total_ttc_position += 50;
     doc.fontSize(12).font("Helvetica-Bold");
-    generateTableRow(doc, totalTTCPostition, "", "", "Total (TTC)", formatCurrency(invoice.totalTTC * 100));
+    generateTableRow(doc, total_ttc_position, "", "", "Total (TTC)", formatCurrency(invoice.total_ttc * 100));
   } else {
     doc.fontSize(12).font("Helvetica-Bold");
-    generateTableRow(doc, totalTTCPostition, "", "", "Total", formatCurrency(invoice.total * 100));
+    generateTableRow(doc, total_ttc_position, "", "", "Total", formatCurrency(invoice.total * 100));
   }
   doc.fontSize(10).font("Helvetica");
 }
@@ -162,17 +162,17 @@ function formatCurrency(cents) {
 function generateFooter(doc, invoice) {
   generateHr(doc, 690);
 
-  const tvaText = invoice.tvaApplicable
+  const tva_text = invoice.tva_applicable
     ? ""
     : "* TVA non applicable - article 293 B du CGI. Paiement à réception par virement. A défaut et conformément à la loi 2008-776 du 4 août 2008, un intérêt de retard égal à trois fois le taux légal sera appliqué, ainsi qu'une indemnité forfaitaire pour frais de recouvrement de 40 € (Décret 2012-1115 du 02/10/2012). Pas d'escompte pour paiement anticipé.";
-  const tvaNumber = invoice.tvaApplicable ? "; N°TVA : FR36879755767" : "";
+  const tva_number = invoice.tva_applicable ? "; N°TVA : FR36879755767" : "";
 
   doc
     .fontSize(8)
-    .text(tvaText, 50, 650, { align: "left", width: 500 })
+    .text(tva_text, 50, 650, { align: "left", width: 500 })
     .moveDown()
     .text("Code IBAN : FR76 4061 8803 9600 0407 6132 406", 50, 700, { align: "center" })
     .text("Code BIC : CCFRFRPP", 50, 710, { align: "center" })
     .text("Titulaire : VAN MEGEN Melvin", 50, 720, { align: "center" })
-    .text(`SIRET : 87975576700016${tvaNumber}`, 50, 730, { align: "center" });
+    .text(`SIRET : 87975576700016${tva_number}`, 50, 730, { align: "center" });
 }

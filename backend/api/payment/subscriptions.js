@@ -8,32 +8,32 @@ import dayjs from "dayjs";
  */
 export default async function (app) {
   app.$post("/subscriptions", createSubscription);
-  app.$get("/subscriptions/:subscriptionId", getSubscription);
-  app.$put("/subscriptions/:subscriptionId/refund", refundSubscription);
+  app.$get("/subscriptions/:subscription_id", getSubscription);
+  app.$put("/subscriptions/:subscription_id/refund", refundSubscription);
 }
 
 /**
  * @this {API.This}
- * @param {{customerId: string, paymentMethodId: string, priceId: string}} body
+ * @param {{customer_id: string, payment_method_id: string, price_id: string}} body
  * @returns {Promise<string>}
  */
 async function createSubscription(body) {
-  const { customerId, paymentMethodId, priceId } = body;
-  const numberCustomerId = Number(customerId);
+  const { customer_id, payment_method_id, price_id } = body;
+  const number_customer_id = Number(customer_id);
 
   let stripeSubscription;
-  const customer = await prisma.customers.findUnique({
+  const customer = await prisma.customer.findUnique({
     where: {
-      id: numberCustomerId,
+      id: number_customer_id,
     },
   });
 
-  if (!customer || !customer.stripeId) throw new AppError("Customer not found");
+  if (!customer || !customer.stripe_id) throw new AppError("Customer not found");
 
-  const stripePrice = await stripe.prices.retrieve(priceId);
+  const stripePrice = await stripe.prices.retrieve(price_id);
   if (stripePrice && stripePrice.unit_amount) {
     stripeSubscription = await stripe.subscriptions.create({
-      customer: customer.stripeId,
+      customer: customer.stripe_id,
       items: [
         {
           price: stripePrice.id,
@@ -48,45 +48,45 @@ async function createSubscription(body) {
     const stripePaymentIntent = await stripe.paymentIntents.update(
       // @ts-ignore
       stripeSubscription?.latest_invoice?.payment_intent?.id,
-      { metadata: { payment_method: paymentMethodId } }
+      { metadata: { payment_method: payment_method_id } }
     );
     const amount = stripePrice.unit_amount / 100;
 
-    let subscription = await prisma.subscriptions.findUnique({
+    let subscription = await prisma.subscription.findUnique({
       where: {
-        CustomerId: numberCustomerId,
+        customer_id: number_customer_id,
       },
     });
 
     if (subscription) {
-      subscription = await prisma.subscriptions.update({
+      subscription = await prisma.subscription.update({
         where: {
-          CustomerId: numberCustomerId,
+          customer_id: number_customer_id,
         },
         data: {
           status: "DRAFT",
           amount,
-          stripeId: stripeSubscription.id,
+          stripe_id: stripeSubscription.id,
         },
       });
     } else {
-      subscription = await prisma.subscriptions.create({
+      subscription = await prisma.subscription.create({
         data: {
           status: "DRAFT",
           amount,
-          startDate: null,
-          endDate: null,
-          CustomerId: numberCustomerId,
-          stripeId: stripeSubscription.id,
+          start_date: null,
+          end_date: null,
+          customer_id: number_customer_id,
+          stripe_id: stripeSubscription.id,
         },
       });
     }
 
-    await prisma.paymentIntents.create({
+    await prisma.payment_intent.create({
       data: {
         amount,
-        stripeId: stripePaymentIntent?.id,
-        SubscriptionId: subscription.id,
+        stripe_id: stripePaymentIntent?.id,
+        subscription_id: subscription.id,
       },
     });
 
@@ -97,18 +97,18 @@ async function createSubscription(body) {
 
 /**
  * @this {API.This}
- * @param {string} subscriptionId
- * @returns {Promise<Models.Subscriptions>}
+ * @param {string} subscription_id
+ * @returns {Promise<Models.subscription>}
  */
-async function refundSubscription(subscriptionId) {
-  const numberSubscriptionId = Number(subscriptionId);
-  const subscription = await prisma.subscriptions.findFirst({
+async function refundSubscription(subscription_id) {
+  const number_subscription_id = Number(subscription_id);
+  const subscription = await prisma.subscription.findFirst({
     where: {
-      id: numberSubscriptionId,
+      id: number_subscription_id,
       status: "VALIDATED",
     },
     include: {
-      PaymentIntents: {
+      payment_intents: {
         orderBy: {
           created_at: "desc",
         },
@@ -116,9 +116,9 @@ async function refundSubscription(subscriptionId) {
     },
   });
 
-  if (!subscription || !subscription.stripeId) throw new AppError("Subscription not found");
+  if (!subscription || !subscription.stripe_id) throw new AppError("Subscription not found");
 
-  const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeId);
+  const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripe_id);
   if (stripeSubscription?.id) {
     const startDate = dayjs.unix(stripeSubscription.current_period_start);
     const endDate = dayjs.unix(stripeSubscription.current_period_end);
@@ -127,7 +127,7 @@ async function refundSubscription(subscriptionId) {
     const refundPercentage = unusedMinutes / totalMinutes;
     const refundAmount = Math.round(refundPercentage * (stripeSubscription.items.data[0].price.unit_amount || 0));
 
-    const stripePaymentIntentId = subscription.PaymentIntents[0].stripeId;
+    const stripePaymentIntentId = subscription.payment_intents[0].stripe_id;
     let refund;
     if (refundAmount && stripePaymentIntentId) {
       refund = await stripe.refunds.create({
@@ -135,17 +135,17 @@ async function refundSubscription(subscriptionId) {
         payment_intent: stripePaymentIntentId,
       });
     }
-    await stripe.subscriptions.del(subscription.stripeId);
+    await stripe.subscriptions.del(subscription.stripe_id);
 
-    const updatedSubscription = await prisma.subscriptions.update({
+    const updatedSubscription = await prisma.subscription.update({
       where: {
-        id: numberSubscriptionId,
+        id: number_subscription_id,
       },
       data: {
         status: "CANCELLED",
-        endDate: dayjs().toDate(),
-        proratedAmount: refundAmount / 100,
-        refundId: refund?.id,
+        end_date: dayjs().toDate(),
+        prorated_amount: refundAmount / 100,
+        refund_id: refund?.id,
       },
     });
 
@@ -155,13 +155,13 @@ async function refundSubscription(subscriptionId) {
 
 /**
  * @this {API.This}
- * @param {string} subscriptionId
- * @returns {Promise<Models.Subscriptions>}
+ * @param {string} subscription_id
+ * @returns {Promise<Models.subscription>}
  */
-async function getSubscription(subscriptionId) {
-  const subscription = await prisma.subscriptions.findFirst({
+async function getSubscription(subscription_id) {
+  const subscription = await prisma.subscription.findFirst({
     where: {
-      id: Number(subscriptionId),
+      id: Number(subscription_id),
     },
   });
 
@@ -169,6 +169,6 @@ async function getSubscription(subscriptionId) {
 
   return {
     ...subscription,
-    stripeId: null,
+    stripe_id: null,
   };
 }

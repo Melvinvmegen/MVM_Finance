@@ -1,3 +1,4 @@
+import { sendAlert } from "../utils/transporter.js";
 import { database } from "../utils/database.js";
 import { settings } from "../utils/settings.js";
 import { ofetch } from "ofetch";
@@ -6,16 +7,16 @@ export async function handleUserStatsTask() {
   console.log("[User Task] ...Querying investment_profiles to update");
   const investment_profiles = await database
     .select("investment_profile.id")
-    .from("Users")
-    .join("Revenus", "Revenus.UserId", "Users.id")
-    .join("investment_profile", "investment_profile.user_id", "Users.id")
+    .from("user")
+    .join("revenu", "revenu.user_id", "user.id")
+    .join("investment_profile", "investment_profile.user_id", "user.id")
     .where(
-      "Revenus.updated_at",
+      "revenu.updated_at",
       ">=",
       new Date(new Date() - settings.cron.statsFromMs)
     )
     .orWhere(
-      "Users.updated_at",
+      "user.updated_at",
       ">=",
       new Date(new Date() - settings.cron.statsFromMs)
     )
@@ -46,7 +47,10 @@ export async function handleUserStatsTask() {
     console.log("[User Task] investment_profiles stats successfully updated");
   } catch (err) {
     console.log(`[User Task] An error occured`, err);
-    // TODO: send email to myself
+    sendAlert(
+      `[Cron alert] handleUserStatsTask failed`,
+      `An error occured for handleUserStatsTask with error ${err}`
+    );
   }
 }
 
@@ -55,21 +59,21 @@ export async function handleAssetStatsTask() {
   const assets = await database
     .select("asset.id")
     .from("asset")
-    .leftJoin("Costs", "Costs.asset_id", "asset.id")
-    .leftJoin("Credits", "Credits.asset_id", "asset.id")
-    .leftJoin("CryptoCurrencies", "CryptoCurrencies.asset_id", "asset.id")
+    .leftJoin("cost", "cost.asset_id", "asset.id")
+    .leftJoin("credit", "credit.asset_id", "asset.id")
+    .leftJoin("crypto_currency", "crypto_currency.asset_id", "asset.id")
     .where(
-      "CryptoCurrencies.updated_at",
+      "crypto_currency.updated_at",
       ">=",
       new Date(new Date() - settings.cron.statsFromMs)
     )
     .orWhere(
-      "Costs.updated_at",
+      "cost.updated_at",
       ">=",
       new Date(new Date() - settings.cron.statsFromMs)
     )
     .orWhere(
-      "Credits.updated_at",
+      "credit.updated_at",
       ">=",
       new Date(new Date() - settings.cron.statsFromMs)
     )
@@ -95,6 +99,9 @@ export async function handleAssetStatsTask() {
     console.log("[Asset Task] assets stats successfully updated");
   } catch (err) {
     console.log(`[Asset Task] An error occured`, err);
-    // TODO: send email to myself
+    sendAlert(
+      `[Cron alert] handleAssetStatsTask failed`,
+      `An error occured for handleAssetStatsTask with error ${err}`
+    );
   }
 }
