@@ -405,3 +405,10 @@ export async function downloadSample(query = undefined) {
   URL.revokeObjectURL(href);
   return null;
 }
+/**
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/revenus.js").getRevenuReport>>}
+**/
+export async function getRevenuReport(query = undefined) {
+  return await useOFetch(`/api/user/revenus/report`, { method: "GET", query });
+}

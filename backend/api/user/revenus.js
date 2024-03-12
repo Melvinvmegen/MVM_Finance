@@ -20,6 +20,7 @@ export default async function (app) {
   app.$post("/revenus/:id/withdrawals", createRevenuWithdrawal);
   app.$get("/revenus/categories", getCategories);
   app.$download("/revenus/import-sample", downloadSample);
+  app.$get("/revenus/report", getRevenuReport);
 }
 
 /**
@@ -192,18 +193,17 @@ export async function createRevenu(asset_id, upload) {
   if (!asset) throw new AppError(401, "Asset not found!");
   if (!upload.mimetype.includes("csv")) throw new AppError("Please upload a CSV file!");
   let revenu;
-  let inserted = 0;
-  let updated = 0;
-  let rows = 0;
-  const failed = [];
+  const reports = {};
   const costs = [];
   const credits = [];
   const revenus = [];
 
   upload.file
-    .pipe(parse({ delimiter: ",", from_line: 5 }))
+    .pipe(parse({ delimiter: ";", from_line: 5 }))
     .on("data", (row) => {
-      const total = +row[5] ? +`${row[4]}.${row[5]}` : +row[4];
+      const number = +row[3].replace(",", ".");
+      const decimal = +row[4].replace(",", ".");
+      const total = decimal ? +`${number}.${decimal}` : number;
       const [day, month, year] = row[0].trim().split("/");
       const date = dayjs(`${year}-${month}-${day}`).toDate();
       const name = row[2];
@@ -226,10 +226,10 @@ export async function createRevenu(asset_id, upload) {
     })
     .on("end", async () => {
       for (let obj of [...costs, ...credits]) {
-        rows++;
         const created_at = dayjs(obj.created_at);
         const beginningOfMonth = created_at.startOf("month").toDate();
         const endOfMonth = created_at.endOf("month").toDate();
+
         revenu = await prisma.revenu.findFirst({
           where: {
             created_at: {
@@ -258,10 +258,19 @@ export async function createRevenu(asset_id, upload) {
           });
         }
 
-        const name = (obj.name || obj.reason)
-          .replace(/[\d+/+]/g, "")
-          .trim()
-          .toLowerCase();
+        if (!reports[revenu.id]) {
+          reports[revenu.id] = {
+            date: dayjs(revenu.created_at).format("MMMM YYYY"),
+            inserted: 0,
+            updated: 0,
+            rows: 0,
+            failed: [],
+          };
+        }
+
+        reports[revenu.id].rows++;
+
+        const name = (obj.name || obj.reason).trim().toLowerCase();
         const newObj = {
           ...obj,
           revenu_id: revenu.id,
@@ -317,7 +326,7 @@ export async function createRevenu(asset_id, upload) {
                   asset_id: +asset_id,
                 },
               });
-              updated++;
+              reports[revenu.id].updated++;
             } else {
               cost = await prisma.cost.create({
                 data: {
@@ -325,12 +334,12 @@ export async function createRevenu(asset_id, upload) {
                   asset_id: +asset_id,
                 },
               });
-              inserted++;
+              reports[revenu.id].inserted++;
             }
             revenu.costs.push(cost);
           } catch (err) {
             console.error(`Cost failed to import with obj : ${obj}`);
-            failed.push(obj);
+            reports[revenu.id].failed.push(obj);
           }
         } else {
           let credit_category = credit_category_cache[name];
@@ -366,6 +375,7 @@ export async function createRevenu(asset_id, upload) {
               created_at: obj.created_at,
             },
           });
+
           try {
             if (credit) {
               credit = await prisma.credit.update({
@@ -377,7 +387,7 @@ export async function createRevenu(asset_id, upload) {
                   asset_id: +asset_id,
                 },
               });
-              updated++;
+              reports[revenu.id].updated++;
             } else {
               credit = await prisma.credit.create({
                 data: {
@@ -385,11 +395,11 @@ export async function createRevenu(asset_id, upload) {
                   asset_id: +asset_id,
                 },
               });
-              inserted++;
+              reports[revenu.id].inserted++;
             }
           } catch (err) {
             console.error(`Credit failed to import with obj : ${obj}`);
-            failed.push(obj);
+            reports[revenu.id].failed.push(obj);
           }
         }
 
@@ -407,7 +417,10 @@ export async function createRevenu(asset_id, upload) {
           where: {
             id: revenu.id,
           },
-          data: revenuUpdated,
+          data: {
+            ...revenuUpdated,
+            report: reports[revenu.id],
+          },
         });
 
         await invalidateCache(`user_${this.request.user?.id}_revenu_${revenu.id}`);
@@ -415,13 +428,6 @@ export async function createRevenu(asset_id, upload) {
 
       await invalidateCache(`user_${this.request.user?.id}_revenus`);
       await invalidateCache(`user_${this.request.user?.id}_dashboard_revenu`);
-
-      return {
-        inserted,
-        updated,
-        failed,
-        rows,
-      };
     })
     .on("error", (error) => {
       throw error;
@@ -624,8 +630,10 @@ export async function getCategories() {
  */
 export async function downloadSample() {
   let rows;
+  let headers;
   if (this.request.query?.entries) {
     rows = this.request.query.entries.map((e) => JSON.parse(e));
+    headers = ["DATE OPERATION", "DATE VALEUR", "LIBELLE", "MONTANT", "DEVISE"];
   } else {
     const cost = await prisma.cost.findFirst({
       orderBy: { created_at: "desc" },
@@ -636,12 +644,15 @@ export async function downloadSample() {
     });
 
     rows = [
-      { date: credit.created_at, name: credit.creditor, total: credit.total },
-      { date: cost.created_at, name: cost.name, total: cost.total },
+      ["*** Période : 09/02/2024 - 10/03/2024"],
+      ["*** Compte : 40618-80396-00040761324 -EUR"],
+      [],
+      [],
+      ["DATE OPERATION", "DATE VALEUR", "LIBELLE", "MONTANT", "DEVISE"],
+      [cost.created_at, cost.created_at, cost.name, cost.total, "EUR"],
+      [credit.created_at, credit.created_at, credit.creditor, credit.total, "EUR"],
     ];
   }
-
-  const headers = ["date", "date", "name", "total"];
 
   return {
     stream: ExcelService.getReport(rows, headers, "Report", "csv"),
@@ -743,6 +754,22 @@ function updateRevenuStats(revenu, user) {
   delete revenuCopy.updated_at;
 
   return revenuCopy;
+}
+
+/**
+ * @this {API.This}
+ * @returns {Promise<{inserted: number, updated: number, failed: [], rows: number}>}
+ */
+export async function getRevenuReport() {
+  const revenus = await prisma.revenu.findMany({
+    where: {
+      updated_at: {
+        gte: dayjs().subtract(5, "minute").toDate(),
+      },
+    },
+  });
+
+  return revenus.map((revenu) => revenu.report);
 }
 
 /**

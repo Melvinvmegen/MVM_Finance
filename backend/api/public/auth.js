@@ -39,7 +39,7 @@ export async function signUp(body) {
 /**
  * @this {API.This}
  * @param {{ email: string, password: string }} body
- * @returns {Promise<{id: number, email: string, cryptos_module_active: boolean, customers_module_active: boolean, withholding_tax_active: boolean, auth_ticket: string, investment_goal: number, cryptos_module_active: boolean }>}
+ * @returns {Promise<{id: number, email: string, cryptos_module_active: boolean, customers_module_active: boolean, auth_ticket: string, investment_goal: number, cryptos_module_active: boolean }>}
  */
 export async function signIn({ email, password }) {
   const user = await prisma.user.findUnique({
@@ -74,7 +74,6 @@ export async function signIn({ email, password }) {
     customers_module_active: user.customers_module_active,
     revenus_module_active: user.revenus_module_active,
     investment_goal: user.investment_profile.investment_goal,
-    withholding_tax_active: user.investment_profile.withholding_tax_active,
   };
 
   this.reply.setCookie("MVMTOKEN", await this.reply.jwtSign(me), {

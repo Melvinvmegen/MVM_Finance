@@ -264,14 +264,15 @@
     "averageRecurrentCredits": "Average Monthly recurrent credits",
     "assets": "Assets",
     "import_sample": "Download a sample of the expected format",
-    "import_successful": "The import succeeded for {0} rows on a total of {1}.",
+    "import_successful": "The import succeeded for {0}.",
     "created": "{0} rows created",
     "updated": "- {0} rows updated",
     "import_failed": "The import failed for {0} rows on a total of {1}.",
     "import_failed_report": "Download the report of the rows that failed",
     "cancel": "Cancel",
     "reset": "Reset",
-    "inserted": "- {0} rows inserted"
+    "inserted": "- {0} rows inserted",
+    "rows": "Number of rows ({0}):"
   },
   "invoices": {
     "title": "Invoices:",

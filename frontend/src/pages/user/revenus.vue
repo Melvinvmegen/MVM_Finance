@@ -31,18 +31,21 @@ v-row(v-if="items.rows")
                     v-btn(@click="show_modal = false") {{ $t("dashboard.cancel") }}
                     v-btn.bg-secondary.text-white(type="submit") {{ $t("revenus.import") }}
           template(#item.2)
-            div(v-if="report?.inserted || report?.updated" class="d-flex justify-center flex-column align-center")
+            div.d-flex.flex-column.justify-center.align-center
               v-icon(class="text-center" color="success" large) mdi-check-circle-outline
-              v-card-title {{ $t("revenus.import_successful", [(report.inserted || 0) + (report?.updated || 0), (report?.rows || 0)]) }}
-              v-card-text
-                p(v-if="report?.inserted") {{ $t("revenus.inserted", [report?.inserted]) }}
-                p(v-if="report?.updated") {{ $t("revenus.updated", [report?.updated]) }}
-            hr.my-2(v-if="(report?.inserted || report?.updated) && report?.failed?.length")
-            div(v-if="report?.failed?.length" class="d-flex justify-center flex-column align-center")
-              v-icon(color="error" large) mdi-alert-outline
-              v-card-title {{ $t("revenus.import_failed", [report?.failed.length, (report?.rows || 0)]) }}
-              v-card-text
-                a.text-body-2.mb-2.text-decoration-underline(href="javascript:void(0)" @click="downloadImportSample" class="text-body-1") {{ $t("revenus.import_failed_report") }}
+              div(v-for="(report, index) in reports" :key="index")
+                div(v-if="report?.inserted || report?.updated" class="d-flex justify-center flex-column align-center")
+                  v-card-title {{ $t("revenus.import_successful", [report.date]) }}
+                  v-card-text
+                    p(v-if="report?.rows") {{ $t("revenus.rows", [report?.rows]) }}
+                    p(v-if="report?.inserted") {{ $t("revenus.inserted", [report?.inserted]) }}
+                    p(v-if="report?.updated") {{ $t("revenus.updated", [report?.updated]) }}
+                hr.my-2(v-if="(report?.inserted || report?.updated) && report?.failed?.length")
+                div(v-if="report?.failed?.length" class="d-flex justify-center flex-column align-center")
+                  v-icon(color="error" large) mdi-alert-outline
+                  v-card-title {{ $t("revenus.import_failed", [report?.failed.length, (report?.rows || 0)]) }}
+                  v-card-text
+                    a.text-body-2.mb-2.text-decoration-underline(href="javascript:void(0)" @click="downloadImportSample" class="text-body-1") {{ $t("revenus.import_failed_report") }}
             v-card-actions
               v-row(dense justify="center")   
                 v-col.d-flex.justify-center(cols="12" lg="8")
@@ -114,7 +117,14 @@ v-row(v-if="items.rows")
 
 <script setup lang="ts">
 import dayjs from "dayjs";
-import { getAssets, getRevenus, createRevenu, getCategories, downloadSample } from "../../utils/generated/api-user";
+import {
+  getAssets,
+  getRevenus,
+  createRevenu,
+  getCategories,
+  downloadSample,
+  getRevenuReport,
+} from "../../utils/generated/api-user";
 import type { asset, cost_category, credit_category } from "../../../types/models";
 
 const loadingStore = useLoadingStore();
@@ -284,7 +294,8 @@ async function uploadFile() {
   if (!assets.value.length) return;
   loadingStore.setLoading(true);
   try {
-    report.value = await createRevenu(mutableImport.value.asset_id, { file: mutableImport.value.file });
+    await createRevenu(mutableImport.value.asset_id, { file: mutableImport.value.file });
+    reports.value = await getRevenuReport();
     await refreshRevenus({});
     step.value++;
   } finally {
@@ -341,18 +352,10 @@ function itemProps(item) {
   };
 }
 
-const report = ref({
-  inserted: 27,
-  updated: 12,
-  failed: [
-    { date: new Date(), name: "TEST", total: 2000 },
-    { date: new Date(), name: "TEST2", total: 200 },
-  ],
-  rows: 41,
-});
-const step = ref(2);
+const reports = ref();
+const step = ref(1);
 function resetImport() {
-  report.value = null;
+  reports.value = [];
   step.value = 1;
   mutableImport.value = {
     model_kind_id: null,
@@ -363,9 +366,9 @@ function resetImport() {
 async function downloadImportSample() {
   loadingStore.setLoading(true);
   try {
-    const response = await downloadSample({ entries: report.value.failed });
-    if (response && !report.value) {
-      report.value = response;
+    const response = await downloadSample({ entries: reports.value?.map((r) => r.failed) });
+    if (response && !reports.value) {
+      reports.value = response;
     }
   } finally {
     loadingStore.setLoading(false);
