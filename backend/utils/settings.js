@@ -30,8 +30,8 @@ export const settings = {
     redisURL: process.env.REDIS_URL || "redis://@localhost:6360",
   },
   basicAuth: {
-    user: process.env.BASIC_AUTH_USER || "",
-    password: process.env.BASIC_AUTH_PASSWORD || "",
+    user: process.env.BASIC_AUTH_USER || "user",
+    password: process.env.BASIC_AUTH_PASSWORD || "123",
   },
   webhooks: {
     contentUrl: process.env.CONTENT_WEBHOOK_URL,

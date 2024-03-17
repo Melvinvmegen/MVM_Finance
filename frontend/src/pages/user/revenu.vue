@@ -13,6 +13,8 @@ v-container
             v-row(dense)
               v-col(cols="2")
                 NumberInput(name='taxPercentage' :label='$t("revenu.tax")' v-model="revenu.tax_percentage" :rules="[$v.number()]")
+              v-col(cols="3" lg="2")
+                v-switch(hide-details :label='$t("revenu.withholding_tax_active")' v-model="revenu.withholding_tax_active" color="secondary")
 
             div(v-if='revenu?.invoices?.length')
               hr.my-8
@@ -61,7 +63,7 @@ v-container
                 v-col(cols="1")
               br
               v-virtual-scroll.mb-4(:items="withdrawals" :height="400" item-height="86" ref="virtual_scroll_withdrawal")
-                template(v-slot:default="{ item }")
+                template(v-slot:default="{ item, index }")
                   v-row
                     v-col(cols="2")
                       DateInput(v-model="item.date" :rules="[$v.required()]")
@@ -72,7 +74,7 @@ v-container
                     v-col(cols="2")
                       NumberInput(v-model="item.exchange_fees" :rules="[$v.number()]")  
                     v-col.d-flex(cols="1")
-                      v-btn(color="error" href='#' @click.prevent="removeItem(item, 'withdrawal')")
+                      v-btn(color="error" href='#' @click.prevent="removeItem(index, 'withdrawal')")
                         v-icon mdi-delete
 
             v-row
@@ -116,7 +118,7 @@ v-container
                     v-col(cols="2")
                       v-select(:items="assets" :item-props="itemProps" v-model="item.asset_id")
                     v-col.d-flex(cols="1")
-                      v-btn(color="error" href='#' @click.prevent="removeItem(item, 'Credit')")
+                      v-btn(color="error" href='#' @click.prevent="removeItem(index, 'Credit')")
                         v-icon mdi-delete
 
             v-row
@@ -165,7 +167,7 @@ v-container
                     v-col.d-flex(cols="1")
                       v-btn.mr-2(color="primary" href='#' :disabled="!item.name || !item.total" @click.prevent="show_modal_cost = true; mutable_cost = item")
                         v-icon mdi-bank
-                      v-btn(color="error" href='#' @click.prevent="removeItem(item, 'cost')")
+                      v-btn(color="error" href='#' @click.prevent="removeItem(index, 'cost')")
                         v-icon mdi-delete
 
             v-row
@@ -424,22 +426,20 @@ function addItem(itemName) {
   }
 }
 
-function removeItem(item, itemName) {
+function removeItem(index, itemName) {
   if (itemName === "cost") {
-    const index = costs.value.findIndex((cost) => cost.id === item.id);
     costs.value.splice(index, 1);
     updateTotal();
   } else if (itemName === "Credit") {
-    const index = credits.value.findIndex((credit) => credit.id === item.id);
     credits.value.splice(index, 1);
     updateTotal();
   } else {
-    const index = withdrawals.value.findIndex((withdrawal) => withdrawal.id === item.id);
     withdrawals.value.splice(index, 1);
   }
 }
 
 function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
+  // TODO: fetch total from backend as the logic is getting complicated
   if (index && event && modelName) {
     revenu.value[modelName][index][columnName] = +event.target.value;
   }
@@ -467,24 +467,28 @@ function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
     }
   }
 
-  let totalPro = 0;
+  let totalSalary = 0;
+  let totalBncPro = 0;
   let totalPerso = 0;
   let totalRefund = 0;
   for (let credit of credits.value) {
     if (credit.credit_category_id === 6) continue;
     if (credit.credit_category_id === 10) {
-      totalPro += +credit.total;
+      totalSalary += +credit.total;
     } else if (credit.credit_category_id === 8) {
       totalRefund += +credit.total;
+    } else if (credit.credit_category_id === 16) {
+      totalBncPro += +credit.total;
     } else if (credit.credit_category_id !== 10) {
       totalPerso += +credit.total;
     }
   }
 
-  revenu.value.pro = totalInvoices + totalPro;
+  revenu.value.salary = totalSalary;
+  revenu.value.bnc_pro = totalBncPro;
   revenu.value.perso = totalPerso;
   revenu.value.refund = totalRefund;
-  revenu.value.total = totalInvoices + totalPro + totalPerso;
+  revenu.value.total = totalBncPro + totalSalary + totalPerso;
   revenu.value.expense = total_costs;
   revenu.value.investments = totalInvestments;
   revenu.value.tax_amount = calculateTaxAmount(revenu.value.total);
@@ -493,25 +497,8 @@ function updateTotal(index = 0, event = 0, modelName = "", columnName = "") {
 }
 
 function calculateTaxAmount(total) {
-  // Abattement de 30% avant impots sur le CA
-  const taxable_income = total / 1.3;
-  // Pas d'impôts jusqu'à 10 225€
-  const first_cap = 10226;
-  // 11% entre 10 226€ & 26 070€
-  const cap_first_batch = 26070;
-  // On passe au cap au dessus soit 26 071€
-  const second_cap = cap_first_batch + 1;
-  // 30 % entre 26 071€ & 74 545€, Au delà faut prendre un comptable sinon ça va chier
-  let tax_total = 0;
-  if (taxable_income >= first_cap && taxable_income < cap_first_batch) {
-    tax_total = (taxable_income - first_cap) * 0.11;
-  } else if (taxable_income >= second_cap) {
-    const tax_first_batch = (cap_first_batch - first_cap) * 0.11;
-    const tax_second_batch = (taxable_income - second_cap) * 0.3;
-    tax_total = tax_first_batch + tax_second_batch;
-  }
-
-  return Math.round(tax_total);
+  // TODO: calculer sur le taux marginal d'imposition
+  return Math.round(total);
 }
 
 async function handleSubmit() {

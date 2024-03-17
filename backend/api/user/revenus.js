@@ -411,8 +411,13 @@ export async function createRevenu(asset_id, upload) {
         }
       }
 
+      const tax_profile = await prisma.tax_profile.findFirst({
+        where: {
+          user_id: this.request.user.id,
+        },
+      });
       for (let revenu of revenus) {
-        const revenuUpdated = updateRevenuStats(revenu, this.request.user);
+        const revenuUpdated = updateRevenuStats(revenu, tax_profile);
         revenu = await prisma.revenu.update({
           where: {
             id: revenu.id,
@@ -466,6 +471,12 @@ export async function updateRevenu(revenuId, body) {
     await updateCreateOrDestroyChildItems("withdrawal", revenu.withdrawals, withdrawals);
   }
 
+  const tax_profile = await prisma.tax_profile.findUnique({
+    where: {
+      user_id: this.request.user?.id || null,
+    },
+  });
+
   const revenuUpdated = updateRevenuStats(
     {
       ...revenuBody,
@@ -473,7 +484,7 @@ export async function updateRevenu(revenuId, body) {
       costs,
       invoices,
     },
-    this.request.user
+    tax_profile
   );
 
   revenu = await prisma.revenu.update({
@@ -662,11 +673,12 @@ export async function downloadSample() {
 
 /**
  * @param {Models.Prisma.revenuUncheckedUpdateInput & {credits: Models.credit[], costs: Models.cost[], invoices: Models.invoice[]}} revenu
- * @param {API.LoggedUser} user
+ * @param {Models.tax_profile} tax_profile
  * @returns {Models.Prisma.revenuUncheckedUpdateInput & {credits: Models.credit[], costs: Models.cost[], invoices: Models.invoice[]}}
  */
-function updateRevenuStats(revenu, user) {
-  let pro = 0;
+function updateRevenuStats(revenu, tax_profile) {
+  let salary = 0;
+  let bnc_pro = 0;
   let perso = 0;
   let expense = 0;
   let refund = 0;
@@ -682,9 +694,11 @@ function updateRevenuStats(revenu, user) {
       total_credits += +credit.total;
       if (credit.credit_category_id === 6) continue;
       if (credit.credit_category_id === 10) {
-        pro += +credit.total;
+        salary += +credit.total;
       } else if (credit.credit_category_id === 8) {
         refund += +credit.total;
+      } else if (credit.credit_category_id === 16) {
+        bnc_pro += +credit.total;
       } else if (credit.credit_category_id !== 10) {
         perso += +credit.total;
       }
@@ -725,9 +739,18 @@ function updateRevenuStats(revenu, user) {
 
   const revenuCopy = { ...revenu };
 
-  revenuCopy.pro = pro || 0;
+  // TODO: how do we calculate bruto here?
+  revenuCopy.salary = salary * (1 + 0.25) || 0;
+  revenuCopy.salary_net = salary;
+  revenuCopy.bnc_pro = bnc_pro || 0;
+  const bnc_pro_without_cotisation = bnc_pro * (1 - 0.213);
+  const bnc_pro_taxes = bnc_pro * (1 - 0.34) * tax_profile.tax_rate_mean;
+  revenuCopy.bnc_net = bnc_pro_without_cotisation - bnc_pro_taxes || 0;
+  revenuCopy.pro = salary + bnc_pro || 0;
+  revenuCopy.tax_amount = revenuCopy.pro - (revenuCopy.bnc_net + revenuCopy.salary_net) || 0;
   revenuCopy.perso = perso || 0;
-  revenuCopy.total = pro + perso || 0;
+  revenuCopy.total = revenuCopy.pro + perso || 0;
+  revenuCopy.total_net = revenuCopy.total - revenuCopy.tax_amount || 0;
   revenuCopy.expense = expense || 0;
   revenuCopy.refund = refund || 0;
   revenuCopy.tva_collected = tva_collected || 0;
@@ -737,14 +760,6 @@ function updateRevenuStats(revenu, user) {
   revenuCopy.total_credits = total_credits || 0;
   revenuCopy.recurrent_costs = recurrent_costs || 0;
   revenuCopy.recurrent_credits = recurrent_credits || 0;
-  revenuCopy.average_costs = expense / revenuCopy.costs.length || 0;
-  revenuCopy.average_credits = revenuCopy.total / revenuCopy.credits.length || 0;
-  revenuCopy.tax_amount = calculateTaxAmount(revenuCopy.total);
-  let total_net = pro || 0;
-  if (user.withholding_tax_active) {
-    revenuCopy.total_net -= revenuCopy.tax_amount;
-  }
-  revenuCopy.total_net = total_net || 0;
   revenuCopy.investments = investments || 0;
   revenuCopy.balance = expense + revenuCopy.total || 0;
   delete revenuCopy.id;
@@ -770,29 +785,4 @@ export async function getRevenuReport() {
   });
 
   return revenus.map((revenu) => revenu.report);
-}
-
-/**
- * @param {Number} total
- */
-function calculateTaxAmount(total) {
-  // Abattement de 30% avant impots sur le CA
-  const taxable_income = total / 1.3;
-  // Pas d'impôts jusqu'à 10 225€
-  const first_cap = 10226;
-  // 11% entre 10 226€ & 26 070€
-  const cap_first_batch = 26070;
-  // On passe au cap au dessus soit 26 071€
-  const second_cap = cap_first_batch + 1;
-  // 30 % entre 26 071€ & 74 545€, Au delà faut prendre un comptable sinon ça va chier
-  let tax_total = 0;
-  if (taxable_income >= first_cap && taxable_income < cap_first_batch) {
-    tax_total = (taxable_income - first_cap) * 0.11;
-  } else if (taxable_income >= second_cap) {
-    const tax_first_batch = (cap_first_batch - first_cap) * 0.11;
-    const tax_second_batch = (taxable_income - second_cap) * 0.3;
-    tax_total = tax_first_batch + tax_second_batch;
-  }
-
-  return Math.round(tax_total);
 }

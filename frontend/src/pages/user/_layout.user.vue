@@ -41,6 +41,12 @@ const menuItems = [
   },
   { title: "Revenus", link: "revenus", icon: "mdi-currency-eur", active: currentUser?.value?.revenus_module_active },
   {
+    title: "Estimated taxes",
+    link: "tax-profile",
+    icon: "mdi-receipt-text-outline",
+    active: currentUser?.value?.revenus_module_active,
+  },
+  {
     title: "Customers",
     link: "customers",
     icon: "mdi-account-group-outline",

@@ -156,38 +156,41 @@ model quotation {
 }
 
 model revenu {
-  id                Int           @id @default(autoincrement())
-  total             Float         @default(0)
-  pro               Float         @default(0)
-  perso             Float         @default(0)
-  created_at        DateTime      @default(now())
-  updated_at        DateTime      @updatedAt
-  tax_percentage    Float         @default(0)
-  expense           Float         @default(0)
-  tva_collected     Float         @default(0)
-  tva_dispatched    Float         @default(0)
-  tva_balance       Float         @default(0)
-  recurrent_costs   Float         @default(0)
-  recurrent_credits Float         @default(0)
-  average_costs     Float         @default(0)
-  average_credits   Float         @default(0)
-  total_costs       Float         @default(0)
-  total_credits     Float         @default(0)
-  tax_amount        Float         @default(0)
-  total_net         Float         @default(0)
-  investments       Float         @default(0)
-  balance           Float         @default(0)
-  refund            Float         @default(0)
-  report            Json?
-  user_id           Int?
-  watchers          String?       @db.Text
-  user              user?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  costs             cost[]
-  credits           credit[]
-  invoices          invoice[]
-  quotations        quotation[]
-  transactions      transaction[]
-  withdrawals       withdrawal[]
+  id                     Int           @id @default(autoincrement())
+  perso                  Float         @default(0)
+  pro                    Float         @default(0)
+  salary                 Float         @default(0)
+  salary_net             Float         @default(0)
+  total                  Float         @default(0)
+  bnc_pro                Float         @default(0)
+  bnc_net                Float         @default(0)
+  withholding_tax_active Boolean       @default(true)
+  created_at             DateTime      @default(now())
+  updated_at             DateTime      @updatedAt
+  tax_percentage         Float         @default(0)
+  expense                Float         @default(0)
+  tva_collected          Float         @default(0)
+  tva_dispatched         Float         @default(0)
+  tva_balance            Float         @default(0)
+  recurrent_costs        Float         @default(0)
+  recurrent_credits      Float         @default(0)
+  total_costs            Float         @default(0)
+  total_credits          Float         @default(0)
+  tax_amount             Float         @default(0)
+  total_net              Float         @default(0)
+  investments            Float         @default(0)
+  balance                Float         @default(0)
+  refund                 Float         @default(0)
+  report                 Json?
+  user_id                Int?
+  watchers               String?       @db.Text
+  user                   user?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  costs                  cost[]
+  credits                credit[]
+  invoices               invoice[]
+  quotations             quotation[]
+  transactions           transaction[]
+  withdrawals            withdrawal[]
 }
 
 model transaction {
@@ -225,6 +228,7 @@ model user {
   pending_emails          pending_email[]
   payments                payment[]
   investment_profile      investment_profile?
+  tax_profile             tax_profile?
 }
 
 model asset {
@@ -386,18 +390,45 @@ model credit_category {
 }
 
 model investment_profile {
+  id                   Int      @id @default(autoincrement())
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  investment_goal      Float    @default(0.2)
+  average_revenu_pro   Float    @default(0)
+  average_revenu_perso Float    @default(0)
+  average_revenu_total Float    @default(0)
+  average_expense      Float    @default(0)
+  average_balance      Float    @default(0)
+  average_investments  Float    @default(0)
+  average_tax_amount   Float    @default(0)
+  investment_capacity  Float    @default(0)
+  user_id              Int      @unique
+  user                 user     @relation(fields: [user_id], references: [id])
+}
+
+model tax_profile {
   id                     Int      @id @default(autoincrement())
   created_at             DateTime @default(now())
   updated_at             DateTime @updatedAt
-  withholding_tax_active Boolean  @default(true)
-  investment_goal        Float    @default(0.2)
-  average_revenu_pro     Float    @default(0)
-  average_revenu_perso   Float    @default(0)
-  average_revenu_total   Float    @default(0)
-  average_expense        Float    @default(0)
-  average_balance        Float    @default(0)
-  average_investments    Float    @default(0)
-  investment_capacity    Float    @default(0)
+  fiscal_revenu          Float    @default(0)
+  parts_number           Int      @default(1)
+  salary                 Float    @default(0)
+  fees_declared          Boolean  @default(false)
+  fees                   Float    @default(0)
+  deduction_percent      Float    @default(0.1)
+  salary_net             Float    @default(0)
+  bnc_pro                Float    @default(0)
+  bnc_net                Float    @default(0)
+  income_global          Float    @default(0)
+  income_net_global      Float    @default(0)
+  income_taxable         Float    @default(0)
+  tax_amount             Float    @default(0)
+  decote                 Float    @default(0)
+  withholding_tax_active Boolean  @default(false)
+  tax_amount_net         Float    @default(0)
+  tax_withholded         Float    @default(0)
+  tax_rate_mean          Float    @default(0)
+  tax_rate_marginal      Float    @default(0)
   user_id                Int      @unique
   user                   user     @relation(fields: [user_id], references: [id])
 }

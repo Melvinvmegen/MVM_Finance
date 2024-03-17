@@ -1,4 +1,4 @@
-import { transporter } from "../utils/transporter.js";
+import { transporter, sendAlert } from "../utils/transporter.js";
 import { database } from "../utils/database.js";
 import { settings } from "./settings.js";
 import { ofetch } from "ofetch";
@@ -110,7 +110,7 @@ export const functions = {
         try {
           `[Cron task] createCustomerRecurrentInvoice generating pdf for invoice #${invoice.id}`;
           await ofetch(
-            `${settings.finance.baseRequestsUrl}/invoices/generate-pdf`,
+            `${settings.finance.baseRequestsUrl}invoices/generate-pdf`,
             {
               method: "POST",
               body: {

@@ -4,12 +4,13 @@ import { settings } from "../utils/settings.js";
 import { ofetch } from "ofetch";
 
 export async function handleUserStatsTask() {
-  console.log("[User Task] ...Querying investment_profiles to update");
-  const investment_profiles = await database
-    .select("investment_profile.id")
+  console.log("[User Task] ...Querying users to update");
+  const users = await database
+    .select("user.id")
     .from("user")
     .join("revenu", "revenu.user_id", "user.id")
     .join("investment_profile", "investment_profile.user_id", "user.id")
+    .join("tax_profile", "tax_profile.user_id", "user.id")
     .where(
       "revenu.updated_at",
       ">=",
@@ -20,31 +21,36 @@ export async function handleUserStatsTask() {
       ">=",
       new Date(new Date() - settings.cron.statsFromMs)
     )
-    .groupBy("investment_profile.id");
+    .orWhere(
+      "investment_profile.updated_at",
+      ">=",
+      new Date(new Date() - settings.cron.statsFromMs)
+    )
+    .orWhere(
+      "tax_profile.updated_at",
+      ">=",
+      new Date(new Date() - settings.cron.statsFromMs)
+    )
+    .groupBy("user.id");
 
-  if (investment_profiles.length) {
-    console.log(
-      `[User Task] Found ${investment_profiles.length} investment_profiles to update`
-    );
+  if (users.length) {
+    console.log(`[User Task] Found ${users.length} users to update`);
   } else {
-    console.log(`[User Task] 0 investment_profiles to update`);
+    console.log(`[User Task] 0 users to update`);
     return;
   }
 
   try {
-    await ofetch(
-      `${settings.finance.baseRequestsUrl}stats/investment-profiles`,
-      {
-        method: "POST",
-        body: { investmentProfileIds: investment_profiles.map((ip) => ip.id) },
-        headers: {
-          Authorization: `Basic ${btoa(
-            `${settings.finance.apiUsername}:${settings.finance.apiPassword}`
-          )}`,
-        },
-      }
-    );
-    console.log("[User Task] investment_profiles stats successfully updated");
+    await ofetch(`${settings.finance.baseRequestsUrl}stats/users`, {
+      method: "POST",
+      body: { user_ids: users.map((u) => u.id) },
+      headers: {
+        Authorization: `Basic ${btoa(
+          `${settings.finance.apiUsername}:${settings.finance.apiPassword}`
+        )}`,
+      },
+    });
+    console.log("[User Task] users stats successfully updated");
   } catch (err) {
     console.log(`[User Task] An error occured`, err);
     sendAlert(

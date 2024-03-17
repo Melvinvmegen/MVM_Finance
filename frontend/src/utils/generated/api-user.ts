@@ -412,3 +412,28 @@ export async function downloadSample(query = undefined) {
 export async function getRevenuReport(query = undefined) {
   return await useOFetch(`/api/user/revenus/report`, { method: "GET", query });
 }
+/**
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/tax-profiles.js").getTaxProfile>>}
+**/
+export async function getTaxProfile(query = undefined) {
+  return await useOFetch(`/api/user/tax-profiles`, { method: "GET", query });
+}
+/**
+ * @param {string|string[]|number} id
+ * @param {Parameters<import("../../../../backend/api/user/tax-profiles.js").updateTaxProfile>[1]} body
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/tax-profiles.js").updateTaxProfile>>}
+**/
+export async function updateTaxProfile(id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/tax-profiles/${id}`, { method: "PUT", body, query });
+}
+/**
+ * @param {string|string[]|number} id
+ * @param {Parameters<import("../../../../backend/api/user/tax-profiles.js").simulateTaxProfile>[1]} body
+ * @param {Record<string,string|string[]|number>} [query]
+ * @returns {Promise<ReturnType<import("../../../../backend/api/user/tax-profiles.js").simulateTaxProfile>>}
+**/
+export async function simulateTaxProfile(id, body = undefined, query = undefined) {
+  return await useOFetch(`/api/user/tax-profiles/${id}/simulate`, { method: "POST", body, query });
+}

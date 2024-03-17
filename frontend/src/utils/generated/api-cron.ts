@@ -15,7 +15,7 @@ export async function generatePDF(body = undefined, query = undefined) {
  * @returns {Promise<ReturnType<import("../../../../backend/api/cron/stats.js").setUsersStats>>}
 **/
 export async function setUsersStats(body = undefined, query = undefined) {
-  return await useOFetch(`/api/cron/stats/investment-profiles`, { method: "POST", body, query });
+  return await useOFetch(`/api/cron/stats/users`, { method: "POST", body, query });
 }
 /**
  * @param {Parameters<import("../../../../backend/api/cron/stats.js").setAssetsStats>[0]} body

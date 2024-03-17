@@ -4,9 +4,9 @@ v-row
     v-card(elevation="3")
       v-card-title
         v-row(justify="space-between" align="center")
-          v-col.text-uppercase(cols="11") {{ $t("assets.title") }}
+          v-col.text-uppercase(cols="10") {{ $t("assets.title") }}
           v-spacer  
-          v-col(cols="1" class="d-flex justify-center align-center")
+          v-col(cols="2" class="d-flex justify-center align-center")
             v-btn(icon="mdi-plus" color="primary" @click="show_modal = true")
             v-btn(icon="mdi-restore" color="primary" @click="refreshAssetsStats")
 
@@ -81,7 +81,7 @@ async function refreshUserStats(value) {
   loadingStore.setLoading(true);
   try {
     await setUsersStats({
-      investmentProfileIds: [investment_profile.value.id],
+      user_ids: [investment_profile.value?.user_id],
     });
   } catch (err) {
     console.error(err);

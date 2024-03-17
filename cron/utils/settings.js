@@ -3,7 +3,7 @@ export const settings = {
     db_client: process.env.DB_CLIENT || "postgres",
     db_host: process.env.DB_HOST || "127.0.0.1",
     db_port: process.env.DB_PORT || "5432",
-    db_user: process.env.DB_USER || "postgres",
+    db_user: process.env.DB_USER || "root",
     db_password: process.env.DB_PASSWORD || "password",
     db_database: process.env.DB_DATABASE || "mvm_finance",
   },
@@ -22,15 +22,17 @@ export const settings = {
       process.env.MAIL_ALERT_FROM_ADDRESS || "alert@melvinvmegen.com",
   },
   finance: {
-    baseRequestsUrl: process.env["FINANCE_BASE_REQUESTS_URL"],
-    apiUsername: process.env["FINANCE_API_USERNAME"],
-    apiPassword: process.env["FINANCE_API_PASSWORD"],
+    baseRequestsUrl:
+      process.env["FINANCE_BASE_REQUESTS_URL"] ||
+      "http://localhost:3000/api/cron/",
+    apiUsername: process.env["FINANCE_API_USERNAME"] || "user",
+    apiPassword: process.env["FINANCE_API_PASSWORD"] || "123",
   },
   cron: {
     cronDelayMs: process.env["CRON_CRON_DELAY_MS"] || 60000,
     cronOffsetMS: process.env["CRON_CRON_OFFSET_MS"] || 0,
     statsDelayMs: process.env["CRON_STATS_DELAY_MS"] || 60000,
     statsOffsetMs: process.env["CRON_STATS_OFFSET_MS"] || 0,
-    statsFromMs: process.env["CRON_STATS_FROM_MS"] || 300000,
+    statsFromMs: process.env["CRON_STATS_FROM_MS"] || 30000000,
   },
 };

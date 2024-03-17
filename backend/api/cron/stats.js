@@ -1,22 +1,24 @@
+import { generateTaxProfileStats, generateInvestmentProfileStats } from "../../utils/generateStats.js";
 import { invalidateCache } from "../../utils/cacheManager.js";
 import { AppError } from "../../utils/AppError.js";
 import { prisma } from "../../utils/prisma.js";
 import { roundTo } from "../../utils/roundTo.js";
+
 /**
  * @param {API.ServerInstance} app
  */
 export default async function (app) {
-  app.$post("/stats/investment-profiles", setUsersStats);
+  app.$post("/stats/users", setUsersStats);
   app.$post("/stats/assets", setAssetsStats);
 }
 
 /**
- * @this {API.This & { request: { body: { investmentProfileIds: Number[]}}}}
+ * @this {API.This & { request: { body: { user_ids: Number[]}}}}
  */
 export async function setUsersStats() {
-  const investmentProfileIds = this.request.body.investmentProfileIds;
-  if (investmentProfileIds?.length) {
-    for (let investment_profile_id of investmentProfileIds) {
+  const user_ids = this.request.body.user_ids;
+  if (user_ids?.length) {
+    for (let user_id of user_ids) {
       try {
         const investment_profile = await prisma.investment_profile.findFirst({
           select: {
@@ -24,44 +26,48 @@ export async function setUsersStats() {
             user_id: true,
           },
           where: {
-            id: +investment_profile_id,
+            user_id: +user_id,
           },
         });
 
-        if (!investment_profile) console.error("Investment profile not found for id #", investment_profile.id);
-
-        const [revenu_stats] = await prisma.$queryRaw`
-          SELECT
-            COALESCE(AVG(pro), 0) as average_pro,
-            COALESCE(AVG(perso), 0) as average_perso,
-            COALESCE(AVG(total), 0) as average_total,
-            COALESCE(AVG(expense), 0) as average_expense,
-            COALESCE(AVG(balance), 0) as average_balance,
-            COALESCE(AVG(investments), 0) as average_investments,
-            COALESCE(AVG(tax_amount), 0) as average_tax_amount
-          FROM
-            (SELECT * FROM revenu WHERE user_id = ${investment_profile.user_id}  ORDER BY created_at DESC LIMIT 6) as revenus;`;
-
-        await prisma.investment_profile.update({
+        const tax_profile = await prisma.tax_profile.findFirst({
+          select: {
+            id: true,
+            withholding_tax_active: true,
+            parts_number: true,
+            user_id: true,
+          },
           where: {
-            id: +investment_profile_id,
-          },
-          data: {
-            average_revenu_pro: roundTo(revenu_stats.average_pro, 2),
-            average_revenu_perso: roundTo(revenu_stats.average_perso, 2),
-            average_revenu_total: roundTo(revenu_stats.average_total, 2),
-            average_expense: roundTo(revenu_stats.average_expense, 2),
-            average_balance: roundTo(revenu_stats.average_balance, 2),
-            average_investments: roundTo(revenu_stats.average_investments, 2),
-            investment_capacity: investment_profile.withholding_tax_active
-              ? roundTo(revenu_stats.average_balance - revenu_stats.average_tax_amount, 2)
-              : roundTo(revenu_stats.average_balance, 2),
+            user_id: +user_id,
           },
         });
 
-        await invalidateCache(`user_${this.request.user?.id}_investment_profile`);
+        if (!tax_profile || !investment_profile) console.error("Profile not found for user_id #", user_id);
+
+        if (investment_profile) {
+          const updated_investment_profile = await generateInvestmentProfileStats(investment_profile, tax_profile);
+          await prisma.investment_profile.update({
+            where: {
+              user_id: +investment_profile.user_id,
+            },
+            data: updated_investment_profile,
+          });
+          await invalidateCache(`user_${this.request.user?.id}_investment_profile`);
+        }
+
+        if (tax_profile) {
+          const updated_tax_profile = await generateTaxProfileStats(tax_profile);
+          await prisma.tax_profile.update({
+            where: {
+              user_id: +tax_profile.user_id,
+            },
+            data: updated_tax_profile,
+          });
+          await invalidateCache(`user_${this.request.user?.id}_tax_profile`);
+        }
       } catch (error) {
         console.log("An unexpected error occured", error);
+        throw new AppError("An unexpected error occured");
       }
     }
   } else {
@@ -190,6 +196,7 @@ export async function setAssetsStats() {
         });
       } catch (error) {
         console.log("An unexpected error occured", error);
+        throw new AppError("An unexpected error occured");
       }
     }
 

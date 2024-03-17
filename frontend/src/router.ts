@@ -73,6 +73,10 @@ export function createRouter() {
             path: "/assets",
             component: () => import("./pages/user/assets.vue"),
           },
+          {
+            path: "/tax-profile",
+            component: () => import("./pages/user/tax-profile.vue"),
+          },
         ],
       },
       {

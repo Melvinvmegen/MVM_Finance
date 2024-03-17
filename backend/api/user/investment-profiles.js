@@ -63,7 +63,6 @@ export async function updateInvestmentProfile(investment_profile_id, body) {
       id: +investment_profile_id,
     },
     data: {
-      withholding_tax_active: body.withholding_tax_active,
       investment_goal: body.investment_goal,
     },
   });

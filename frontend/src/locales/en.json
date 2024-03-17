@@ -235,7 +235,8 @@
     "categories": "Categories",
     "asset": "Asset",
     "initial_asset": "Initial asset",
-    "destination_asset": "Destination asset"
+    "destination_asset": "Destination asset",
+    "withholding_tax_active": "Withholding tax active"
   },
   "revenus": {
     "title": "Revenus",
@@ -250,7 +251,7 @@
     "revenuDistribution": "Revenu distribution:",
     "search": "Search",
     "month": "Month",
-    "revenuPro": "Pro",
+    "revenuPro": "Salary",
     "revenuPerso": "Personal",
     "revenuNet": "Net",
     "investments": "Investments",
@@ -376,5 +377,36 @@
     "average_expense": "Average expense",
     "average_investments": "Average investments",
     "average_balance": "Average balance"
+  },
+  "tax_profile": {
+    "title": "Tax estimation {0}",
+    "withholding_tax_active": "Tax withholding active",
+    "fees_declared": "Fees declared",
+    "parts_number": "income parts number",
+    "deduction_percent": "Deduction percent",
+    "simulate": "Simulate",
+    "config": "Configure your tax stats",
+    "fiscal_revenu": "Fiscal revenu",
+    "salary": "Salary",
+    "taxes": "Taxes",
+    "salary_net": "Salary net",
+    "bnc_pro": "BNC pro",
+    "bnc_net": "BNC net",
+    "income_net_global": "Income net global",
+    "income_taxable": "Income taxable",
+    "tax_amount": "Tax amount",
+    "decote": "Decote",
+    "tax_amount_net": "Tax amount net",
+    "tax_withholded": "Tax witholded",
+    "tax_rate_mean": "Tax rate mean",
+    "tax_rate_marginal": "Tax rate marginal",
+    "updated": "Tax profile has been successfully updated",
+    "update": "Update",
+    "simulate_title": "Simulation",
+    "tax_total": "Tax total",
+    "income_global": "Income global",
+    "bnc_pro-info": "Etape 3 : Revenus non commerciaux professionnels\nEtape 4 : Case 5HQ avec CA brut",
+    "taxes_info": "Taxes applied on the salary",
+    "tax_bnc_info": "21.3% cotisation applied and {0} tax rate after applying the 34% abatement"
   }
 }
