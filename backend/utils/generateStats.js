@@ -15,6 +15,15 @@ export async function generateInvestmentProfileStats(investment_profile, tax_pro
           FROM
             (SELECT * FROM revenu WHERE user_id = ${investment_profile.user_id}  ORDER BY created_at DESC LIMIT 6) as revenus;`;
 
+  const monthly_investment_capacity = (revenu_stats.average_pro - investment_profile.fees) * 0.35;
+  const interest_rate = 4;
+  const duration_in_years = 20;
+  const investment_capacity = calculateInvestmentCapacity(
+    monthly_investment_capacity,
+    interest_rate,
+    duration_in_years
+  );
+
   return {
     average_revenu_pro: roundTo(revenu_stats.average_pro, 2),
     average_revenu_perso: roundTo(revenu_stats.average_perso, 2),
@@ -23,9 +32,9 @@ export async function generateInvestmentProfileStats(investment_profile, tax_pro
     average_balance: roundTo(revenu_stats.average_balance, 2),
     average_investments: roundTo(revenu_stats.average_investments, 2),
     average_tax_amount: roundTo(revenu_stats.average_tax_amount, 2),
-    investment_capacity: tax_profile?.withholding_tax_active
-      ? roundTo(revenu_stats.average_balance - revenu_stats.average_tax_amount, 2)
-      : roundTo(revenu_stats.average_balance, 2),
+    // TODO: average_fixed_expenses
+    monthly_investment_capacity,
+    investment_capacity,
   };
 }
 
@@ -124,4 +133,11 @@ function calculateTaxAmount(income, parts_number) {
   const tax_amount = Math.round(tax_total * parts_number) || 0;
   const tax_rate_mean = tax_amount / taxable_income || 0;
   return { tax_amount, tax_rate_marginal, tax_rate_mean };
+}
+
+function calculateInvestmentCapacity(monthly_investment_capacity, interest_rate, duration_in_years) {
+  const annual_capacity = monthly_investment_capacity * 12;
+  const payments_number = duration_in_years * 12;
+  const annual_interest_rate = interest_rate / 100;
+  return (annual_capacity * (1 - Math.pow(1 + annual_interest_rate, -payments_number))) / annual_interest_rate;
 }

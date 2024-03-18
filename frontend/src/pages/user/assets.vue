@@ -21,6 +21,9 @@ v-row
           v-card-subtitle {{ $t("investment-profile.average_revenu_perso") }}
           v-card-title {{ $n(investment_profile.average_revenu_perso, "currency") }}
         v-row(justify="space-around" align="center")
+          v-card-subtitle {{ $t("investment-profile.average_revenu_perso") }}
+          v-card-title {{ $n(investment_profile.average_revenu_perso, "currency") }}
+        v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("investment-profile.average_revenu_pro") }}
           v-card-title {{ $n(investment_profile.average_revenu_pro, "currency") }}
         hr.mx-2.my-4
@@ -37,6 +40,20 @@ v-row
         v-row(justify="space-around" align="center")
           v-card-subtitle {{ $t("investment-profile.average_balance") }}
           v-card-title {{ $n(investment_profile.average_balance, "currency") }}
+        v-row(justify="space-around" align="center")
+          v-card-subtitle 
+            span {{ $t("investment-profile.monthly_investment_capacity") }}
+            v-tooltip(:text="$t('tax_profile.monthly_investment_capacity_info', 'currency')")
+              template(v-slot:activator="{ props }")
+                v-btn(v-bind="props" icon="mdi-information-outline" variant="plain" size="small")
+          v-card-title {{ $n(investment_profile.monthly_investment_capacity, "currency") }}
+        v-row(justify="space-around" align="center")
+          v-card-subtitle 
+            span {{ $t("investment-profile.investment_capacity") }}
+            v-tooltip(:text="$t('tax_profile.investment_capacity_info', 'currency')")
+              template(v-slot:activator="{ props }")
+                v-btn(v-bind="props" icon="mdi-information-outline" variant="plain" size="small")
+          v-card-title {{ $n(investment_profile.investment_capacity, "currency") }}
     v-card.mt-4
       v-card-text
         v-card-title.text-center.mb-2 {{ $t("assets.total") }} : {{ $n(totalAssets, "currency") }}

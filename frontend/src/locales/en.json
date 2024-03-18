@@ -376,7 +376,9 @@
     "average_revenu_total": "Average total",
     "average_expense": "Average expense",
     "average_investments": "Average investments",
-    "average_balance": "Average balance"
+    "average_balance": "Average balance",
+    "monthly_investment_capacity": "Monthly investment capacity",
+    "investment_capacity": "Investment capacity"
   },
   "tax_profile": {
     "title": "Tax estimation {0}",
@@ -407,6 +409,8 @@
     "income_global": "Income global",
     "bnc_pro-info": "Etape 3 : Revenus non commerciaux professionnels\nEtape 4 : Case 5HQ avec CA brut",
     "taxes_info": "Taxes applied on the salary",
-    "tax_bnc_info": "21.3% cotisation applied and {0} tax rate after applying the 34% abatement"
+    "tax_bnc_info": "21.3% cotisation applied and {0} tax rate after applying the 34% abatement",
+    "monthly_investment_capacity_info": "Correspont au revenut net - les frais fixes * un taux d'endettement maximum de 35%",
+    "investment_capacity_info": "Basé sur un taux d'interêt de 4% pour un emprunt sur 20 ans."
   }
 }

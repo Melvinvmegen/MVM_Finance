@@ -390,20 +390,22 @@ model credit_category {
 }
 
 model investment_profile {
-  id                   Int      @id @default(autoincrement())
-  created_at           DateTime @default(now())
-  updated_at           DateTime @updatedAt
-  investment_goal      Float    @default(0.2)
-  average_revenu_pro   Float    @default(0)
-  average_revenu_perso Float    @default(0)
-  average_revenu_total Float    @default(0)
-  average_expense      Float    @default(0)
-  average_balance      Float    @default(0)
-  average_investments  Float    @default(0)
-  average_tax_amount   Float    @default(0)
-  investment_capacity  Float    @default(0)
-  user_id              Int      @unique
-  user                 user     @relation(fields: [user_id], references: [id])
+  id                          Int      @id @default(autoincrement())
+  created_at                  DateTime @default(now())
+  updated_at                  DateTime @updatedAt
+  investment_goal             Float    @default(0.2)
+  average_revenu_pro          Float    @default(0)
+  average_revenu_perso        Float    @default(0)
+  average_revenu_total        Float    @default(0)
+  average_expense             Float    @default(0)
+  average_balance             Float    @default(0)
+  average_investments         Float    @default(0)
+  average_tax_amount          Float    @default(0)
+  investment_capacity Float    @default(0)
+  monthly_investment_capacity Float    @default(0)
+  fixed_fees                  Float    @default(0)
+  user_id                     Int      @unique
+  user                        user     @relation(fields: [user_id], references: [id])
 }
 
 model tax_profile {
